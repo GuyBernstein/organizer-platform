@@ -11,8 +11,10 @@ import java.util.Date;
 public class RedisData implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    private String userName;
     private String key;
     private String value;
+    private String catagory;
     private Date createdAt = Dates.nowUTC();
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
@@ -27,6 +29,14 @@ public class RedisData implements Serializable {
 
     public void setKey(String key) {
         this.key = key;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
     public String getValue() {
@@ -45,9 +55,19 @@ public class RedisData implements Serializable {
         this.createdAt = createdAt;
     }
 
+    public String getCatagory() {
+        return catagory;
+    }
+
+    public void setCatagory(String catagory) {
+        this.catagory = catagory;
+    }
+
     public static final class RedisDataBuilder {
+        private String userName;
         private String key;
         private String value;
+        private String catagory;
         private Date createdAt;
 
         private RedisDataBuilder() {
@@ -55,6 +75,11 @@ public class RedisData implements Serializable {
 
         public static RedisDataBuilder aRedisData() {
             return new RedisDataBuilder();
+        }
+
+        public RedisDataBuilder userName(String userName) {
+            this.userName = userName;
+            return this;
         }
 
         public RedisDataBuilder key(String key) {
@@ -67,6 +92,11 @@ public class RedisData implements Serializable {
             return this;
         }
 
+        public RedisDataBuilder catagory(String catagory) {
+            this.catagory = catagory;
+            return this;
+        }
+
         public RedisDataBuilder createdAt(Date createdAt) {
             this.createdAt = createdAt;
             return this;
@@ -74,8 +104,10 @@ public class RedisData implements Serializable {
 
         public RedisData build() {
             RedisData redisData = new RedisData();
+            redisData.setUserName(userName);
             redisData.setKey(key);
             redisData.setValue(value);
+            redisData.setCatagory(catagory);
             redisData.setCreatedAt(createdAt);
             return redisData;
         }
