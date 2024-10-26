@@ -1,0 +1,305 @@
+Index: src/main/java/com/handson/tinyurl/model/UserClick.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/com/handson/tinyurl/model/UserClick.java b/src/main/java/com/handson/tinyurl/model/UserClick.java
+new file mode 100644
+--- /dev/null	(date 1644133507232)
++++ b/src/main/java/com/handson/tinyurl/model/UserClick.java	(date 1644133507232)
+@@ -0,0 +1,91 @@
++package com.handson.tinyurl.model;
++
++
++import org.springframework.data.cassandra.core.mapping.PrimaryKey;
++import org.springframework.data.cassandra.core.mapping.Table;
++
++import java.util.Date;
++import java.util.Objects;
++
++@Table
++public class UserClick {
++    @PrimaryKey
++    private UserClickKey userClickKey;
++
++    private String tiny;
++    private String longUrl;
++
++
++    @Override
++    public boolean equals(Object o) {
++        if (this == o) return true;
++        if (o == null || getClass() != o.getClass()) return false;
++        UserClick userClick = (UserClick) o;
++        return Objects.equals(userClickKey, userClick.userClickKey) && Objects.equals(tiny, userClick.tiny) && Objects.equals(longUrl, userClick.longUrl);
++    }
++
++    @Override
++    public int hashCode() {
++        return Objects.hash(userClickKey, tiny, longUrl);
++    }
++
++    public UserClickKey getUserClickKey() {
++        return userClickKey;
++    }
++
++    public void setUserClickKey(UserClickKey userClickKey) {
++        this.userClickKey = userClickKey;
++    }
++
++    public void setTiny(String tiny) {
++        this.tiny = tiny;
++    }
++
++    public void setLongUrl(String longUrl) {
++        this.longUrl = longUrl;
++    }
++
++    public String getTiny() {
++        return tiny;
++    }
++
++    public String getLongUrl() {
++        return longUrl;
++    }
++
++    public static final class UserClickBuilder {
++        private UserClickKey userClickKey;
++        private String tiny;
++        private String longUrl;
++
++        private UserClickBuilder() {
++        }
++
++        public static UserClickBuilder anUserClick() {
++            return new UserClickBuilder();
++        }
++
++        public UserClickBuilder userClickKey(UserClickKey userClickKey) {
++            this.userClickKey = userClickKey;
++            return this;
++        }
++
++        public UserClickBuilder tiny(String tiny) {
++            this.tiny = tiny;
++            return this;
++        }
++
++        public UserClickBuilder longUrl(String longUrl) {
++            this.longUrl = longUrl;
++            return this;
++        }
++
++        public UserClick build() {
++            UserClick userClick = new UserClick();
++            userClick.setUserClickKey(userClickKey);
++            userClick.setTiny(tiny);
++            userClick.setLongUrl(longUrl);
++            return userClick;
++        }
++    }
++}
+Index: src/main/java/com/handson/tinyurl/model/UserClickKey.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/com/handson/tinyurl/model/UserClickKey.java b/src/main/java/com/handson/tinyurl/model/UserClickKey.java
+new file mode 100644
+--- /dev/null	(date 1644133507235)
++++ b/src/main/java/com/handson/tinyurl/model/UserClickKey.java	(date 1644133507235)
+@@ -0,0 +1,77 @@
++package com.handson.tinyurl.model;
++
++import org.springframework.data.cassandra.core.cql.Ordering;
++import org.springframework.data.cassandra.core.cql.PrimaryKeyType;
++import org.springframework.data.cassandra.core.mapping.PrimaryKeyClass;
++import org.springframework.data.cassandra.core.mapping.PrimaryKeyColumn;
++
++import java.util.Date;
++import java.util.Objects;
++
++@PrimaryKeyClass
++public class UserClickKey {
++
++    @PrimaryKeyColumn(name = "user_name",ordinal = 0,type = PrimaryKeyType.PARTITIONED)
++    private String userName;
++
++    @PrimaryKeyColumn(name="click_time",ordinal = 1,type = PrimaryKeyType.CLUSTERED, ordering = Ordering.DESCENDING )
++    private Date clickTime = new Date();
++
++    @Override
++    public boolean equals(Object o) {
++        if (this == o) return true;
++        if (o == null || getClass() != o.getClass()) return false;
++        UserClickKey that = (UserClickKey) o;
++        return Objects.equals(userName, that.userName) && Objects.equals(clickTime, that.clickTime);
++    }
++
++    @Override
++    public int hashCode() {
++        return Objects.hash(userName, clickTime);
++    }
++
++    public void setUserName(String userName) {
++        this.userName = userName;
++    }
++
++    public void setClickTime(Date clickTime) {
++        this.clickTime = clickTime;
++    }
++
++    public String getUserName() {
++        return userName;
++    }
++
++    public Date getClickTime() {
++        return clickTime;
++    }
++
++    public static final class UserClickKeyBuilder {
++        private String userName;
++        private Date clickTime = new Date();
++
++        private UserClickKeyBuilder() {
++        }
++
++        public static UserClickKeyBuilder anUserClickKey() {
++            return new UserClickKeyBuilder();
++        }
++
++        public UserClickKeyBuilder withUserName(String userName) {
++            this.userName = userName;
++            return this;
++        }
++
++        public UserClickKeyBuilder withClickTime(Date clickTime) {
++            this.clickTime = clickTime;
++            return this;
++        }
++
++        public UserClickKey build() {
++            UserClickKey userClickKey = new UserClickKey();
++            userClickKey.setUserName(userName);
++            userClickKey.setClickTime(clickTime);
++            return userClickKey;
++        }
++    }
++}
+Index: src/main/java/com/handson/tinyurl/config/CassandraConfig.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/com/handson/tinyurl/config/CassandraConfig.java b/src/main/java/com/handson/tinyurl/config/CassandraConfig.java
+new file mode 100644
+--- /dev/null	(date 1644133481422)
++++ b/src/main/java/com/handson/tinyurl/config/CassandraConfig.java	(date 1644133481422)
+@@ -0,0 +1,23 @@
++package com.handson.tinyurl.config;
++
++import com.datastax.oss.driver.api.core.CqlSession;
++import org.springframework.context.annotation.Bean;
++import org.springframework.context.annotation.Configuration;
++
++import java.net.InetSocketAddress;
++import java.net.URISyntaxException;
++
++@Configuration
++public class CassandraConfig {
++
++    @Bean("cassandraSession")
++    public CqlSession getCassandraSession() throws URISyntaxException {
++        return CqlSession.builder()
++                .addContactPoint(new InetSocketAddress("cassandra", 9042))
++                .withKeyspace("tiny_keyspace")
++                .withLocalDatacenter("datacenter1")
++                .build();
++    }
++
++}
++
+Index: src/main/java/com/handson/tinyurl/repository/UserClickRepository.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/com/handson/tinyurl/repository/UserClickRepository.java b/src/main/java/com/handson/tinyurl/repository/UserClickRepository.java
+new file mode 100644
+--- /dev/null	(date 1644133905823)
++++ b/src/main/java/com/handson/tinyurl/repository/UserClickRepository.java	(date 1644133905823)
+@@ -0,0 +1,13 @@
++package com.handson.tinyurl.repository;
++
++
++import com.handson.tinyurl.model.UserClick;
++import com.handson.tinyurl.model.UserClickKey;
++import org.springframework.data.cassandra.repository.CassandraRepository;
++import org.springframework.data.cassandra.repository.Query;
++
++public interface UserClickRepository extends CassandraRepository<UserClick, UserClickKey> {
++    @Query("SELECT * FROM userclick WHERE user_name=:userName")
++    Iterable<UserClick> findByUserName(String userName);
++
++}
+Index: src/main/java/com/handson/tinyurl/model/UserClickOut.java
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/src/main/java/com/handson/tinyurl/model/UserClickOut.java b/src/main/java/com/handson/tinyurl/model/UserClickOut.java
+new file mode 100644
+--- /dev/null	(date 1644133905833)
++++ b/src/main/java/com/handson/tinyurl/model/UserClickOut.java	(date 1644133905833)
+@@ -0,0 +1,51 @@
++package com.handson.tinyurl.model;
++
++
++import com.fasterxml.jackson.annotation.JsonFormat;
++import com.fasterxml.jackson.annotation.JsonProperty;
++import com.handson.tinyurl.util.Dates;
++import org.joda.time.LocalDateTime;
++import org.springframework.data.cassandra.core.mapping.PrimaryKey;
++import org.springframework.data.cassandra.core.mapping.Table;
++
++import java.util.Date;
++import java.util.Objects;
++
++public class UserClickOut {
++
++    private String userName;
++    private Date clickTime;
++    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
++    @JsonProperty("clickTime")
++    public LocalDateTime calcClickTime() {
++        return Dates.atLocalTime(clickTime);
++    }
++
++    private String tiny;
++    private String longUrl;
++
++    public String getUserName() {
++        return userName;
++    }
++
++    public Date getClickTime() {
++        return clickTime;
++    }
++
++    public String getTiny() {
++        return tiny;
++    }
++
++    public String getLongUrl() {
++        return longUrl;
++    }
++
++    public static UserClickOut of(UserClick userClick) {
++        UserClickOut res = new UserClickOut();
++        res.userName = userClick.getUserClickKey().getUserName();
++        res.clickTime = userClick.getUserClickKey().getClickTime();
++        res.tiny = userClick.getTiny();
++        res.longUrl = userClick.getLongUrl();
++        return res;
++    }
++}
