@@ -14,7 +14,6 @@ public class RedisData implements Serializable {
     private String userName;
     private String key;
     private String value;
-    private String catagory;
     private Date createdAt = Dates.nowUTC();
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
@@ -55,19 +54,10 @@ public class RedisData implements Serializable {
         this.createdAt = createdAt;
     }
 
-    public String getCatagory() {
-        return catagory;
-    }
-
-    public void setCatagory(String catagory) {
-        this.catagory = catagory;
-    }
-
     public static final class RedisDataBuilder {
         private String userName;
         private String key;
         private String value;
-        private String catagory;
         private Date createdAt;
 
         private RedisDataBuilder() {
@@ -92,11 +82,6 @@ public class RedisData implements Serializable {
             return this;
         }
 
-        public RedisDataBuilder catagory(String catagory) {
-            this.catagory = catagory;
-            return this;
-        }
-
         public RedisDataBuilder createdAt(Date createdAt) {
             this.createdAt = createdAt;
             return this;
@@ -107,7 +92,6 @@ public class RedisData implements Serializable {
             redisData.setUserName(userName);
             redisData.setKey(key);
             redisData.setValue(value);
-            redisData.setCatagory(catagory);
             redisData.setCreatedAt(createdAt);
             return redisData;
         }

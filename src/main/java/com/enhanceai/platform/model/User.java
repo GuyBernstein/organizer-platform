@@ -18,8 +18,10 @@ public class User {
     private String name;
     private int totalTextContents;
     private int totalFiles;
-    private Map<String, UserTextContent> textContents;
-    private Map<String, UserFileContent> fileContents;
+    private int totalAiContents;
+    private Map<String, UserContents> textContents;
+    private Map<String, UserContents> fileContents;
+    private Map<String, UserContents> aiContents;
 
     @Override
     public String toString() {
@@ -27,7 +29,8 @@ public class User {
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
                 ", totalTextContents=" + totalTextContents +
-                ", totalTextContents=" + totalFiles +
+                ", totalFiles=" + totalFiles +
+                ", totalAiContents" + totalAiContents +
                 '}';
     }
 
@@ -42,15 +45,31 @@ public class User {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, totalTextContents, totalFiles);
+        return Objects.hash(id, name, totalTextContents, totalFiles, totalAiContents);
     }
 
-    public Map<String, UserFileContent> getFileContents() {
-        return fileContents;
+    public String getId() {
+        return id;
     }
 
-    public void setFileContents(Map<String, UserFileContent> fileContents) {
-        this.fileContents = fileContents;
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getTotalTextContents() {
+        return totalTextContents;
+    }
+
+    public void setTotalTextContents(int totalTextContents) {
+        this.totalTextContents = totalTextContents;
     }
 
     public int getTotalFiles() {
@@ -60,36 +79,36 @@ public class User {
     public void setTotalFiles(int totalFiles) {
         this.totalFiles = totalFiles;
     }
-    public void setId(String id) {
-        this.id = id;
+
+    public int getTotalAiContents() {
+        return totalAiContents;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setTotalAiContents(int totalAiContents) {
+        this.totalAiContents = totalAiContents;
     }
 
-    public void setTotalTextContents(int totalTextContents) {
-        this.totalTextContents = totalTextContents;
-    }
-
-
-    public Map<String, UserTextContent> getTextContents() {
+    public Map<String, UserContents> getTextContents() {
         return textContents;
     }
 
-    public void setTextContents(Map<String, UserTextContent> textContents) {
+    public void setTextContents(Map<String, UserContents> textContents) {
         this.textContents = textContents;
     }
-    public String getId() {
-        return id;
+
+    public Map<String, UserContents> getFileContents() {
+        return fileContents;
     }
 
-    public String getName() {
-        return name;
+    public void setFileContents(Map<String, UserContents> fileContents) {
+        this.fileContents = fileContents;
     }
 
-    public int getTotalTextContents() {
-        return totalTextContents;
+    public Map<String, UserContents> getAiContents() {
+        return aiContents;
     }
 
+    public void setAiContents(Map<String, UserContents> aiContents) {
+        this.aiContents = aiContents;
+    }
 }

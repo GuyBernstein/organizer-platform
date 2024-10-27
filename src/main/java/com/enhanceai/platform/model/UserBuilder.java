@@ -7,8 +7,10 @@ public final class UserBuilder {
     private String name;
     private int totalTextContents;
     private int totalFiles;
-    private Map<String, UserTextContent> textContents;
-    private Map<String, UserFileContent> fileContents;
+    private int totalAiContents;
+    private Map<String, UserContents> textContents;
+    private Map<String, UserContents> fileContents;
+    private Map<String, UserContents> aiContents;
 
     private UserBuilder() {
     }
@@ -37,13 +39,23 @@ public final class UserBuilder {
         return this;
     }
 
-    public UserBuilder withTextContents(Map<String, UserTextContent> textContents) {
+    public UserBuilder withTotalAiContents(int totalAiContents) {
+        this.totalAiContents = totalAiContents;
+        return this;
+    }
+
+    public UserBuilder withTextContents(Map<String, UserContents> textContents) {
         this.textContents = textContents;
         return this;
     }
 
-    public UserBuilder withFileContents(Map<String, UserFileContent> fileContents) {
+    public UserBuilder withFileContents(Map<String, UserContents> fileContents) {
         this.fileContents = fileContents;
+        return this;
+    }
+
+    public UserBuilder withAiContents(Map<String, UserContents> aiContents) {
+        this.aiContents = aiContents;
         return this;
     }
 
@@ -53,8 +65,10 @@ public final class UserBuilder {
         user.setName(name);
         user.setTotalTextContents(totalTextContents);
         user.setTotalFiles(totalFiles);
+        user.setTotalAiContents(totalAiContents);
         user.setTextContents(textContents);
         user.setFileContents(fileContents);
+        user.setAiContents(aiContents);
         return user;
     }
 }

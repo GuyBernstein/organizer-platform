@@ -67,12 +67,6 @@ public class ContentController {
         mongoTemplate.updateFirst(query, update, "users");
     }
 
-    private void pushMongoTextContent(String userName, String key, String text) {
-        Query query = Query.query(Criteria.where("name").is(userName));
-        Update update = new Update().push(key,text);
-        mongoTemplate.updateFirst(query, update, "users");
-    }
-
     @ApiOperation(value = "Store text content", notes = "Stores text content with metadata in Redis")
     @PostMapping(value = "/text")
     public ResponseEntity<RedisData> storeText(
@@ -87,15 +81,49 @@ public class ContentController {
                 .userName(content.getUserName())
                 .value(content.getText())
                 .createdAt(Dates.nowUTC())
-                .catagory(content.getType())
                 .build();
 
         if (redis.set(data.getKey(), objectMapper.writeValueAsString(data))) {
             incrementMongoField(content.getUserName(), "totalTextContents");
             incrementMongoField(content.getUserName(),
-                    "textContents."  + data.getCatagory() + ".texts." + getCurMonth());
-            pushMongoTextContent(content.getUserName(),
-                    "textContents." + data.getCatagory() + ".contents", content.getText());
+                    "textContents."  + content.getType() + ".contents." + getCurMonth());
+
+            return ResponseEntity.ok(data);
+        }
+        return ResponseEntity.badRequest().build();
+    }
+
+    @ApiOperation(value = "Store file metadata", notes = "Stores file metadata in Redis and prepares for async processing")
+    @PostMapping("/file")
+    public ResponseEntity<RedisData> storeFile(
+            @ApiParam(value = "File to process", required = true)
+            @RequestParam MultipartFile file,
+            @RequestParam String userName,
+            @RequestParam String catagory) throws IOException {
+
+        if(userName.isEmpty() || file.isEmpty() || catagory.isEmpty())
+            throw new RuntimeException("Please provide username, a file and a file catagory");
+
+        String key = "file-" + System.currentTimeMillis();
+        String filePath = fileStorageService.storeFileInFilesystem(file,key);
+
+        RedisData data = RedisData.RedisDataBuilder.aRedisData()
+                .key(key)
+                .value(String.format("{filename: %s, size: %d, contentType: %s,storagePath: %s}",
+                        file.getOriginalFilename(),
+                        file.getSize(),
+                        file.getContentType(),filePath))
+                .createdAt(Dates.nowUTC())
+                .build();
+
+        if (redis.set(data.getKey(), objectMapper.writeValueAsString(data))) {
+            incrementMongoField(userName, "totalFiles");
+            incrementMongoField(userName,
+                    "fileContents."  + catagory + ".contents." + getCurMonth());
+
+            // User user = userRepository.findFirstByName(userName);
+            // TODO: Send to Kafka for async processing
+            // kafkaTemplate.send("file-processing", data.getKey(), objectMapper.writeValueAsString(data));
             return ResponseEntity.ok(data);
         }
         return ResponseEntity.badRequest().build();
@@ -128,47 +156,6 @@ public class ContentController {
 
         return ResponseEntity.ok(data);
     }
-
-    @ApiOperation(value = "Store file metadata", notes = "Stores file metadata in Redis and prepares for async processing")
-    @PostMapping("/file")
-    public ResponseEntity<RedisData> storeFile(
-            @ApiParam(value = "File to process", required = true)
-            @RequestParam MultipartFile file,
-            @RequestParam String userName,
-            @RequestParam String catagory) throws IOException {
-
-        if(userName.isEmpty() || file.isEmpty() || catagory.isEmpty())
-            throw new RuntimeException("Please provide username, a file and a file catagory");
-
-        String key = "file-" + System.currentTimeMillis();
-        String filePath = fileStorageService.storeFileInFilesystem(file,key);
-
-        RedisData data = RedisData.RedisDataBuilder.aRedisData()
-                .key(key)
-                .value(String.format("{filename: %s, size: %d, contentType: %s,storagePath: %s}",
-                        file.getOriginalFilename(),
-                        file.getSize(),
-                        file.getContentType(),filePath
-                        ))
-                .catagory(catagory)
-                .createdAt(Dates.nowUTC())
-                .build();
-
-        if (redis.set(data.getKey(), objectMapper.writeValueAsString(data))) {
-            incrementMongoField(userName, "totalFiles");
-            incrementMongoField(userName,
-                    "fileContents."  + data.getCatagory() + ".files." + getCurMonth());
-            pushMongoTextContent(userName,
-                    "fileContents." + data.getCatagory() + ".contents", filePath);
-
-            // User user = userRepository.findFirstByName(userName);
-            // TODO: Send to Kafka for async processing
-            // kafkaTemplate.send("file-processing", data.getKey(), objectMapper.writeValueAsString(data));
-            return ResponseEntity.ok(data);
-        }
-        return ResponseEntity.badRequest().build();
-    }
-
 
     @ApiOperation(value = "Delete content", notes = "Deletes content from Redis by key")
     @DeleteMapping("/{key}")
