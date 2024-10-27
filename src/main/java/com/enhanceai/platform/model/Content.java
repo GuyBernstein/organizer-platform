@@ -51,7 +51,5 @@ public class Content {
         }
         this.contentIds.add(contentId);
     }
-
-
 }
 

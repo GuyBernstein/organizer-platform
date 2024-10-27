@@ -1,8 +1,7 @@
 package com.enhanceai.platform.controller;
 
-import com.enhanceai.platform.model.RedisData;
-import com.enhanceai.platform.model.RedisDataIn;
-import com.enhanceai.platform.model.User;
+import com.enhanceai.platform.model.*;
+import com.enhanceai.platform.repository.UserContentRepository;
 import com.enhanceai.platform.repository.UserRepository;
 import com.enhanceai.platform.service.FileStorageService;
 import com.enhanceai.platform.service.Redis;
@@ -12,8 +11,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -25,9 +22,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static com.enhanceai.platform.model.UserBuilder.anUser;
 import static com.enhanceai.platform.util.Dates.getCurMonth;
+import static org.springframework.data.util.StreamUtils.createStreamFromIterator;
 
 @RestController
 @RequestMapping("/api/content")
@@ -38,14 +39,17 @@ public class ContentController {
     private final Redis redis;
     private final ObjectMapper objectMapper;
     private final FileStorageService fileStorageService;
+    private final UserContentRepository userContentRepository;
+
 
     @Autowired
-    public ContentController(UserRepository userRepository, MongoTemplate mongoTemplate, Redis redis, ObjectMapper objectMapper, FileStorageService fileStorageService) {
+    public ContentController(UserRepository userRepository, MongoTemplate mongoTemplate, Redis redis, ObjectMapper objectMapper, FileStorageService fileStorageService, UserContentRepository userContentRepository) {
         this.userRepository = userRepository;
         this.mongoTemplate = mongoTemplate;
         this.redis = redis;
         this.objectMapper = objectMapper;
         this.fileStorageService = fileStorageService;
+        this.userContentRepository = userContentRepository;
     }
 
     @RequestMapping(value = "/user", method = RequestMethod.POST)
@@ -57,54 +61,58 @@ public class ContentController {
 
     @RequestMapping(value = "/user/{name}", method = RequestMethod.GET)
     public User getUser(@RequestParam String name) {
-        User user = userRepository.findFirstByName(name);
-        return user;
+        return userRepository.findFirstByName(name);
     }
 
-    // Helper method for incrementing numeric fields
-    private void incrementMongoField(String userName, String key){
-        Query query = Query.query(Criteria.where("name").is(userName));
-        Update update = new Update().inc(key, 1);
-        mongoTemplate.updateFirst(query, update, "users");
+    @RequestMapping(value = "/user/{name}/contents", method = RequestMethod.GET)
+    public List<UserContentOut> getUserContents(@RequestParam String name) {
+        var userContents = createStreamFromIterator( userContentRepository.findByUserName(name).iterator())
+                .map(UserContentOut::of)
+                .collect(Collectors.toList());
+        return userContents;
     }
 
     @ApiOperation(value = "Store text content", notes = "Stores text content with metadata in Redis")
     @PostMapping(value = "/text")
-    public ResponseEntity<RedisData> storeText(
+    public ResponseEntity<UserContentOut> storeText(
             @ApiParam(value = "Text content to store", required = true)
             @RequestBody RedisDataIn content) throws JsonProcessingException {
 
         if(content.getUserName().isEmpty() || content.getText().isEmpty() || content.getType().isEmpty())
             throw new RuntimeException("Please provide username, text, and the type of the text");
 
-        String contentId = "text-" + System.currentTimeMillis();
+        String contentId = UUID.randomUUID().toString();
 
-        RedisData data = RedisData.RedisDataBuilder.aRedisData()
-                .key(contentId)
-                .userName(content.getUserName())
-                .value(content.getText())
-                .createdAt(Dates.nowUTC())
+        UserContent textContent = UserContent.UserContentBuilder.anUserContent()
+                .userContentKey(UserContentKey.UserContentKeyBuilder.anUserContentKey()
+                        .userName(content.getUserName()).creationTime(new Date())
+                        .build())
+                .contentId(contentId)
+                .contentType("TEXT")
+                .content(content.getText())
                 .build();
 
-        if (redis.set(data.getKey(), objectMapper.writeValueAsString(data))) {
+        textContent = userContentRepository.save(textContent);
+
+        if (redis.set(contentId, objectMapper.writeValueAsString(UserContentOut.of(textContent)))) {
             // Update MongoDB document
             Query query = Query.query(Criteria.where("name").is(content.getUserName()));
             Update update = new Update()
                     .inc("totalTextContents", 1)
-                    .set("textContents.content." + content.getType() + "." + getCurMonth() + ".count", 1)
+                    .inc("textContents.content." + content.getType() + "." + getCurMonth() + ".count", 1)
                     .set("textContents.content." + content.getType() + "." + getCurMonth() + ".lastUpdated", new Date())
                     .push("textContents.content." + content.getType() + "." + getCurMonth() + ".contentIds", contentId);
 
             mongoTemplate.upsert(query, update, User.class);
 
-            return ResponseEntity.ok(data);
+            return ResponseEntity.ok(UserContentOut.of(textContent));
         }
         return ResponseEntity.badRequest().build();
     }
 
     @ApiOperation(value = "Store file metadata", notes = "Stores file metadata in Redis and prepares for async processing")
     @PostMapping("/file")
-    public ResponseEntity<RedisData> storeFile(
+    public ResponseEntity<UserContentOut> storeFile(
             @ApiParam(value = "File to process", required = true)
             @RequestParam MultipartFile file,
             @RequestParam String userName,
@@ -113,40 +121,47 @@ public class ContentController {
         if(userName.isEmpty() || file.isEmpty() || catagory.isEmpty())
             throw new RuntimeException("Please provide username, a file and a file catagory");
 
-        String key = "file-" + System.currentTimeMillis();
-        String filePath = fileStorageService.storeFileInFilesystem(file,key);
+        String contentId = UUID.randomUUID().toString();
+        String filePath = fileStorageService.storeFileInFilesystem(file,contentId);
+        String fileName = file.getOriginalFilename();
+        Long fileSize = file.getSize();
+        String mimeType = file.getContentType();
 
-        RedisData data = RedisData.RedisDataBuilder.aRedisData()
-                .key(key)
-                .userName(userName)
-                .value(String.format("{filename: %s, size: %d, contentType: %s,storagePath: %s}",
-                        file.getOriginalFilename(),
-                        file.getSize(),
-                        file.getContentType(),filePath))
-                .createdAt(Dates.nowUTC())
+        UserContent fileContent = UserContent.UserContentBuilder.anUserContent()
+                .userContentKey(UserContentKey.UserContentKeyBuilder.anUserContentKey()
+                        .userName(userName).creationTime(new Date())
+                        .build())
+                .contentId(contentId)
+                .contentType("FILE")
+                .content(filePath)
+                .mimeType(mimeType)
+                .fileName(fileName)
+                .fileSize(fileSize)
                 .build();
 
-        if (redis.set(data.getKey(), objectMapper.writeValueAsString(data))) {
+        fileContent = userContentRepository.save(fileContent);
+
+        if (redis.set(contentId, objectMapper.writeValueAsString(UserContentOut.of(fileContent)))) {
             // Update MongoDB document
             Query query = Query.query(Criteria.where("name").is(userName));
             Update update = new Update()
                     .inc("totalFiles", 1)
-                    .set("fileContents.content." + catagory + "." + getCurMonth() + ".count", 1)
+                    .inc("fileContents.content." + catagory + "." + getCurMonth() + ".count", 1)
                     .set("fileContents.content." + catagory + "." + getCurMonth() + ".lastUpdated", new Date())
-                    .push("fileContents.content." + catagory + "." + getCurMonth() + ".contentIds", key);
+                    .push("fileContents.content." + catagory + "." + getCurMonth() + ".contentIds", contentId);
 
             mongoTemplate.upsert(query, update, User.class);
             // User user = userRepository.findFirstByName(userName);
             // TODO: Send to Kafka for async processing
             // kafkaTemplate.send("file-processing", data.getKey(), objectMapper.writeValueAsString(data));
-            return ResponseEntity.ok(data);
+            return ResponseEntity.ok(UserContentOut.of(fileContent));
         }
         return ResponseEntity.badRequest().build();
     }
 
     @ApiOperation(value = "Retrieve content by key", notes = "Gets content and metadata from Redis")
     @GetMapping(value = "/{key}")
-    public ResponseEntity<RedisData> getContent(
+    public ResponseEntity<UserContentOut> getContent(
             @ApiParam(value = "Content key", required = true)
             @PathVariable String key) throws JsonProcessingException {
 
@@ -156,7 +171,7 @@ public class ContentController {
         }
 
         Object value = redis.get(key);
-        RedisData data = objectMapper.readValue(value.toString(), RedisData.class);
+        UserContentOut data = objectMapper.readValue(value.toString(), UserContentOut.class);
 
 //        if (data.getKey() != null) {
 //            String userName = data.getUserName();
