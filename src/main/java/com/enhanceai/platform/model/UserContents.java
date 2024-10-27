@@ -1,36 +1,50 @@
 package com.enhanceai.platform.model;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 public class UserContents {
-    private Map<String, Integer> contents = new HashMap<>();
+    private Map<String, Map<String, Content>> content = new HashMap<>();
 
-    public Map<String, Integer> getContents() {
-        return contents;
+    public Map<String, Map<String, Content>> getContent() {
+        return content;
     }
 
-    public void setContents(Map<String, Integer> contents) {
-        this.contents = contents;
+    public void setContent(Map<String, Map<String, Content>> content) {
+        this.content = content;
     }
+
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         UserContents userContents = (UserContents) o;
-        return Objects.equals(contents, userContents.contents);
+        return Objects.equals(content, userContents.content);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(contents);
+        return Objects.hash(content);
     }
 
     @Override
     public String toString() {
         return "UserContents{" +
-                "content=" + contents +
+                "count=" + content +
                 '}';
+    }
+
+    public void addContent(String type, String monthKey, String contentId) {
+        content.computeIfAbsent(type, k -> new HashMap<>());
+        Map<String, Content> monthContent = content.get(type);
+
+        monthContent.computeIfAbsent(monthKey, k -> new Content());
+        Content monthData = monthContent.get(monthKey);
+
+        monthData.incrementCount();
+        monthData.addContentId(contentId);
     }
 
 }

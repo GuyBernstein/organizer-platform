@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.Date;
 
 import static com.enhanceai.platform.model.UserBuilder.anUser;
 import static com.enhanceai.platform.util.Dates.getCurMonth;
@@ -76,17 +77,25 @@ public class ContentController {
         if(content.getUserName().isEmpty() || content.getText().isEmpty() || content.getType().isEmpty())
             throw new RuntimeException("Please provide username, text, and the type of the text");
 
+        String contentId = "text-" + System.currentTimeMillis();
+
         RedisData data = RedisData.RedisDataBuilder.aRedisData()
-                .key("text-" + System.currentTimeMillis())
+                .key(contentId)
                 .userName(content.getUserName())
                 .value(content.getText())
                 .createdAt(Dates.nowUTC())
                 .build();
 
         if (redis.set(data.getKey(), objectMapper.writeValueAsString(data))) {
-            incrementMongoField(content.getUserName(), "totalTextContents");
-            incrementMongoField(content.getUserName(),
-                    "textContents."  + content.getType() + ".contents." + getCurMonth());
+            // Update MongoDB document
+            Query query = Query.query(Criteria.where("name").is(content.getUserName()));
+            Update update = new Update()
+                    .inc("totalTextContents", 1)
+                    .set("textContents.content." + content.getType() + "." + getCurMonth() + ".count", 1)
+                    .set("textContents.content." + content.getType() + "." + getCurMonth() + ".lastUpdated", new Date())
+                    .push("textContents.content." + content.getType() + "." + getCurMonth() + ".contentIds", contentId);
+
+            mongoTemplate.upsert(query, update, User.class);
 
             return ResponseEntity.ok(data);
         }
@@ -109,6 +118,7 @@ public class ContentController {
 
         RedisData data = RedisData.RedisDataBuilder.aRedisData()
                 .key(key)
+                .userName(userName)
                 .value(String.format("{filename: %s, size: %d, contentType: %s,storagePath: %s}",
                         file.getOriginalFilename(),
                         file.getSize(),
@@ -117,10 +127,15 @@ public class ContentController {
                 .build();
 
         if (redis.set(data.getKey(), objectMapper.writeValueAsString(data))) {
-            incrementMongoField(userName, "totalFiles");
-            incrementMongoField(userName,
-                    "fileContents."  + catagory + ".contents." + getCurMonth());
+            // Update MongoDB document
+            Query query = Query.query(Criteria.where("name").is(userName));
+            Update update = new Update()
+                    .inc("totalFiles", 1)
+                    .set("fileContents.content." + catagory + "." + getCurMonth() + ".count", 1)
+                    .set("fileContents.content." + catagory + "." + getCurMonth() + ".lastUpdated", new Date())
+                    .push("fileContents.content." + catagory + "." + getCurMonth() + ".contentIds", key);
 
+            mongoTemplate.upsert(query, update, User.class);
             // User user = userRepository.findFirstByName(userName);
             // TODO: Send to Kafka for async processing
             // kafkaTemplate.send("file-processing", data.getKey(), objectMapper.writeValueAsString(data));

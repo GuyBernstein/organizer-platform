@@ -8,6 +8,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.Map;
 import java.util.Objects;
 
+import static com.enhanceai.platform.util.Dates.getCurMonth;
+
 @Document(collection = "users")
 public class User {
 
@@ -19,9 +21,31 @@ public class User {
     private int totalTextContents;
     private int totalFiles;
     private int totalAiContents;
-    private Map<String, UserContents> textContents;
-    private Map<String, UserContents> fileContents;
-    private Map<String, UserContents> aiContents;
+    private UserContents textContents;
+    private UserContents fileContents;
+    private UserContents aiContents;
+
+    public void addContent(String contentType, String type, String contentId) {
+        String monthKey = getCurMonth();
+
+        switch (contentType) {
+            case "text":
+                if (textContents == null) textContents = new UserContents();
+                textContents.addContent(type, monthKey, contentId);
+                totalTextContents++;
+                break;
+            case "file":
+                if (fileContents == null) fileContents = new UserContents();
+                fileContents.addContent(type, monthKey, contentId);
+                totalFiles++;
+                break;
+            case "ai":
+                if (aiContents == null) aiContents = new UserContents();
+                aiContents.addContent(type, monthKey, contentId);
+                totalAiContents++;
+                break;
+        }
+    }
 
     @Override
     public String toString() {
@@ -88,27 +112,27 @@ public class User {
         this.totalAiContents = totalAiContents;
     }
 
-    public Map<String, UserContents> getTextContents() {
+    public UserContents getTextContents() {
         return textContents;
     }
 
-    public void setTextContents(Map<String, UserContents> textContents) {
+    public void setTextContents(UserContents textContents) {
         this.textContents = textContents;
     }
 
-    public Map<String, UserContents> getFileContents() {
+    public UserContents getFileContents() {
         return fileContents;
     }
 
-    public void setFileContents(Map<String, UserContents> fileContents) {
+    public void setFileContents(UserContents fileContents) {
         this.fileContents = fileContents;
     }
 
-    public Map<String, UserContents> getAiContents() {
+    public UserContents getAiContents() {
         return aiContents;
     }
 
-    public void setAiContents(Map<String, UserContents> aiContents) {
+    public void setAiContents(UserContents aiContents) {
         this.aiContents = aiContents;
     }
 }

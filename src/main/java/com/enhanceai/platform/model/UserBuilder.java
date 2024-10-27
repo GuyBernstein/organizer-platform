@@ -1,16 +1,14 @@
 package com.enhanceai.platform.model;
 
-import java.util.Map;
-
 public final class UserBuilder {
     private String id;
     private String name;
     private int totalTextContents;
     private int totalFiles;
     private int totalAiContents;
-    private Map<String, UserContents> textContents;
-    private Map<String, UserContents> fileContents;
-    private Map<String, UserContents> aiContents;
+    private UserContents textContents;
+    private UserContents fileContents;
+    private UserContents aiContents;
 
     private UserBuilder() {
     }
@@ -44,17 +42,17 @@ public final class UserBuilder {
         return this;
     }
 
-    public UserBuilder withTextContents(Map<String, UserContents> textContents) {
+    public UserBuilder withTextContents(UserContents textContents) {
         this.textContents = textContents;
         return this;
     }
 
-    public UserBuilder withFileContents(Map<String, UserContents> fileContents) {
+    public UserBuilder withFileContents(UserContents fileContents) {
         this.fileContents = fileContents;
         return this;
     }
 
-    public UserBuilder withAiContents(Map<String, UserContents> aiContents) {
+    public UserBuilder withAiContents(UserContents aiContents) {
         this.aiContents = aiContents;
         return this;
     }
