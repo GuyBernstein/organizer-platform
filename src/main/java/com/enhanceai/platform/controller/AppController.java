@@ -1,5 +1,6 @@
 package com.enhanceai.platform.controller;
 
+import com.enhanceai.platform.kafka.Producer;
 import com.enhanceai.platform.model.*;
 import com.enhanceai.platform.repository.UserContentRepository;
 import com.enhanceai.platform.repository.UserRepository;
@@ -25,6 +26,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import static com.enhanceai.platform.model.UserBuilder.anUser;
 import static com.enhanceai.platform.util.Dates.getCurMonth;
@@ -33,23 +35,24 @@ import static org.springframework.data.util.StreamUtils.createStreamFromIterator
 @RestController
 @RequestMapping("/api/content")
 @Api(tags = "Content Management API")
-public class ContentController {
+public class AppController {
     private final UserRepository userRepository;
     private final MongoTemplate mongoTemplate;
     private final Redis redis;
     private final ObjectMapper objectMapper;
     private final FileStorageService fileStorageService;
     private final UserContentRepository userContentRepository;
-
+    private final Producer producer;
 
     @Autowired
-    public ContentController(UserRepository userRepository, MongoTemplate mongoTemplate, Redis redis, ObjectMapper objectMapper, FileStorageService fileStorageService, UserContentRepository userContentRepository) {
+    public AppController(UserRepository userRepository, MongoTemplate mongoTemplate, Redis redis, ObjectMapper objectMapper, FileStorageService fileStorageService, UserContentRepository userContentRepository, Producer producer) {
         this.userRepository = userRepository;
         this.mongoTemplate = mongoTemplate;
         this.redis = redis;
         this.objectMapper = objectMapper;
         this.fileStorageService = fileStorageService;
         this.userContentRepository = userContentRepository;
+        this.producer = producer;
     }
 
     @RequestMapping(value = "/user", method = RequestMethod.POST)
@@ -65,18 +68,17 @@ public class ContentController {
     }
 
     @RequestMapping(value = "/user/{name}/contents", method = RequestMethod.GET)
-    public List<UserContentOut> getUserContents(@RequestParam String name) {
-        var userContents = createStreamFromIterator( userContentRepository.findByUserName(name).iterator())
+    public List<UserContentOut> getUserContents(@PathVariable String name) {
+        return StreamSupport.stream(userContentRepository.findByUserName(name).spliterator(), false)
                 .map(UserContentOut::of)
                 .collect(Collectors.toList());
-        return userContents;
     }
 
     @ApiOperation(value = "Store text content", notes = "Stores text content with metadata in Redis")
     @PostMapping(value = "/text")
     public ResponseEntity<UserContentOut> storeText(
             @ApiParam(value = "Text content to store", required = true)
-            @RequestBody RedisDataIn content) throws JsonProcessingException {
+            @RequestBody TextDataIn content) throws JsonProcessingException {
 
         if(content.getUserName().isEmpty() || content.getText().isEmpty() || content.getType().isEmpty())
             throw new RuntimeException("Please provide username, text, and the type of the text");
@@ -116,45 +118,57 @@ public class ContentController {
             @ApiParam(value = "File to process", required = true)
             @RequestParam MultipartFile file,
             @RequestParam String userName,
-            @RequestParam String catagory) throws IOException {
+            @RequestParam String category) throws IOException {
 
-        if(userName.isEmpty() || file.isEmpty() || catagory.isEmpty())
-            throw new RuntimeException("Please provide username, a file and a file catagory");
+        if(userName.isEmpty() || file.isEmpty() || category.isEmpty())
+            throw new RuntimeException("Please provide username, a file and a file category");
 
         String contentId = UUID.randomUUID().toString();
-        String filePath = fileStorageService.storeFileInFilesystem(file,contentId);
         String fileName = file.getOriginalFilename();
         Long fileSize = file.getSize();
         String mimeType = file.getContentType();
 
-        UserContent fileContent = UserContent.UserContentBuilder.anUserContent()
+        FileProcessingMessage message = FileProcessingMessage.FileProcessingMessageBuilder.aFileProcessingMessage()
+                .contentId(contentId)
+                .userName(userName)
+                .category(category)
+                .fileName(fileName)
+                .mimeType(mimeType)
+                .fileSize(fileSize)
+                .fileContent(file.getBytes())
+                .creationTime(Dates.nowUTC())
+                .build();
+
+
+        UserContent cassandraData = UserContent.UserContentBuilder.anUserContent()
                 .userContentKey(UserContentKey.UserContentKeyBuilder.anUserContentKey()
                         .userName(userName).creationTime(new Date())
                         .build())
                 .contentId(contentId)
                 .contentType("FILE")
-                .content(filePath)
                 .mimeType(mimeType)
                 .fileName(fileName)
                 .fileSize(fileSize)
+                .status("PROCESSING") // Add status field to track processing
                 .build();
 
-        fileContent = userContentRepository.save(fileContent);
+        cassandraData = userContentRepository.save(cassandraData);
 
-        if (redis.set(contentId, objectMapper.writeValueAsString(UserContentOut.of(fileContent)))) {
+        if (redis.set(contentId, objectMapper.writeValueAsString(UserContentOut.of(cassandraData)))) {
             // Update MongoDB document
             Query query = Query.query(Criteria.where("name").is(userName));
             Update update = new Update()
                     .inc("totalFiles", 1)
-                    .inc("fileContents.content." + catagory + "." + getCurMonth() + ".count", 1)
-                    .set("fileContents.content." + catagory + "." + getCurMonth() + ".lastUpdated", new Date())
-                    .push("fileContents.content." + catagory + "." + getCurMonth() + ".contentIds", contentId);
+                    .inc("fileContents.content." + category + "." + getCurMonth() + ".count", 1)
+                    .set("fileContents.content." + category + "." + getCurMonth() + ".lastUpdated", new Date())
+                    .push("fileContents.content." + category + "." + getCurMonth() + ".contentIds", contentId);
 
             mongoTemplate.upsert(query, update, User.class);
-            // User user = userRepository.findFirstByName(userName);
-            // TODO: Send to Kafka for async processing
-            // kafkaTemplate.send("file-processing", data.getKey(), objectMapper.writeValueAsString(data));
-            return ResponseEntity.ok(UserContentOut.of(fileContent));
+
+            // Send to Kafka for async processing
+            producer.send(message);
+
+            return ResponseEntity.ok(UserContentOut.of(cassandraData));
         }
         return ResponseEntity.badRequest().build();
     }

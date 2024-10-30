@@ -1,6 +1,6 @@
 package com.enhanceai.platform.model;
 
-public class RedisDataIn {
+public class TextDataIn {
     private String text;
 
     private String type;

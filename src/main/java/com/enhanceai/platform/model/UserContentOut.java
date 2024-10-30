@@ -26,6 +26,15 @@ public class UserContentOut {
     private String fileName;
     private Long fileSize;
     private String parentContentId;
+    private String status;
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
 
     public String getUserName() {
         return userName;
@@ -110,6 +119,7 @@ public class UserContentOut {
             res.mimeType = userContent.getMimeType();
             res.fileName = userContent.getFileName();
             res.fileSize = userContent.getFileSize();
+            res.status = userContent.getStatus();
         }
         if(userContent.getContentType().equals("AI"))
             res.parentContentId = userContent.getParentContentId();

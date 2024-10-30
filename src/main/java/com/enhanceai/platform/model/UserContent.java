@@ -6,7 +6,7 @@ import org.springframework.data.cassandra.core.mapping.Table;
 
 import java.util.Objects;
 
-@Table
+@Table("usercontent")
 public class UserContent {
     @PrimaryKey
     private UserContentKey userContentKey;
@@ -18,7 +18,7 @@ public class UserContent {
     private String fileName;  // For files
     private Long fileSize;    // For files
     private String parentContentId;  // To link AI responses to original content
-
+    private String status;  // For determining if done sending to kafka
 
 
 
@@ -40,6 +40,14 @@ public class UserContent {
     @Override
     public int hashCode() {
         return Objects.hash(userContentKey, contentId, contentType, content, mimeType, fileName, fileSize, parentContentId);
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public UserContentKey getUserContentKey() {
@@ -115,6 +123,7 @@ public class UserContent {
         private String fileName;
         private Long fileSize;
         private String parentContentId;
+        private String status;
 
         private UserContentBuilder() {
         }
@@ -163,6 +172,11 @@ public class UserContent {
             return this;
         }
 
+        public UserContentBuilder status(String status) {
+            this.status = status;
+            return this;
+        }
+
         public UserContent build() {
             UserContent userContent = new UserContent();
             userContent.setUserContentKey(userContentKey);
@@ -173,6 +187,7 @@ public class UserContent {
             userContent.setFileName(fileName);
             userContent.setFileSize(fileSize);
             userContent.setParentContentId(parentContentId);
+            userContent.setStatus(status);
             return userContent;
         }
     }
