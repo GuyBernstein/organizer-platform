@@ -5,6 +5,7 @@ import com.enhanceai.platform.model.*;
 import com.enhanceai.platform.repository.UserContentRepository;
 import com.enhanceai.platform.repository.UserRepository;
 import com.enhanceai.platform.service.FileStorageService;
+import com.enhanceai.platform.service.MinioService;
 import com.enhanceai.platform.service.Redis;
 import com.enhanceai.platform.util.Dates;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -17,14 +18,14 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -43,9 +44,13 @@ public class AppController {
     private final FileStorageService fileStorageService;
     private final UserContentRepository userContentRepository;
     private final Producer producer;
+    private final MinioService minioService;
 
     @Autowired
-    public AppController(UserRepository userRepository, MongoTemplate mongoTemplate, Redis redis, ObjectMapper objectMapper, FileStorageService fileStorageService, UserContentRepository userContentRepository, Producer producer) {
+    public AppController(UserRepository userRepository, MongoTemplate mongoTemplate, Redis redis,
+                         ObjectMapper objectMapper, FileStorageService fileStorageService,
+                         UserContentRepository userContentRepository, Producer producer,
+                         MinioService minioService) {
         this.userRepository = userRepository;
         this.mongoTemplate = mongoTemplate;
         this.redis = redis;
@@ -53,6 +58,7 @@ public class AppController {
         this.fileStorageService = fileStorageService;
         this.userContentRepository = userContentRepository;
         this.producer = producer;
+        this.minioService = minioService;
     }
 
     @RequestMapping(value = "/user", method = RequestMethod.POST)
@@ -87,7 +93,7 @@ public class AppController {
 
         UserContent textContent = UserContent.UserContentBuilder.anUserContent()
                 .userContentKey(UserContentKey.UserContentKeyBuilder.anUserContentKey()
-                        .userName(content.getUserName()).creationTime(new Date())
+                        .userName(content.getUserName()).creationTime(Dates.nowUTC())
                         .build())
                 .contentId(contentId)
                 .contentType("TEXT")
@@ -102,7 +108,7 @@ public class AppController {
             Update update = new Update()
                     .inc("totalTextContents", 1)
                     .inc("textContents.content." + content.getType() + "." + getCurMonth() + ".count", 1)
-                    .set("textContents.content." + content.getType() + "." + getCurMonth() + ".lastUpdated", new Date())
+                    .set("textContents.content." + content.getType() + "." + getCurMonth() + ".lastUpdated", Dates.nowUTC())
                     .push("textContents.content." + content.getType() + "." + getCurMonth() + ".contentIds", contentId);
 
             mongoTemplate.upsert(query, update, User.class);
@@ -142,7 +148,7 @@ public class AppController {
 
         UserContent cassandraData = UserContent.UserContentBuilder.anUserContent()
                 .userContentKey(UserContentKey.UserContentKeyBuilder.anUserContentKey()
-                        .userName(userName).creationTime(new Date())
+                        .userName(userName).creationTime(Dates.nowUTC())
                         .build())
                 .contentId(contentId)
                 .contentType("FILE")
@@ -154,13 +160,13 @@ public class AppController {
 
         cassandraData = userContentRepository.save(cassandraData);
 
-        if (redis.set(contentId, objectMapper.writeValueAsString(UserContentOut.of(cassandraData)))) {
+        if (redis.setIfAbsent(contentId, objectMapper.writeValueAsString(UserContentOut.of(cassandraData)))) {
             // Update MongoDB document
             Query query = Query.query(Criteria.where("name").is(userName));
             Update update = new Update()
                     .inc("totalFiles", 1)
                     .inc("fileContents.content." + category + "." + getCurMonth() + ".count", 1)
-                    .set("fileContents.content." + category + "." + getCurMonth() + ".lastUpdated", new Date())
+                    .set("fileContents.content." + category + "." + getCurMonth() + ".lastUpdated", Dates.nowUTC())
                     .push("fileContents.content." + category + "." + getCurMonth() + ".contentIds", contentId);
 
             mongoTemplate.upsert(query, update, User.class);
@@ -187,18 +193,28 @@ public class AppController {
         Object value = redis.get(key);
         UserContentOut data = objectMapper.readValue(value.toString(), UserContentOut.class);
 
-//        if (data.getKey() != null) {
-//            String userName = data.getUserName();
-//
-//            if ( userName != null) {
-//                incrementMongoField(userName, "totalTextContents");
-//            }
-//        }
-//        else {
-//            throw new RuntimeException(key + " not found");
-//        }
-
         return ResponseEntity.ok(data);
+    }
+
+    @GetMapping("/file/{userName}")
+    public ResponseEntity<?> getFile(@PathVariable String userName) {
+        try {
+            // Find the content in Cassandra
+            Optional<UserContent> content = userContentRepository.findLatestByUserName(userName);
+
+            if (content.isPresent() && content.get().getStatus().equals("COMPLETED")) {
+                UserContent userContent = content.get();
+                String objectName = userContent.getContent();
+
+                String presignedUrl = minioService.getPresignedUrl(objectName, 1); // 1 minutes expiry
+                return ResponseEntity.ok(Collections.singletonMap("url", presignedUrl));
+            }
+
+            return ResponseEntity.notFound().build();
+
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
     @ApiOperation(value = "Delete content", notes = "Deletes content from Redis by key")

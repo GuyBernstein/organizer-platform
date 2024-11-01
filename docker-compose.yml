@@ -1,4 +1,4 @@
-version: "3"
+name: enhanceai-platform
 services:
   redis:
     image: redis
@@ -41,3 +41,18 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_storage:/data
+    command: server --console-address ":9001" /data
+
+volumes:
+  minio_storage:

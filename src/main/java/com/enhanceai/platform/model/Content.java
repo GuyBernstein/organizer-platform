@@ -1,5 +1,7 @@
 package com.enhanceai.platform.model;
 
+import com.enhanceai.platform.util.Dates;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -11,7 +13,7 @@ public class Content {
 
     public Content() {
         this.count = 0;
-        this.lastUpdated = new Date();
+        this.lastUpdated = Dates.nowUTC();
         this.contentIds = new ArrayList<>();
     }
 

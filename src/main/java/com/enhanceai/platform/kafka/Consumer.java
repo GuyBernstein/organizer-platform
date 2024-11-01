@@ -2,39 +2,41 @@ package com.enhanceai.platform.kafka;
 
 import com.enhanceai.platform.model.FileProcessingMessage;
 import com.enhanceai.platform.model.UserContent;
+import com.enhanceai.platform.model.UserContentOut;
 import com.enhanceai.platform.repository.UserContentRepository;
-import com.enhanceai.platform.service.FileStorageService;
+import com.enhanceai.platform.service.MinioService;
+import com.enhanceai.platform.service.Redis;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Iterator;
 import java.util.Optional;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static com.enhanceai.platform.kafka.Producer.APP_TOPIC;
-
 @Component
 @Slf4j
 public class Consumer {
+
     @Autowired
-    private FileStorageService fileStorageService;
+    private MinioService minioService;
 
     @Autowired
     private UserContentRepository userContentRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private Redis redis;
+
+    @Value("${spring.minio.bucket}")
+    private String bucketName;
 
     @KafkaListener(topics = {APP_TOPIC})
     public void listen(ConsumerRecord<?, ?> record) {
@@ -46,30 +48,34 @@ public class Consumer {
                 FileProcessingMessage message = objectMapper.readValue(messageStr, FileProcessingMessage.class);
 
                 // Process the file
-                String filePath = processFile(message);
+                String objectName = processFile(message);
 
                 // Find all contents for the user
                 Iterable<UserContent> contents = userContentRepository.findByUserName(message.getUserName());
-
 
                 // Find the content that matches our criteria (needs processing)
                 Optional<UserContent> contentToUpdate = getUserContent(contents, message);
 
                 if (contentToUpdate.isPresent()) {
                     UserContent content = contentToUpdate.get();
-                    content.setContent(filePath);
+                    // Store the MinIO object name instead of file path
+                    content.setContent(objectName);
                     content.setStatus("COMPLETED");
-                    userContentRepository.save(content);
-                    log.info("Updated content for user {} with file {}",
-                            message.getUserName(), message.getFileName());
-                }else {
+                    content = userContentRepository.save(content);
+                    if (!redis.set(content.getContentId(), objectMapper.writeValueAsString(UserContentOut.of(content)))) {
+                        log.error("couldn't save content in Redis for user {} with file {}",
+                                message.getUserName(), message.getFileName());
+                    } else {
+                        log.info("Updated content for user {} with file {} in both Cassandra and Redis",
+                                message.getUserName(), message.getFileName());
+                    }
+                } else {
                     log.error("No matching content found for user {} with file {}",
                             message.getUserName(), message.getFileName());
                 }
             }
         } catch (Exception e) {
             log.error("Error processing file message", e);
-            // Handle error - you might want to update the status to ERROR in Cassandra
         }
     }
 
@@ -82,20 +88,12 @@ public class Consumer {
                 .findFirst();
     }
 
-    private String processFile(FileProcessingMessage message) throws IOException {
-        // Create temporary file
-        String originalFilename = message.getFileName();
-        String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
-        Path tempFile = Files.createTempFile(message.getContentId(), fileExtension);
-        Files.write(tempFile, message.getFileContent());
+    private String processFile(FileProcessingMessage message) throws Exception {
+        String objectName = message.getContentId() + "_" + message.getFileName();
 
-        // Store file using the File version of the method
-        String filePath = fileStorageService.storeFileInFilesystem(tempFile.toFile(), message.getContentId());
+        // Upload directly to MinIO using byte array
+        minioService.uploadFile(message.getFileContent(), objectName, message.getMimeType());
 
-        // Clean up temporary file
-        Files.deleteIfExists(tempFile);
-
-        return filePath;
+        return objectName;
     }
-
 }

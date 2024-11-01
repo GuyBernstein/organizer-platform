@@ -28,6 +28,8 @@
 	</scm>
 	<properties>
 		<java.version>11</java.version>
+		<okhttp.version>4.9.3</okhttp.version>
+		<minio.version>8.5.2</minio.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -95,6 +97,27 @@
 			<groupId>org.springframework.kafka</groupId>
 			<artifactId>spring-kafka</artifactId>
 		</dependency>
+
+		<!-- MinIO dependency -->
+		<dependency>
+			<groupId>io.minio</groupId>
+			<artifactId>minio</artifactId>
+			<version>${minio.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>com.squareup.okhttp3</groupId>
+					<artifactId>okhttp</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!-- Explicitly add OkHttp dependency -->
+		<dependency>
+			<groupId>com.squareup.okhttp3</groupId>
+			<artifactId>okhttp</artifactId>
+			<version>${okhttp.version}</version>
+		</dependency>
+
 
     </dependencies>
 

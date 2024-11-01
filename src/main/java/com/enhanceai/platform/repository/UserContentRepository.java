@@ -19,6 +19,4 @@ public interface UserContentRepository extends CassandraRepository<UserContent, 
     @Query("SELECT * FROM usercontent WHERE user_name=:userName ORDER BY creation_time DESC LIMIT 1")
     Optional<UserContent> findLatestByUserName(String userName);
 
-    // Find by complete primary key
-    Optional<UserContent> findByUserContentKey(UserContentKey key);
 }
