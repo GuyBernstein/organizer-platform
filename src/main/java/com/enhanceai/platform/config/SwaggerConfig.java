@@ -3,6 +3,7 @@ package com.enhanceai.platform.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
@@ -20,19 +21,22 @@ public class SwaggerConfig {
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("com.enhanceai.platform.controller"))
+                .apis(RequestHandlerSelectors.basePackage("com.enhanceai.platform"))
                 .paths(PathSelectors.any())
                 .build()
-                .apiInfo(apiInfo());
+                .apiInfo(apiInfo())
+                .useDefaultResponseMessages(false);
     }
 
     private ApiInfo apiInfo() {
-        return new ApiInfo(
-                "EnhanceAI Content API",
-                "AI-powered content processing API",
-                "1.0",
-                "Terms of service",
-                new Contact("Guy Bernstein", "www.example.com", "guyu669@gmail.com"),
-                "License of API", "API license URL");
+        return new ApiInfoBuilder()
+                .title("EnhanceAI Content API")
+                .description("AI-powered content processing API")
+                .version("1.0")
+                .termsOfServiceUrl("Terms of service")
+                .contact(new Contact("Guy Bernstein", "www.example.com", "guyu669@gmail.com"))
+                .license("License of API")
+                .licenseUrl("API license URL")
+                .build();
     }
 }

@@ -4,7 +4,6 @@ import com.enhanceai.platform.kafka.Producer;
 import com.enhanceai.platform.model.*;
 import com.enhanceai.platform.repository.UserContentRepository;
 import com.enhanceai.platform.repository.UserRepository;
-import com.enhanceai.platform.service.FileStorageService;
 import com.enhanceai.platform.service.MinioService;
 import com.enhanceai.platform.service.Redis;
 import com.enhanceai.platform.util.Dates;
@@ -18,8 +17,6 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,21 +38,18 @@ public class AppController {
     private final MongoTemplate mongoTemplate;
     private final Redis redis;
     private final ObjectMapper objectMapper;
-    private final FileStorageService fileStorageService;
     private final UserContentRepository userContentRepository;
     private final Producer producer;
     private final MinioService minioService;
 
     @Autowired
     public AppController(UserRepository userRepository, MongoTemplate mongoTemplate, Redis redis,
-                         ObjectMapper objectMapper, FileStorageService fileStorageService,
-                         UserContentRepository userContentRepository, Producer producer,
-                         MinioService minioService) {
+                         ObjectMapper objectMapper, UserContentRepository userContentRepository,
+                         Producer producer, MinioService minioService) {
         this.userRepository = userRepository;
         this.mongoTemplate = mongoTemplate;
         this.redis = redis;
         this.objectMapper = objectMapper;
-        this.fileStorageService = fileStorageService;
         this.userContentRepository = userContentRepository;
         this.producer = producer;
         this.minioService = minioService;
