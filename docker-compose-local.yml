@@ -1,0 +1,8 @@
+version: "3"
+services:
+  appserver:
+    container_name: server
+    hostname: localhost
+    image: orginizer
+    ports:
+      - "8080:8080"
