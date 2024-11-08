@@ -1,4 +1,4 @@
-package com.orginizer.platform.whatsapp;
+package com.organizer.platform.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,6 +9,6 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Profile {
-    private String name;
+public class Text {
+    private String body;
 }

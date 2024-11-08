@@ -1,4 +1,4 @@
-package com.orginizer.platform.whatsapp;
+package com.organizer.platform.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -10,9 +10,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Conversation {
-    private String id;
-    @JsonProperty("expiration_timestamp")
-    private String expirationTimestamp;
-    private Origin origin;
+public class Pricing {
+    private boolean billable;
+    @JsonProperty("pricing_model")
+    private String pricingModel;
+    private String category;
 }

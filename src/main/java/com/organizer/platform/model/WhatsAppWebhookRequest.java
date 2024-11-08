@@ -1,4 +1,4 @@
-package com.orginizer.platform.whatsapp;
+package com.organizer.platform.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +11,7 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Entry {
-    private String id;
-    private List<Change> changes;
+public class WhatsAppWebhookRequest {
+    private String object;
+    private List<Entry> entry;
 }

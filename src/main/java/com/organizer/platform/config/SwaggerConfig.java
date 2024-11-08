@@ -1,4 +1,4 @@
-package com.orginizer.platform.config;
+package com.organizer.platform.config;
 
 
 import org.springframework.context.annotation.Bean;
@@ -19,7 +19,7 @@ public class SwaggerConfig {
     public Docket api() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("com.orginizer.platform"))
+                .apis(RequestHandlerSelectors.basePackage("com.organizer.platform"))
                 .paths(PathSelectors.any())
                 .build()
                 .apiInfo(apiInfo())

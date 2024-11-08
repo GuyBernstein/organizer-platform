@@ -1,4 +1,4 @@
-package com.orginizer.platform.whatsapp;
+package com.organizer.platform.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -10,9 +10,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Pricing {
-    private boolean billable;
-    @JsonProperty("pricing_model")
-    private String pricingModel;
-    private String category;
+public class Metadata {
+    @JsonProperty("display_phone_number")
+    private String displayPhoneNumber;
+    @JsonProperty("phone_number_id")
+    private String phoneNumberId;
 }

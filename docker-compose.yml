@@ -1,21 +1,11 @@
-name: orginizer-platform
+version: "3"
 services:
-  redis:
-    image: redis
-    ports:
-      - 6379:6379
-    privileged: true
-
-  mongo:
-    image: mongo:4.0
-    ports:
-      - 27017:27017
-    privileged: true
-
-  cassandra:
-    image: "cassandra:3.11.9"
-    ports:
-      - "9042:9042"
+  db:
+    image: postgres
     environment:
-      - "MAX_HEAP_SIZE=512M"
-      - "HEAP_NEWSIZE=256M"
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - ./postgresdata:/var/lib/postgresql/data
+    privileged: true

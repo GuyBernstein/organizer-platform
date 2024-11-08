@@ -1,4 +1,4 @@
-package com.orginizer.platform.whatsapp;
+package com.organizer.platform.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-class Message {
+public class Message {
     private String from;
     private String id;
     private String timestamp;

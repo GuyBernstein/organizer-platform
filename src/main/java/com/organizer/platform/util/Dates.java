@@ -1,4 +1,4 @@
-package com.orginizer.platform.util;
+package com.organizer.platform.util;
 
 import org.joda.time.*;
 import org.springframework.lang.Nullable;

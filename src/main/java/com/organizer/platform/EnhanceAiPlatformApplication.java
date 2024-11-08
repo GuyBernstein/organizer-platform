@@ -1,4 +1,4 @@
-package com.orginizer.platform;
+package com.organizer.platform;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
