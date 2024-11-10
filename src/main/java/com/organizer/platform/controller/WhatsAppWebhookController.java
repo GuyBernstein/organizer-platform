@@ -37,33 +37,26 @@ public class WhatsAppWebhookController {
         try {
             logger.info("Received webhook request: {}", webhookRequest);
 
-            webhookRequest.getEntry().forEach(entry -> {
-                entry.getChanges().forEach(change -> {
-                    if (change.getValue().getMessages() != null && !change.getValue().getMessages().isEmpty()) {
-                        Message message = change.getValue().getMessages().get(0);
-                        if ("text".equals(message.getType())) {
-//                            String phoneNumber = message.getFrom();
-//                            String messageText = message.getText().getBody();
-//                            logger.info("Message from {}: {}", phoneNumber, messageText);
-//                            // Your business logic here
-//                        }
+            webhookRequest.getEntry().forEach(entry -> entry.getChanges().forEach(change -> {
+                if (change.getValue().getMessages() != null && !change.getValue().getMessages().isEmpty()) {
+                    Message message = change.getValue().getMessages().get(0);
+                    if ("text".equals(message.getType())) {
 
-                            // Create WhatsAppMessage entity
-                            WhatsAppMessage whatsAppMessage = WhatsAppMessage.WhatsAppMessageBuilder
-                                    .aWhatsAppMessage()
-                                    .fromNumber(message.getFrom())
-                                    .messageType(message.getType())
-                                    .messageContent(message.getText().getBody())
-                                    .processed(false)
-                                    .build();
+                        // Create WhatsAppMessage entity
+                        WhatsAppMessage whatsAppMessage = WhatsAppMessage.WhatsAppMessageBuilder
+                                .aWhatsAppMessage()
+                                .fromNumber(message.getFrom())
+                                .messageType(message.getType())
+                                .messageContent(message.getText().getBody())
+                                .processed(false)
+                                .build();
 
-                            // Send the WhatsAppMessage object directly to the queue
-                            jmsTemplate.convertAndSend("exampleQueue", whatsAppMessage);
-                            logger.info("Message sent to JMS queue: {}", message.getId());
-                        }
+                        // Send the WhatsAppMessage object directly to the queue
+                        jmsTemplate.convertAndSend("exampleQueue", whatsAppMessage);
+                        logger.info("Message sent to JMS queue: {}", message.getId());
                     }
-                });
-            });
+                }
+            }));
 
             return ResponseEntity.ok("Message processed");
         } catch (Exception e) {
