@@ -4,12 +4,10 @@ package com.organizer.platform.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.organizer.platform.model.WhatsAppMessage;
-import com.organizer.platform.util.Dates;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Component
@@ -25,7 +23,6 @@ public class MessageReceiver {
     }
 
     @JmsListener(destination = "exampleQueue")
-    @Transactional
     public void processMessage(String serializedMessage) {
         try {
             // Deserialize the JSON string back to WhatsAppMessage object

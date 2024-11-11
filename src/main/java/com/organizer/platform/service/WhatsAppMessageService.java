@@ -4,7 +4,6 @@ import com.organizer.platform.model.WhatsAppMessage;
 import com.organizer.platform.repository.WhatsAppMessageRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -30,7 +29,6 @@ public class WhatsAppMessageService {
         return repository.findById(id);
     }
 
-    @Transactional
     public WhatsAppMessage save(WhatsAppMessage whatsAppMessage) {
         if (whatsAppMessage == null) {
             throw new IllegalArgumentException("WhatsAppMessage cannot be null");
