@@ -1,6 +1,7 @@
 package com.organizer.platform.service;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.organizer.platform.model.WhatsAppMessage;
 import com.organizer.platform.util.Dates;
@@ -25,9 +26,12 @@ public class MessageReceiver {
 
     @JmsListener(destination = "exampleQueue")
     @Transactional
-    public void processMessage(WhatsAppMessage whatsAppMessage) {
+    public void processMessage(String serializedMessage) {
         try {
-            log.info("Received message from queue: {}", whatsAppMessage.getFromNumber());
+            // Deserialize the JSON string back to WhatsAppMessage object
+            WhatsAppMessage whatsAppMessage = objectMapper.readValue(serializedMessage, WhatsAppMessage.class);
+
+            log.info("Received message from queue: {}", whatsAppMessage.getMessageContent());
 
             // Validate message
             validateMessage(whatsAppMessage);
@@ -38,9 +42,9 @@ public class MessageReceiver {
             // Save to database
             whatsAppMessage = messageService.save(whatsAppMessage);
             log.info("Successfully saved message to database with ID: {}", whatsAppMessage.getId());
-        } catch (Exception e) {
-            log.error("Error processing message from queue", e);
-            throw e; // Rethrow to trigger transaction rollback
+        } catch (JsonProcessingException e) {
+            log.error("Error deserializing message from queue", e);
+            throw new RuntimeException("Error processing message from queue", e);
         }
     }
 

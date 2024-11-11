@@ -29,7 +29,6 @@ public class WhatsAppMessage implements Serializable {
         return Dates.atLocalTime(createdAt);
     }
 
-
     @NotEmpty
     @Column(nullable = false)
     private String fromNumber;

@@ -15,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import static com.organizer.platform.model.WhatsAppMessage.WhatsAppMessageBuilder.aWhatsAppMessage;
+
 @RestController
 @RequestMapping("/webhook")
 public class WhatsAppWebhookController {
@@ -41,19 +43,26 @@ public class WhatsAppWebhookController {
                 if (change.getValue().getMessages() != null && !change.getValue().getMessages().isEmpty()) {
                     Message message = change.getValue().getMessages().get(0);
                     if ("text".equals(message.getType())) {
+                        try {
+                            // Create WhatsAppMessage entity
+                            WhatsAppMessage whatsAppMessage = aWhatsAppMessage()
+                                    .fromNumber(message.getFrom())
+                                    .messageType(message.getType())
+                                    .messageContent(message.getText().getBody())
+                                    .processed(false)
+                                    .build();
 
-                        // Create WhatsAppMessage entity
-                        WhatsAppMessage whatsAppMessage = WhatsAppMessage.WhatsAppMessageBuilder
-                                .aWhatsAppMessage()
-                                .fromNumber(message.getFrom())
-                                .messageType(message.getType())
-                                .messageContent(message.getText().getBody())
-                                .processed(false)
-                                .build();
+                            // Serialize the WhatsAppMessage to JSON string
+                            String serializedMessage = objectMapper.writeValueAsString(whatsAppMessage);
 
-                        // Send the WhatsAppMessage object directly to the queue
-                        jmsTemplate.convertAndSend("exampleQueue", whatsAppMessage);
-                        logger.info("Message sent to JMS queue: {}", message.getId());
+                            // Send the serialized JSON string to the queue
+                            jmsTemplate.convertAndSend("exampleQueue", serializedMessage);
+
+                            logger.info("Serialized message sent to JMS queue: {}", serializedMessage);
+                        } catch (JsonProcessingException e) {
+                            logger.error("Error serializing WhatsAppMessage", e);
+                            throw new RuntimeException("Error processing message", e);
+                        }
                     }
                 }
             }));
