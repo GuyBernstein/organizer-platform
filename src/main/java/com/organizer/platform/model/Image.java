@@ -1,5 +1,6 @@
 package com.organizer.platform.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,11 +10,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Message {
-    private String from;
+public class Image {
+    @JsonProperty("mime_type")
+    private String mimeType;
+    private String sha256;
     private String id;
-    private String timestamp;
-    private Text text;
-    private Image image;
-    private String type;
 }
