@@ -2,25 +2,37 @@ package com.organizer.platform.controller;
 
 import com.organizer.platform.model.WhatsAppMessage;
 import com.organizer.platform.repository.WhatsAppMessageRepository;
+import com.organizer.platform.service.CloudStorageService;
+import com.organizer.platform.service.WhatsAppImageService;
 import com.organizer.platform.service.WhatsAppMessageService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/content")
 @Api(tags = "Content Management API")
 public class AppController {
+    private static final Logger log = LoggerFactory.getLogger(WhatsAppImageService.class);
     private final WhatsAppMessageService messageService;
+    private final CloudStorageService cloudStorageService;
+
 
     @Autowired
-    public AppController(WhatsAppMessageService messageService) {
+    public AppController(WhatsAppMessageService messageService, CloudStorageService cloudStorageService) {
         this.messageService = messageService;
+        this.cloudStorageService = cloudStorageService;
     }
 
     @GetMapping("/messages/{phoneNumber}")
@@ -52,5 +64,26 @@ public class AppController {
         }
 
         return new ResponseEntity<>(messageContents, HttpStatus.OK);
+    }
+
+    @GetMapping("/image/url")
+    public ResponseEntity<?> getImagePreSignedUrl(
+            @RequestParam(required = true) String imageName,
+            HttpServletRequest request) {
+
+        log.info("Request received: {} {}", request.getMethod(), request.getRequestURI());
+        log.info("ImageName received: {}", imageName);
+
+        try {
+            String preSignedUrl = cloudStorageService.generateSignedUrl(imageName);
+            Map<String, String> response = new HashMap<>();
+            response.put("imageUrl", preSignedUrl);
+            response.put("fileName", imageName);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error generating URL", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
     }
 }

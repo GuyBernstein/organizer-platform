@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,10 +22,6 @@ public class WhatsAppMessageService {
                 .map(WhatsAppMessage::getMessageContent)
                 .filter(content -> content != null && !content.trim().isEmpty())
                 .collect(Collectors.toList());
-    }
-
-    public Optional<WhatsAppMessage> findById(Long id) {
-        return repository.findById(id);
     }
 
     public WhatsAppMessage save(WhatsAppMessage whatsAppMessage) {

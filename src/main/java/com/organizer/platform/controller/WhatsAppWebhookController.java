@@ -6,14 +6,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.organizer.platform.model.Message;
 import com.organizer.platform.model.WhatsAppMessage;
 import com.organizer.platform.model.WhatsAppWebhookRequest;
-import com.organizer.platform.repository.WhatsAppMessageRepository;
-import com.organizer.platform.util.Dates;
+import com.organizer.platform.service.CloudStorageService;
+import com.organizer.platform.service.WhatsAppImageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 import static com.organizer.platform.model.WhatsAppMessage.WhatsAppMessageBuilder.aWhatsAppMessage;
 
@@ -24,11 +28,17 @@ public class WhatsAppWebhookController {
 
     private final JmsTemplate jmsTemplate;
     private final ObjectMapper objectMapper;
+    private final WhatsAppImageService whatsAppImageService;
+
+    @Value("${whatsapp.api.token}")
+    String whatsAppToken;
 
     @Autowired
-    public WhatsAppWebhookController(WhatsAppMessageRepository messageRepository, JmsTemplate jmsTemplate, ObjectMapper objectMapper) {
+    public WhatsAppWebhookController(JmsTemplate jmsTemplate, ObjectMapper objectMapper,
+                                     WhatsAppImageService whatsAppImageService) {
         this.jmsTemplate = jmsTemplate;
         this.objectMapper = objectMapper;
+        this.whatsAppImageService = whatsAppImageService;
     }
 
 
@@ -70,7 +80,7 @@ public class WhatsAppWebhookController {
         }
     }
 
-    private static WhatsAppMessage createWhatsAppMessage(Message message) {
+    private WhatsAppMessage createWhatsAppMessage(Message message) {
         // Create WhatsAppMessage entity
         WhatsAppMessage.WhatsAppMessageBuilder builder = aWhatsAppMessage()
                 .fromNumber(message.getFrom())
@@ -85,16 +95,19 @@ public class WhatsAppWebhookController {
                 break;
             case "image":
                 if (message.getImage() != null) {
-                    // Store image metadata in messageContent
-                    String imageMetadata = String.format("Image ID: %s, MIME Type: %s",
-                            message.getImage().getId(),
-                            message.getImage().getMimeType());
-                    builder.messageContent(imageMetadata);
+                    // Upload image to Google Cloud Storage
+                    String storedFileName = whatsAppImageService.processAndUploadImage(
+                            message.getImage(),
+                            whatsAppToken
+                    );
 
-                    // You might want to construct a URL to access the image later
-                    // This is just an example - adjust according to your needs
-                    String mediaUrl = String.format("/media/images/%s", message.getImage().getId());
-                    builder.mediaUrl(mediaUrl);
+                    // Store image metadata and GCS filename
+                    String imageMetadata = String.format("Image ID: %s, MIME Type: %s, GCS File: %s",
+                            message.getImage().getId(),
+                            message.getImage().getMimeType(),
+                            storedFileName);
+                    builder.messageContent(imageMetadata);
+                    builder.mediaUrl(storedFileName);
                 }
                 break;
             default:

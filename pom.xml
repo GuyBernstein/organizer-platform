@@ -28,7 +28,22 @@
 	</scm>
 	<properties>
 		<java.version>11</java.version>
+		<spring-cloud-gcp.version>4.8.4</spring-cloud-gcp.version>
+		<google-cloud-storage.version>2.22.4</google-cloud-storage.version>
 	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>com.google.cloud</groupId>
+				<artifactId>spring-cloud-gcp-dependencies</artifactId>
+				<version>${spring-cloud-gcp.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<dependencies>
 		<!-- Spring Web -->
 		<dependency>
@@ -112,7 +127,32 @@
 			<artifactId>jackson-databind</artifactId>
 		</dependency>
 
-    </dependencies>
+		<!-- Google Cloud Storage -->
+		<dependency>
+			<groupId>com.google.cloud</groupId>
+			<artifactId>google-cloud-storage</artifactId>
+			<version>${google-cloud-storage.version}</version>
+		</dependency>
+
+		<!-- Guava (explicit version to resolve conflicts) -->
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>32.1.2-jre</version>
+		</dependency>
+
+		<!-- Required Google Cloud Platform dependencies -->
+		<dependency>
+			<groupId>com.google.cloud</groupId>
+			<artifactId>google-cloud-core</artifactId>
+			<version>2.22.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.auth</groupId>
+			<artifactId>google-auth-library-oauth2-http</artifactId>
+			<version>1.19.0</version>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<plugins>
