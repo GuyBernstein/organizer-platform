@@ -1,6 +1,7 @@
 package com.organizer.platform.service;
 
 import com.organizer.platform.model.Image;
+import com.organizer.platform.model.MediaResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -105,18 +106,5 @@ public class WhatsAppImageService {
             default:
                 return "jpg";
         }
-    }
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    static class MediaResponse{
-        private String url;
-        private String mime_type;
-        private String sha256;
-        private Integer file_size;
-        private String id;
-        private String messaging_product;
     }
 }

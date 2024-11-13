@@ -4,6 +4,7 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.storage.*;
 import com.organizer.platform.config.GCSProperties;
 import com.organizer.platform.controller.WhatsAppWebhookController;
+import com.organizer.platform.util.Dates;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,7 @@ import javax.annotation.PostConstruct;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -82,39 +84,44 @@ public class CloudStorageService {
         return fileName;
     }
 
-    public boolean doesImageExist(String objectName) {
-        try {
-            BlobId blobId = BlobId.of(gcsProperties.getBucketName(), objectName);
-            Blob blob = storage.get(blobId);
-            return blob != null && blob.exists();
-        } catch (StorageException e) {
-            logger.error("Error checking if image exists: " + objectName, e);
-            return false;
-        }
+    public String generateSignedUrl(String imageName) {
+        return generateSignedUrlForObject("images/" + imageName);
     }
 
-    public String generateSignedUrl(String objectName) {
+    public String generateDocumentSignedUrl(String documentName) {
+        return generateSignedUrlForObject("documents/" + documentName);
+    }
+
+    private String generateSignedUrlForObject(String objectPath) {
+        BlobId blobId = BlobId.of(gcsProperties.getBucketName(), objectPath);
+        BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
+
+        // Create signed URL that expires in 15 minutes
+        return storage.signUrl(blobInfo, 15, TimeUnit.MINUTES,
+                        Storage.SignUrlOption.withV4Signature())
+                .toString();
+    }
+
+    public String uploadDocument(byte[] documentData, String mimeType, String originalFilename) {
         try {
-            logger.info("Attempting to generate signed URL for object: {} in bucket: {}",
-                    objectName, gcsProperties.getBucketName());
+            // Create a unique filename using timestamp and original filename
+            String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(Dates.nowUTC());
+            String uniqueFilename = timestamp + "_" + originalFilename;
 
-            BlobId blobId = BlobId.of(gcsProperties.getBucketName(), objectName);
-            BlobInfo blobInfo = BlobInfo.newBuilder(blobId).build();
+            // Create document path in GCS
+            String documentPath = "documents/" + uniqueFilename;
 
-            // Set URL expiration time
-            URL signedUrl = storage.signUrl(blobInfo,
-                    1, // duration
-                    TimeUnit.HOURS, // time unit
-                    Storage.SignUrlOption.withV4Signature());
+            BlobId blobId = BlobId.of(gcsProperties.getBucketName(), documentPath);
+            BlobInfo blobInfo = BlobInfo.newBuilder(blobId)
+                    .setContentType(mimeType)
+                    .build();
 
-            return signedUrl.toString();
+            storage.create(blobInfo, documentData);
+            return documentPath;
 
-        } catch (IllegalArgumentException e) {
-            logger.error("Invalid argument while generating signed URL: " + objectName, e);
-            throw new IllegalArgumentException("Invalid object name or bucket configuration");
-        } catch (StorageException e) {
-            logger.error("Storage error while generating signed URL: " + objectName, e);
-            throw new RuntimeException("Failed to generate signed URL");
+        } catch (Exception e) {
+            logger.error("Storage error while uploading document: " + originalFilename, e);
+            throw new RuntimeException("Failed to upload document to Google Cloud Storage", e);
         }
     }
 

@@ -9,12 +9,11 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Message {
-    private String from;
+public class MediaResponse{
+    private String url;
+    private String mime_type;
+    private String sha256;
+    private Integer file_size;
     private String id;
-    private String timestamp;
-    private String type;
-    private Text text;
-    private Image image;
-    private Document document;
+    private String messaging_product;
 }

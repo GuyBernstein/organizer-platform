@@ -68,7 +68,7 @@ public class AppController {
 
     @GetMapping("/image/url")
     public ResponseEntity<?> getImagePreSignedUrl(
-            @RequestParam(required = true) String imageName,
+            @RequestParam() String imageName,
             HttpServletRequest request) {
 
         log.info("Request received: {} {}", request.getMethod(), request.getRequestURI());
@@ -85,5 +85,42 @@ public class AppController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));
         }
+    }
+
+    @GetMapping("/document/url")
+    public ResponseEntity<?> getDocumentPreSignedUrl(
+            @RequestParam() String documentName,
+            HttpServletRequest request) {
+
+        log.info("Request received: {} {}", request.getMethod(), request.getRequestURI());
+        log.info("DocumentName received: {}", documentName);
+
+        try {
+            // Generate pre-signed URL for the document
+            String preSignedUrl = cloudStorageService.generateDocumentSignedUrl(documentName);
+
+            // Create response with additional metadata
+            Map<String, String> response = new HashMap<>();
+            response.put("documentUrl", preSignedUrl);
+            response.put("fileName", documentName);
+
+            // Extract file extension for content type hints
+            String fileExtension = getFileExtension(documentName);
+            if (fileExtension != null) {
+                response.put("fileType", fileExtension);
+            }
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error generating document URL", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    private String getFileExtension(String fileName) {
+        if (fileName == null) return null;
+        int lastDotIndex = fileName.lastIndexOf('.');
+        return lastDotIndex > 0 ? fileName.substring(lastDotIndex + 1) : null;
     }
 }
