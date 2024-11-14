@@ -40,12 +40,8 @@ public class WhatsAppMessage implements Serializable {
     @Column(columnDefinition = "TEXT")
     private String messageContent;
 
-    @Column(length = 500)
-    private String mediaUrl;  // URL for stored media files
-
     @Column(nullable = false)
     private boolean processed = false;
-
 
     public Long getId() {
         return id;
@@ -87,14 +83,6 @@ public class WhatsAppMessage implements Serializable {
         this.messageContent = messageContent;
     }
 
-    public String getMediaUrl() {
-        return mediaUrl;
-    }
-
-    public void setMediaUrl(String mediaUrl) {
-        this.mediaUrl = mediaUrl;
-    }
-
     public boolean isProcessed() {
         return processed;
     }
@@ -109,7 +97,6 @@ public class WhatsAppMessage implements Serializable {
         private @NotEmpty String fromNumber;
         private @NotEmpty String messageType;
         private String messageContent;
-        private String mediaUrl;
         private boolean processed;
 
         private WhatsAppMessageBuilder() {
@@ -144,11 +131,6 @@ public class WhatsAppMessage implements Serializable {
             return this;
         }
 
-        public WhatsAppMessageBuilder mediaUrl(String mediaUrl) {
-            this.mediaUrl = mediaUrl;
-            return this;
-        }
-
         public WhatsAppMessageBuilder processed(boolean processed) {
             this.processed = processed;
             return this;
@@ -161,7 +143,6 @@ public class WhatsAppMessage implements Serializable {
             whatsAppMessage.setFromNumber(fromNumber);
             whatsAppMessage.setMessageType(messageType);
             whatsAppMessage.setMessageContent(messageContent);
-            whatsAppMessage.setMediaUrl(mediaUrl);
             whatsAppMessage.setProcessed(processed);
             return whatsAppMessage;
         }

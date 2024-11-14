@@ -3,12 +3,11 @@ package com.organizer.platform.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.organizer.platform.model.Document;
-import com.organizer.platform.model.Message;
-import com.organizer.platform.model.WhatsAppMessage;
-import com.organizer.platform.model.WhatsAppWebhookRequest;
+import com.organizer.platform.model.*;
+import com.organizer.platform.service.WhatsAppAudioService;
 import com.organizer.platform.service.WhatsAppDocumentService;
 import com.organizer.platform.service.WhatsAppImageService;
+import com.organizer.platform.util.Dates;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +30,7 @@ public class WhatsAppWebhookController {
     private final ObjectMapper objectMapper;
     private final WhatsAppImageService whatsAppImageService;
     private final WhatsAppDocumentService whatsAppDocumentService;
+    private final WhatsAppAudioService whatsAppAudioService;
 
     @Value("${whatsapp.api.token}")
     String whatsAppToken;
@@ -38,11 +38,13 @@ public class WhatsAppWebhookController {
     @Autowired
     public WhatsAppWebhookController(JmsTemplate jmsTemplate, ObjectMapper objectMapper,
                                      WhatsAppImageService whatsAppImageService,
-                                     WhatsAppDocumentService whatsAppDocumentService) {
+                                     WhatsAppDocumentService whatsAppDocumentService,
+                                     WhatsAppAudioService whatsAppAudioService) {
         this.jmsTemplate = jmsTemplate;
         this.objectMapper = objectMapper;
         this.whatsAppImageService = whatsAppImageService;
         this.whatsAppDocumentService = whatsAppDocumentService;
+        this.whatsAppAudioService = whatsAppAudioService;
     }
 
 
@@ -101,11 +103,30 @@ public class WhatsAppWebhookController {
             case "document":
                 processDocumentMessage(message, builder);
                 break;
+            case "audio":
+                processAudioMessage(message, builder);
+                break;
             default:
                 logger.warn("Unsupported message type: {}", message.getType());
         }
 
+
         return builder.build();
+    }
+
+    private void processAudioMessage(Message message, WhatsAppMessage.WhatsAppMessageBuilder builder) {
+        if (message.getAudio() != null) {
+            // Upload audio to Google Cloud Storage
+            String storedFileName = whatsAppAudioService.processAndUploadAudio(
+                    message.getAudio(),
+                    whatsAppToken
+            );
+
+            String audioMetadata = createAudioMetadata(message.getAudio(), storedFileName);
+            builder.messageContent(audioMetadata);
+        } else {
+            logger.warn("Audio message received but audio content is null");
+        }
     }
 
     private void processDocumentMessage(Message message, WhatsAppMessage.WhatsAppMessageBuilder builder) {
@@ -146,19 +167,32 @@ public class WhatsAppWebhookController {
         }
     }
 
+    private String createAudioMetadata(Audio audio, String storedFileName) {
+        String cleanFileName = storedFileName.startsWith("audios/")
+                ? storedFileName.substring("audios/".length())
+                : storedFileName;  // get after the prefix "audios/" to get the actual file name
+        return String.format("Audio ID: %s, MIME Type: %s, GCS File: %s",
+                audio.getId(),
+                audio.getMimeType(),
+                cleanFileName);
+    }
+
     private static String createImageMetadata(Message message, String storedFileName) {
         // Create image metadata and GCS filename
+        String cleanFileName = storedFileName.startsWith("images/")
+                ? storedFileName.substring("images/".length())
+                : storedFileName;  // get after the prefix "images/" to get the actual file name
         return String.format("Image ID: %s, MIME Type: %s, GCS File: %s",
                 message.getImage().getId(),
                 message.getImage().getMimeType(),
-                storedFileName);
+                cleanFileName);
     }
 
     private String createDocumentMetadata(Document document, String storedFileName) {
         String cleanFileName = storedFileName.startsWith("documents/")
                 ? storedFileName.substring("documents/".length())
                 : storedFileName;  // get after the prefix "documetnts/" to get the actual file name
-        return String.format("Document ID: %s, MIME Type: %s, Filename: %s",
+        return String.format("Document ID: %s, MIME Type: %s, GCS File: %s",
                 document.getId(),
                 document.getMimeType(),
                 cleanFileName);

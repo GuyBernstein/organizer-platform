@@ -34,4 +34,8 @@ public class WhatsAppMessageService {
     public void delete(WhatsAppMessage whatsAppMessage) {
         repository.delete(whatsAppMessage);
     }
+
+    public void deleteAll() {
+        repository.deleteAll();
+    }
 }

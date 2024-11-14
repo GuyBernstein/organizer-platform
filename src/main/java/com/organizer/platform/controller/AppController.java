@@ -118,6 +118,72 @@ public class AppController {
         }
     }
 
+    @GetMapping("/audio/url")
+    @ApiOperation(value = "Get pre-signed URL for audio file",
+            notes = "Retrieves a pre-signed URL for accessing an audio file stored in Cloud Storage")
+    public ResponseEntity<?> getAudioPreSignedUrl(
+            @RequestParam String audioName,
+            HttpServletRequest request) {
+
+        log.info("Request received: {} {}", request.getMethod(), request.getRequestURI());
+        log.info("AudioName received: {}", audioName);
+
+        try {
+            // Generate pre-signed URL for the audio file
+            String preSignedUrl = cloudStorageService.generateAudioSignedUrl(audioName);
+
+            // Create response with metadata
+            Map<String, String> response = new HashMap<>();
+            response.put("audioUrl", preSignedUrl);
+            response.put("fileName", audioName);
+
+            // Add audio file type information
+            String fileExtension = getFileExtension(audioName);
+            if (fileExtension != null) {
+                response.put("fileType", fileExtension);
+
+                // Add content type hint based on file extension
+                String contentType = getAudioContentType(fileExtension);
+                if (contentType != null) {
+                    response.put("contentType", contentType);
+                }
+            }
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error generating audio URL", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/all")
+    public ResponseEntity<Void> deleteAll() {
+        messageService.deleteAll();
+        return ResponseEntity.ok().build();
+    }
+
+    private String getAudioContentType(String fileExtension) {
+        if (fileExtension == null) return null;
+        switch (fileExtension.toLowerCase())
+        {
+            case "ogg":
+                return "audio/ogg";
+            case "mp3":
+                return "audio/mpeg";
+            case "wav":
+                return "audio/wav";
+            case "m4a":
+                return "audio/mp4";
+            case "aac":
+                return "audio/aac";
+            case "webm":
+                return "audio/webm";
+            default:
+                return null;
+        }
+    }
+
     private String getFileExtension(String fileName) {
         if (fileName == null) return null;
         int lastDotIndex = fileName.lastIndexOf('.');

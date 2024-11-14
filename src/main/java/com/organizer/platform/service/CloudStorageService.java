@@ -69,27 +69,16 @@ public class CloudStorageService {
         }
     }
 
-    public String uploadImage(byte[] imageData, String mimeType, String originalFileName) {
-        // Generates a unique filename
-        String fileName = generateFileName(originalFileName);
-
-        // Creates a blob (file) in GCS
-        BlobId blobId = BlobId.of(gcsProperties.getBucketName(), fileName);
-        BlobInfo blobInfo = BlobInfo.newBuilder(blobId)
-                .setContentType(mimeType)
-                .build();
-
-        // Uploads the file
-        storage.create(blobInfo, imageData);
-        return fileName;
-    }
-
     public String generateSignedUrl(String imageName) {
         return generateSignedUrlForObject("images/" + imageName);
     }
 
     public String generateDocumentSignedUrl(String documentName) {
         return generateSignedUrlForObject("documents/" + documentName);
+    }
+
+    public String generateAudioSignedUrl(String audioName) {
+        return generateSignedUrlForObject("audios/" + audioName);
     }
 
     private String generateSignedUrlForObject(String objectPath) {
@@ -122,6 +111,55 @@ public class CloudStorageService {
         } catch (Exception e) {
             logger.error("Storage error while uploading document: " + originalFilename, e);
             throw new RuntimeException("Failed to upload document to Google Cloud Storage", e);
+        }
+    }
+
+    public String uploadImage(byte[] imageData, String mimeType, String originalFileName) {
+        // Generates a unique filename
+        String fileName = generateFileName(originalFileName);
+
+        // Create image path in GCS
+        String imagePath = "images/" + fileName;
+
+        // Creates a blob (file) in GCS
+        BlobId blobId = BlobId.of(gcsProperties.getBucketName(), imagePath);
+        BlobInfo blobInfo = BlobInfo.newBuilder(blobId)
+                .setContentType(mimeType)
+                .build();
+
+        // Uploads the file
+        storage.create(blobInfo, imageData);
+        return imagePath;
+    }
+
+    public String uploadAudio(byte[] audioData, String mimeType, String originalFileName) {
+        try {
+            logger.info("Starting audio upload process for file: {}", originalFileName);
+
+            // Generate a unique filename using timestamp and original filename
+            String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(Dates.nowUTC());
+            String uniqueFilename = timestamp + "_" + originalFileName;
+
+            // Create audio path in GCS under 'audio' directory
+            String audioPath = "audios/" + uniqueFilename;
+
+            logger.info("Uploading audio to path: {}", audioPath);
+
+            // Create blob (file) in GCS
+            BlobId blobId = BlobId.of(gcsProperties.getBucketName(), audioPath);
+            BlobInfo blobInfo = BlobInfo.newBuilder(blobId)
+                    .setContentType(mimeType)
+                    .build();
+
+            // Upload the file
+            storage.create(blobInfo, audioData);
+
+            logger.info("Successfully uploaded audio file to GCS: {}", audioPath);
+            return audioPath;
+
+        } catch (Exception e) {
+            logger.error("Storage error while uploading audio: " + originalFileName, e);
+            throw new RuntimeException("Failed to upload audio to Google Cloud Storage", e);
         }
     }
 
