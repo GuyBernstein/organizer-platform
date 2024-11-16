@@ -13,6 +13,7 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
+import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -20,6 +21,7 @@ import java.io.IOException;
 @Configuration
 public class GoogleOAuthConfig {
     private static final Logger logger = LoggerFactory.getLogger(GoogleOAuthConfig.class);
+    private static final String GOOGLE_JWK_SET_URI = "https://www.googleapis.com/oauth2/v3/certs";
 
     private final OAuthProperties oAuthProperties;
 
@@ -53,11 +55,12 @@ public class GoogleOAuthConfig {
                     .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
                     .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                     .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
-                    .scope("email", "profile", "openid")
-                    .authorizationUri(jsonNode.get("auth_uri").asText())
-                    .tokenUri(jsonNode.get("token_uri").asText())
+                    .scope("openid", "profile", "email")
+                    .authorizationUri("https://accounts.google.com/o/oauth2/v2/auth")
+                    .tokenUri("https://www.googleapis.com/oauth2/v4/token")
                     .userInfoUri("https://www.googleapis.com/oauth2/v3/userinfo")
-                    .userNameAttributeName("sub")
+                    .jwkSetUri(GOOGLE_JWK_SET_URI)
+                    .userNameAttributeName(IdTokenClaimNames.SUB)
                     .clientName("Google")
                     .build();
 
