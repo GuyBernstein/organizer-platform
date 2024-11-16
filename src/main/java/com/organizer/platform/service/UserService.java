@@ -46,6 +46,18 @@ public class UserService {
         return repository.findByAuthorized(false);
     }
 
+    public List<AppUser> findAll() {
+        return repository.findAll();
+    }
+
+    public Optional<AppUser> findById(Long id) {
+        return repository.findById(id);
+    }
+
+    public List<AppUser> findByAuthorized(boolean authorized) {
+        return repository.findByAuthorized(authorized);
+    }
+
     public AppUser save(AppUser appUser) {
         if (appUser == null) {
             throw new IllegalArgumentException("User cannot be null");
