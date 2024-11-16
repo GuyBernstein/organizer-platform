@@ -42,7 +42,9 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/js/**"),
                                 new AntPathRequestMatcher("/oauth2/**"),
                                 new AntPathRequestMatcher("/login/oauth2/code/*"),
-                                new AntPathRequestMatcher("/auth-status")
+                                new AntPathRequestMatcher("/auth-status"),
+                                new AntPathRequestMatcher("/webhook")
+
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

@@ -4,6 +4,7 @@ package com.organizer.platform.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.organizer.platform.model.*;
+import com.organizer.platform.service.UserService;
 import com.organizer.platform.service.WhatsAppAudioService;
 import com.organizer.platform.service.WhatsAppDocumentService;
 import com.organizer.platform.service.WhatsAppImageService;
@@ -31,6 +32,8 @@ public class WhatsAppWebhookController {
     private final WhatsAppImageService whatsAppImageService;
     private final WhatsAppDocumentService whatsAppDocumentService;
     private final WhatsAppAudioService whatsAppAudioService;
+    private final UserService userService;
+
 
     @Value("${whatsapp.api.token}")
     String whatsAppToken;
@@ -39,12 +42,13 @@ public class WhatsAppWebhookController {
     public WhatsAppWebhookController(JmsTemplate jmsTemplate, ObjectMapper objectMapper,
                                      WhatsAppImageService whatsAppImageService,
                                      WhatsAppDocumentService whatsAppDocumentService,
-                                     WhatsAppAudioService whatsAppAudioService) {
+                                     WhatsAppAudioService whatsAppAudioService, UserService userService) {
         this.jmsTemplate = jmsTemplate;
         this.objectMapper = objectMapper;
         this.whatsAppImageService = whatsAppImageService;
         this.whatsAppDocumentService = whatsAppDocumentService;
         this.whatsAppAudioService = whatsAppAudioService;
+        this.userService = userService;
     }
 
 
@@ -54,11 +58,14 @@ public class WhatsAppWebhookController {
             logger.info("Received webhook request: {}", webhookRequest);
 
             webhookRequest.getEntry().forEach(entry -> entry.getChanges().forEach(change -> {
-                logger.info("Processing entry with ID: {}", entry.getId());
-
                 if (change.getValue().getMessages() != null && !change.getValue().getMessages().isEmpty()) {
                     Message message = change.getValue().getMessages().get(0);
-                    processMessage(message);
+                    // Check if the number is authorized using the UserService
+                    if (userService.isAuthorizedNumber(message.getFrom())) {
+                        processMessage(message);
+                    } else {
+                        logger.warn("Unauthorized WhatsApp number attempted to send message: {}", message.getFrom());
+                    }
                 }
             }));
 
