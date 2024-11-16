@@ -15,6 +15,8 @@ import static com.organizer.platform.model.AppUser.UserBuilder.anUser;
 @Service
 public class UserService {
     private static final String ADMIN_EMAIL = "guyu669@gmail.com";
+    private static final String ADMIN_WHATSAPP = "972509603888";
+
     private final UserRepository repository;
 
     @Autowired
@@ -27,11 +29,62 @@ public class UserService {
         repository.findByEmail(ADMIN_EMAIL).orElseGet(() -> {
             AppUser admin = anUser()
                     .email(ADMIN_EMAIL)
+                    .whatsappNumber(ADMIN_WHATSAPP)
                     .role(UserRole.ADMIN)
                     .authorized(true)
                     .build();
+
             return repository.save(admin);
         });
+    }
+
+    public AppUser createUnauthorizedUser(String whatsappNumber) {
+        return repository.findByWhatsappNumber(whatsappNumber)
+                .orElseGet(() -> {
+
+                    // Generate a temporary email using WhatsApp number
+                    String tempEmail =
+                            "whatsapp." + whatsappNumber.replaceAll("[^0-9]", "") + "@temp.platform.com";
+
+                    AppUser newUser = AppUser.UserBuilder.anUser()
+                            .whatsappNumber(whatsappNumber)
+                            .email(tempEmail)  // Set the generated email
+                            .role(UserRole.UNAUTHORIZED)
+                            .authorized(false)
+                            .build();
+
+                    return repository.save(newUser);
+                });
+    }
+
+    public AppUser restoreAdmin() {
+        Optional<AppUser> adminUser = repository.findByEmail(ADMIN_EMAIL);
+
+        if (adminUser.isPresent()) {
+            return toAdmin(adminUser);
+        } else {
+            // If admin user somehow got deleted, recreate it
+            AppUser admin = createAdmin();
+
+            return repository.save(admin);
+        }
+    }
+
+    private static AppUser createAdmin() {
+        return AppUser.UserBuilder.anUser()
+                .email(ADMIN_EMAIL)
+                .whatsappNumber(ADMIN_WHATSAPP)
+                .role(UserRole.ADMIN)
+                .authorized(true)
+                .build();
+    }
+
+    private AppUser toAdmin(Optional<AppUser> adminUser) {
+        AppUser admin = adminUser.get();
+        admin.setRole(UserRole.ADMIN);
+        admin.setWhatsappNumber(ADMIN_WHATSAPP);
+        admin.setAuthorized(true);
+        return repository.save(admin);
     }
 
     public Optional<AppUser> findByEmail(String email) {

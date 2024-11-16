@@ -32,7 +32,7 @@ public class AuthController {
             return "Not authenticated";
         }
         logger.debug("User is authenticated: {}", principal.getName());
-        return "Authenticated as: " + principal.getAttribute("email");
+        return "Authenticated as: " + principal.getAttributes();
     }
 
     @GetMapping("/dashboard")
