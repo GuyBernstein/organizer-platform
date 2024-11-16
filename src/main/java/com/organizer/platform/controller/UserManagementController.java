@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/users")
@@ -188,4 +189,44 @@ public class UserManagementController {
 
         return ResponseEntity.ok(stats);
     }
+
+    @PostMapping("/{userId}/link-whatsapp")
+    public ResponseEntity<?> linkWhatsAppNumber(
+            @PathVariable Long userId,
+            @RequestParam String whatsappNumber,
+            Authentication authentication) {
+        if (!isAdminUser(authentication)) {
+            logger.warn("Unauthorized access attempt to link WhatsApp by: {}",
+                    authentication.getName());
+            return ResponseEntity.status(403)
+                    .body("Only administrators can link WhatsApp numbers");
+        }
+
+        // Check if WhatsApp number is already linked to another user
+        Optional<AppUser> existingWhatsAppUser = userService.findByWhatsappNumber(whatsappNumber);
+        if (existingWhatsAppUser.isPresent() && !existingWhatsAppUser.get().getId().equals(userId)) {
+            // If the existing user is a temporary one (has temp email), migrate their data
+            AppUser existing = existingWhatsAppUser.get();
+            if (existing.getEmail().endsWith("@temp.platform.com")) {
+                // Delete the temporary user
+                userService.delete(existing);
+            } else {
+                return ResponseEntity.badRequest()
+                        .body("WhatsApp number already linked to another user");
+            }
+        }
+
+        return userService.findById(userId)
+                .map(user -> {
+                    user.setWhatsappNumber(whatsappNumber);
+                    AppUser updatedUser = userService.save(user);
+                    logger.info("WhatsApp number {} linked to user {}", whatsappNumber, userId);
+                    return ResponseEntity.ok(updatedUser);
+                })
+                .orElseGet(() -> {
+                    logger.warn("Attempt to link WhatsApp to non-existent user: {}", userId);
+                    return ResponseEntity.notFound().build();
+                });
+    }
+
 }

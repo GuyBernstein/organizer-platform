@@ -5,6 +5,8 @@ import com.organizer.platform.model.AppUser;
 import com.organizer.platform.model.UserRole;
 import com.organizer.platform.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,7 +16,7 @@ import static com.organizer.platform.model.AppUser.UserBuilder.anUser;
 
 @Service
 public class UserService {
-    private static final String ADMIN_EMAIL = "guyu669@gmail.com";
+    public static final String ADMIN_EMAIL = "guyu669@gmail.com";
     private static final String ADMIN_WHATSAPP = "972509603888";
 
     private final UserRepository repository;
@@ -41,20 +43,34 @@ public class UserService {
     public AppUser createUnauthorizedUser(String whatsappNumber) {
         return repository.findByWhatsappNumber(whatsappNumber)
                 .orElseGet(() -> {
+                    // First check if this is a temporary user that was replaced
+                    Optional<AppUser> linkedUser = findLinkedGoogleUser(whatsappNumber);
+                    if (linkedUser.isPresent()) {
+                        return linkedUser.get();
+                    }
 
-                    // Generate a temporary email using WhatsApp number
+                    // If no linked user found, create temporary user
                     String tempEmail =
                             "whatsapp." + whatsappNumber.replaceAll("[^0-9]", "") + "@temp.platform.com";
 
-                    AppUser newUser = AppUser.UserBuilder.anUser()
-                            .whatsappNumber(whatsappNumber)
-                            .email(tempEmail)  // Set the generated email
-                            .role(UserRole.UNAUTHORIZED)
-                            .authorized(false)
-                            .build();
+                    AppUser newUser = toUser(whatsappNumber, tempEmail);
 
                     return repository.save(newUser);
                 });
+    }
+
+    private Optional<AppUser> findLinkedGoogleUser(String whatsappNumber) {
+        return repository.findByWhatsappNumber(whatsappNumber)
+                .filter(user -> !user.getEmail().endsWith("@temp.platform.com"));
+    }
+
+    private static AppUser toUser(String whatsappNumber, String tempEmail) {
+        return AppUser.UserBuilder.anUser()
+                .whatsappNumber(whatsappNumber)
+                .email(tempEmail)
+                .role(UserRole.UNAUTHORIZED)
+                .authorized(false)
+                .build();
     }
 
     public AppUser restoreAdmin() {
@@ -86,6 +102,22 @@ public class UserService {
         admin.setAuthorized(true);
         return repository.save(admin);
     }
+
+    public AppUser getCurrentUser(Authentication authentication) {
+        if (authentication == null) {
+            return null;
+        }
+
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof OAuth2User) {
+            OAuth2User oauth2User = (OAuth2User) principal;
+            String email = oauth2User.getAttribute("email");
+            return findByEmail(email).orElse(null);
+        }
+
+        return null;
+    }
+
 
     public Optional<AppUser> findByEmail(String email) {
         return repository.findByEmail(email);
