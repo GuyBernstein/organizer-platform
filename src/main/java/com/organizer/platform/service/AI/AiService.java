@@ -48,6 +48,43 @@ public class AiService {
                 .asString();
 
 
+        return toResult(response);
+    }
+
+    public String generateCategoryFromImage(String base64Image) throws UnirestException, JsonProcessingException {
+        Unirest.setTimeouts(0, 0);
+        HttpResponse<String> response = Unirest.post("https://api.anthropic.com/v1/messages")
+                .header("Content-Type", "application/json")
+                .header("anthropic-version", "2023-06-01")
+                .header("x-api-key", apiKey)
+                .body("{\n    \"model\": \"claude-3-5-sonnet-20241022\",\n    \"max_tokens\": 8192,\n    " +
+                        "\"temperature\": 0.1,\n    \"system\": " +
+                        "\"You are a precise image classification AI that focuses solely on visual content." +
+                        " Your purpose is to match images to the most specific relevant category available." +
+                        "\\n\\nRules:\\n- Choose the most specific matching category" +
+                        "\\n- Create a new category only if no existing ones fit" +
+                        "\\n- Consider ONLY the visual content, not implied context" +
+                        "\\n- Never add explanations to your classifications\\n" +
+                        "\\nProcess:\\n1. Identify key visual elements\\n2. Match against available categories" +
+                        "\\n3. Select best fit OR create specific new category\\n" +
+                        "\\nAlways output your classification in this format:\\n<category>קטגוריה</category>" +
+                        "\",\n    \"messages\": [\n        {\n            \"role\": \"user\",\n            \"content\":" +
+                        " [\n                {\n                    \"type\": \"text\",\n                    \"text\": " +
+                        "\"Analyze and classify the image using these categories:" +
+                        "\\n<categories>\\nטכנולוגיה\\nפוליטיקה\\nבריאות\\nסביבה\\nחינוך\\nבידור\\nספורט\\nעסקים\\nמדע\\nתרבות\\nדת\\nאוכל\\nאמנות\\nהיסטוריה\\nתיירות\\nבינה מלאכותית\\n</categories>\"" +
+                        "\n                },\n                {\n                    \"type\": \"image\"," +
+                        "\n                    \"source\": {\n                        " +
+                        "\"type\": \"base64\",\n                        \"media_type\": \"image/jpeg\"," +
+                        "\n                        \"data\": \"" + base64Image + "\"\n                    }" +
+                        "\n                }\n            ]\n        }\n    ]\n}"
+                )
+                .asString();
+
+
+        return toResult(response);
+    }
+
+    private String toResult(HttpResponse<String> response) throws JsonProcessingException {
         Response res = objectMapper.readValue(response.getBody(), Response.class);
         if (res.getContent().isEmpty()) {
             return null;
@@ -61,7 +98,7 @@ public class AiService {
         return result;
     }
 
-    public static String convertToJavaString(String input) {
+    private static String convertToJavaString(String input) {
         if (input == null) {
             return null;
         }
@@ -73,4 +110,7 @@ public class AiService {
                 .replace("\"", "\\\"")
                 .replace("\t", "\\t");
     }
+
+
+
 }
