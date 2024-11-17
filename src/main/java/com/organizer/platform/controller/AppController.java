@@ -1,10 +1,10 @@
 package com.organizer.platform.controller;
 
-import com.organizer.platform.model.AppUser;
-import com.organizer.platform.service.CloudStorageService;
-import com.organizer.platform.service.UserService;
-import com.organizer.platform.service.WhatsAppImageService;
-import com.organizer.platform.service.WhatsAppMessageService;
+import com.organizer.platform.model.User.AppUser;
+import com.organizer.platform.service.Google.CloudStorageService;
+import com.organizer.platform.service.User.UserService;
+import com.organizer.platform.service.WhatsApp.WhatsAppImageService;
+import com.organizer.platform.service.WhatsApp.WhatsAppMessageService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;

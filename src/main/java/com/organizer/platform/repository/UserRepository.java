@@ -1,7 +1,7 @@
 package com.organizer.platform.repository;
 
 
-import com.organizer.platform.model.AppUser;
+import com.organizer.platform.model.User.AppUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

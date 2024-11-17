@@ -1,8 +1,8 @@
 package com.organizer.platform.controller;
 
-import com.organizer.platform.model.AppUser;
-import com.organizer.platform.model.UserRole;
-import com.organizer.platform.service.UserService;
+import com.organizer.platform.model.User.AppUser;
+import com.organizer.platform.model.User.UserRole;
+import com.organizer.platform.service.User.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

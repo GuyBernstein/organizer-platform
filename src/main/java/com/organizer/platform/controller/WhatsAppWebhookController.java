@@ -3,12 +3,12 @@ package com.organizer.platform.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.organizer.platform.model.*;
-import com.organizer.platform.service.UserService;
-import com.organizer.platform.service.WhatsAppAudioService;
-import com.organizer.platform.service.WhatsAppDocumentService;
-import com.organizer.platform.service.WhatsAppImageService;
-import com.organizer.platform.util.Dates;
+import com.organizer.platform.model.User.AppUser;
+import com.organizer.platform.model.WhatsApp.*;
+import com.organizer.platform.service.User.UserService;
+import com.organizer.platform.service.WhatsApp.WhatsAppAudioService;
+import com.organizer.platform.service.WhatsApp.WhatsAppDocumentService;
+import com.organizer.platform.service.WhatsApp.WhatsAppImageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static com.organizer.platform.model.WhatsAppMessage.WhatsAppMessageBuilder.aWhatsAppMessage;
+import static com.organizer.platform.model.WhatsApp.WhatsAppMessage.WhatsAppMessageBuilder.aWhatsAppMessage;
 
 @RestController
 @RequestMapping("/webhook")
