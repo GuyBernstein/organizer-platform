@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -17,11 +18,13 @@ public class WhatsAppMessageService {
         this.repository = repository;
     }
 
-    public List<String> findMessageContentsByFromNumber(String fromNumber) {
+    public Map<String, List<String>> findMessageContentsByFromNumberGroupedByCategory(String fromNumber) {
         return repository.findByFromNumber(fromNumber).stream()
-                .map(WhatsAppMessage::getMessageContent)
-                .filter(content -> content != null && !content.trim().isEmpty())
-                .collect(Collectors.toList());
+                .filter(message -> message.getMessageContent() != null && !message.getMessageContent().trim().isEmpty())
+                .collect(Collectors.groupingBy(
+                        message -> message.getCategory() != null ? message.getCategory() : "uncategorized",
+                        Collectors.mapping(WhatsAppMessage::getMessageContent, Collectors.toList())
+                ));
     }
 
     public WhatsAppMessage save(WhatsAppMessage whatsAppMessage) {

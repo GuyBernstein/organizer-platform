@@ -40,8 +40,19 @@ public class WhatsAppMessage implements Serializable {
     @Column(columnDefinition = "TEXT")
     private String messageContent;
 
+    @Column(columnDefinition = "TEXT")
+    private String category;
+
     @Column(nullable = false)
     private boolean processed = false;
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
 
     public Long getId() {
         return id;
@@ -93,10 +104,11 @@ public class WhatsAppMessage implements Serializable {
 
     public static final class WhatsAppMessageBuilder {
         private Long id;
-        private Date createdAt = Dates.nowUTC();
+        private  Date createdAt = Dates.nowUTC();
         private @NotEmpty String fromNumber;
         private @NotEmpty String messageType;
         private String messageContent;
+        private String category;
         private boolean processed;
 
         private WhatsAppMessageBuilder() {
@@ -131,6 +143,11 @@ public class WhatsAppMessage implements Serializable {
             return this;
         }
 
+        public WhatsAppMessageBuilder category(String category) {
+            this.category = category;
+            return this;
+        }
+
         public WhatsAppMessageBuilder processed(boolean processed) {
             this.processed = processed;
             return this;
@@ -143,6 +160,7 @@ public class WhatsAppMessage implements Serializable {
             whatsAppMessage.setFromNumber(fromNumber);
             whatsAppMessage.setMessageType(messageType);
             whatsAppMessage.setMessageContent(messageContent);
+            whatsAppMessage.setCategory(category);
             whatsAppMessage.setProcessed(processed);
             return whatsAppMessage;
         }

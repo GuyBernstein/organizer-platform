@@ -1,8 +1,6 @@
 package com.organizer.platform.controller;
 
 import com.organizer.platform.model.AppUser;
-import com.organizer.platform.model.WhatsAppMessage;
-import com.organizer.platform.repository.WhatsAppMessageRepository;
 import com.organizer.platform.service.CloudStorageService;
 import com.organizer.platform.service.UserService;
 import com.organizer.platform.service.WhatsAppImageService;
@@ -13,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -34,8 +31,6 @@ public class AppController {
     private final CloudStorageService cloudStorageService;
     private final UserService userService;
 
-
-
     @Autowired
     public AppController(WhatsAppMessageService messageService, CloudStorageService cloudStorageService, UserService userService) {
         this.messageService = messageService;
@@ -44,14 +39,15 @@ public class AppController {
     }
 
     private boolean canAccessContent(Authentication authentication, String phoneNumber) {
-        if (authentication == null) return false;
+        if (authentication == null)
+            return true;
 
         OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
         String email = oauth2User.getAttribute("email");
 
         // Admin can access all content
         if (userService.isAdmin(email)) {
-            return true;
+            return false;
         }
 
         // For regular users, check if the phone number matches their account
@@ -68,7 +64,7 @@ public class AppController {
     @GetMapping("/messages/{phoneNumber}")
     @ApiOperation(value = "Get message contents by phone number",
             notes = "Retrieves all message contents sent from a specific phone number. Accepts formats: 0509603888 or 972509603888")
-    public ResponseEntity<List<String>> getMessageContentsByPhoneNumber(
+    public ResponseEntity<Map<String, List<String>>> getMessageContentsByPhoneNumber(
             @PathVariable String phoneNumber,
             Authentication authentication) {
 
@@ -89,19 +85,20 @@ public class AppController {
         }
 
         // Check if user has permission to access this content
-        if (!canAccessContent(authentication, phoneNumber)) {
+        if (canAccessContent(authentication, phoneNumber)) {
             log.warn("Unauthorized access attempt to messages for number: {} by user: {}",
                     phoneNumber, authentication.getName());
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
 
-        List<String> messageContents = messageService.findMessageContentsByFromNumber(internationalFormat);
+        Map<String, List<String>> messageContentsByCategory =
+                messageService.findMessageContentsByFromNumberGroupedByCategory(internationalFormat);
 
-        if (messageContents.isEmpty()) {
+        if (messageContentsByCategory.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
 
-        return new ResponseEntity<>(messageContents, HttpStatus.OK);
+        return new ResponseEntity<>(messageContentsByCategory, HttpStatus.OK);
     }
 
     @GetMapping("/image/url")
@@ -114,7 +111,7 @@ public class AppController {
         log.info("Request received: {} {}", request.getMethod(), request.getRequestURI());
         log.info("ImageName received: {}", imageName);
 
-        if (!canAccessContent(authentication, phoneNumber)) {
+        if (canAccessContent(authentication, phoneNumber)) {
             log.warn("Unauthorized access attempt to image: {} by user: {}",
                     imageName, authentication.getName());
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -145,7 +142,7 @@ public class AppController {
         log.info("Request received: {} {}", request.getMethod(), request.getRequestURI());
         log.info("DocumentName received: {}", documentName);
 
-        if (!canAccessContent(authentication, phoneNumber)) {
+        if (canAccessContent(authentication, phoneNumber)) {
             log.warn("Unauthorized access attempt to document: {} by user: {}",
                     documentName, authentication.getName());
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -187,7 +184,7 @@ public class AppController {
         log.info("Request received: {} {}", request.getMethod(), request.getRequestURI());
         log.info("AudioName received: {}", audioName);
 
-        if (!canAccessContent(authentication, phoneNumber)) {
+        if (canAccessContent(authentication, phoneNumber)) {
             log.warn("Unauthorized access attempt to audio: {} by user: {}",
                     audioName, authentication.getName());
             return ResponseEntity.status(HttpStatus.FORBIDDEN)

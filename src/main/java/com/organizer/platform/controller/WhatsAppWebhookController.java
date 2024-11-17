@@ -71,7 +71,6 @@ public class WhatsAppWebhookController {
                             AppUser newUser = userService.createUnauthorizedUser(whatsappNumber);
                             logger.info("Created new unauthorized user for WhatsApp number: {}", whatsappNumber);
 
-                            // Send welcome message or instructions here
                         } catch (Exception e) {
                             logger.error("Failed to create unauthorized user for number: " + whatsappNumber, e);
                         }
