@@ -228,7 +228,7 @@ public class AppController {
             log.warn("Unauthorized deletion attempt by user: {}", email);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        messageService.deleteAll();
+        messageService.deleteAllMessages();
         return ResponseEntity.ok().build();
     }
 

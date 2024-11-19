@@ -6,5 +6,4 @@ import lombok.Getter;
 public class Content{
     private String type;
     private String text;
-
 }

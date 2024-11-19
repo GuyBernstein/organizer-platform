@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.organizer.platform.model.User.AppUser;
 import com.organizer.platform.model.WhatsApp.*;
+import com.organizer.platform.model.organizedDTO.WhatsAppMessage;
 import com.organizer.platform.service.User.UserService;
 import com.organizer.platform.service.WhatsApp.WhatsAppAudioService;
 import com.organizer.platform.service.WhatsApp.WhatsAppDocumentService;
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static com.organizer.platform.model.WhatsApp.WhatsAppMessage.WhatsAppMessageBuilder.aWhatsAppMessage;
+import static com.organizer.platform.model.organizedDTO.WhatsAppMessage.WhatsAppMessageBuilder.aWhatsAppMessage;
 
 @RestController
 @RequestMapping("/webhook")
@@ -92,11 +93,11 @@ public class WhatsAppWebhookController {
 
             // Serialize the WhatsAppMessage to JSON string
             String serializedMessage = objectMapper.writeValueAsString(whatsAppMessage);
+            logger.info("Serialized message sent to JMS queue: {}", serializedMessage);
 
             // Send the serialized JSON string to the queue
             jmsTemplate.convertAndSend("exampleQueue", serializedMessage);
 
-            logger.info("Serialized message sent to JMS queue: {}", serializedMessage);
         } catch (JsonProcessingException e) {
             logger.error("Error serializing WhatsAppMessage", e);
             throw new RuntimeException("Error processing message", e);

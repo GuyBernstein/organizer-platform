@@ -1,4 +1,4 @@
-package com.organizer.platform.model.WhatsApp;
+package com.organizer.platform.model.organizedDTO;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -10,13 +10,16 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name="whatsapp_message")
 public class WhatsAppMessage implements Serializable {
     private static final long serialVersionUID = 1L;
+
     @Id
-    @GeneratedValue(strategy= GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     @NotNull
@@ -43,8 +46,76 @@ public class WhatsAppMessage implements Serializable {
     @Column(columnDefinition = "TEXT")
     private String category;
 
+    @Column(columnDefinition = "TEXT")
+    private String subCategory;
+
+    @Column(columnDefinition = "TEXT")
+    private String type; // Content type: letter, presentation, report, document
+
+    @Column(columnDefinition = "TEXT")
+    private String purpose; // personal,  professional, educational
+
     @Column(nullable = false)
     private boolean processed = false;
+
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+            name = "message_tags",
+            joinColumns = @JoinColumn(name = "message_id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id")
+    )
+    private Set<Tag> tags = new HashSet<>();
+
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+            name = "message_next_steps",
+            joinColumns = @JoinColumn(name = "message_id"),
+            inverseJoinColumns = @JoinColumn(name = "next_step_id")
+    )
+    private Set<NextStep> nextSteps = new HashSet<>();
+
+    // Add proper getters and setters
+    public Set<Tag> getTags() {
+        if (tags == null) {
+            tags = new HashSet<>();
+        }
+        return tags;
+    }
+
+    public Set<NextStep> getNextSteps() {
+        if (nextSteps == null) {
+            nextSteps = new HashSet<>();
+        }
+        return nextSteps;
+    }
+
+    public String getSubCategory() {
+        return subCategory;
+    }
+
+    public void setSubCategory(String subCategory) {
+        this.subCategory = subCategory;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getPurpose() {
+        return purpose;
+    }
+
+    public void setPurpose(String purpose) {
+        this.purpose = purpose;
+    }
+
+    public void setNextSteps(Set<NextStep> nextSteps) {
+        this.nextSteps = nextSteps;
+    }
 
     public String getCategory() {
         return category;
@@ -78,6 +149,10 @@ public class WhatsAppMessage implements Serializable {
         this.fromNumber = fromNumber;
     }
 
+    public void setTags(Set<Tag> tags) {
+        this.tags = tags;
+    }
+
     public String getMessageType() {
         return messageType;
     }
@@ -104,12 +179,17 @@ public class WhatsAppMessage implements Serializable {
 
     public static final class WhatsAppMessageBuilder {
         private Long id;
-        private  Date createdAt = Dates.nowUTC();
+        private Date createdAt = Dates.nowUTC();
         private @NotEmpty String fromNumber;
         private @NotEmpty String messageType;
         private String messageContent;
         private String category;
+        private String subCategory;
+        private String type;
+        private String purpose;
         private boolean processed;
+        private Set<Tag> tags;
+        private Set<NextStep> nextSteps;
 
         private WhatsAppMessageBuilder() {
         }
@@ -148,8 +228,33 @@ public class WhatsAppMessage implements Serializable {
             return this;
         }
 
+        public WhatsAppMessageBuilder subCategory(String subCategory) {
+            this.subCategory = subCategory;
+            return this;
+        }
+
+        public WhatsAppMessageBuilder type(String type) {
+            this.type = type;
+            return this;
+        }
+
+        public WhatsAppMessageBuilder purpose(String purpose) {
+            this.purpose = purpose;
+            return this;
+        }
+
         public WhatsAppMessageBuilder processed(boolean processed) {
             this.processed = processed;
+            return this;
+        }
+
+        public WhatsAppMessageBuilder tags(Set<Tag> tags) {
+            this.tags = tags;
+            return this;
+        }
+
+        public WhatsAppMessageBuilder nextSteps(Set<NextStep> nextSteps) {
+            this.nextSteps = nextSteps;
             return this;
         }
 
@@ -161,7 +266,12 @@ public class WhatsAppMessage implements Serializable {
             whatsAppMessage.setMessageType(messageType);
             whatsAppMessage.setMessageContent(messageContent);
             whatsAppMessage.setCategory(category);
+            whatsAppMessage.setSubCategory(subCategory);
+            whatsAppMessage.setType(type);
+            whatsAppMessage.setPurpose(purpose);
             whatsAppMessage.setProcessed(processed);
+            whatsAppMessage.setTags(tags);
+            whatsAppMessage.setNextSteps(nextSteps);
             return whatsAppMessage;
         }
     }
