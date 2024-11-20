@@ -1,6 +1,8 @@
 package com.organizer.platform.controller;
 
 import com.organizer.platform.model.User.AppUser;
+import com.organizer.platform.model.organizedDTO.MessageDTO;
+import com.organizer.platform.model.organizedDTO.WhatsAppMessage;
 import com.organizer.platform.service.Google.CloudStorageService;
 import com.organizer.platform.service.User.UserService;
 import com.organizer.platform.service.WhatsApp.WhatsAppImageService;
@@ -16,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.EntityNotFoundException;
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
@@ -60,11 +63,38 @@ public class AppController {
         ).orElse(false);
     }
 
+    @GetMapping("/{messageId}/related")
+    @ApiOperation(value = "Get related messages by shared tags",
+            notes = "Retrieves all messages that share tags with the specified message, organized by category and subcategory")
+    public ResponseEntity<Map<String, Map<String, List<MessageDTO>>>> getRelatedMessages(
+            @PathVariable Long messageId,
+            @RequestParam(required = false, defaultValue = "1") int minimumSharedTags,
+            Authentication authentication) {
+
+        // Validate message access
+        WhatsAppMessage message = messageService.findMessageById(messageId)
+                .orElseThrow(() -> new EntityNotFoundException("Message not found with id: " + messageId));
+
+        if (canAccessContent(authentication, message.getFromNumber())) {
+            log.warn("Unauthorized access attempt to related messages for message: {} by user: {}",
+                    messageId, authentication.getName());
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+
+        Map<String, Map<String, List<MessageDTO>>> relatedMessages;
+        relatedMessages = messageService.findRelatedMessagesWithMinimumSharedTags(message, minimumSharedTags);
+
+        if (relatedMessages.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+
+        return new ResponseEntity<>(relatedMessages, HttpStatus.OK);
+    }
 
     @GetMapping("/messages/{phoneNumber}")
     @ApiOperation(value = "Get message contents by phone number",
             notes = "Retrieves all message contents sent from a specific phone number. Accepts formats: 0509603888 or 972509603888")
-    public ResponseEntity<Map<String, List<String>>> getMessageContentsByPhoneNumber(
+    public ResponseEntity<Map<String, Map<String, List<MessageDTO>>>> getMessageContentsByPhoneNumber(
             @PathVariable String phoneNumber,
             Authentication authentication) {
 
@@ -91,14 +121,14 @@ public class AppController {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
 
-        Map<String, List<String>> messageContentsByCategory =
-                messageService.findMessageContentsByFromNumberGroupedByCategory(internationalFormat);
+        Map<String, Map<String, List<MessageDTO>>>  organizedMessages =
+                messageService.findMessageContentsByFromNumberGroupedByCategoryAndGroupedBySubCategory(internationalFormat);
 
-        if (messageContentsByCategory.isEmpty()) {
+        if (organizedMessages.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
 
-        return new ResponseEntity<>(messageContentsByCategory, HttpStatus.OK);
+        return new ResponseEntity<>(organizedMessages, HttpStatus.OK);
     }
 
     @GetMapping("/image/url")
@@ -228,7 +258,7 @@ public class AppController {
             log.warn("Unauthorized deletion attempt by user: {}", email);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
-        messageService.deleteAllMessages();
+        messageService.cleanDatabasePostgres();
         return ResponseEntity.ok().build();
     }
 

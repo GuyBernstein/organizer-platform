@@ -1,5 +1,6 @@
 package com.organizer.platform.service.WhatsApp;
 
+import com.organizer.platform.model.organizedDTO.MessageDTO;
 import com.organizer.platform.model.organizedDTO.NextStep;
 import com.organizer.platform.model.organizedDTO.Tag;
 import com.organizer.platform.model.organizedDTO.WhatsAppMessage;
@@ -12,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityNotFoundException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -35,70 +35,117 @@ public class WhatsAppMessageService {
         this.tagRepository = tagRepository;
     }
 
-    public Map<String, List<String>> findMessageContentsByFromNumberGroupedByCategory(String fromNumber) {
-        return messageRepository.findByFromNumber(fromNumber).stream()
+
+
+    public Map<String, Map<String, List<MessageDTO>>> findMessageContentsByFromNumberGroupedByCategoryAndGroupedBySubCategory(String fromNumber) {
+        List<WhatsAppMessage> messages = messageRepository.findByFromNumber(fromNumber).stream()
                 .filter(message -> message.getMessageContent() != null && !message.getMessageContent().trim().isEmpty())
+                .collect(Collectors.toList());
+
+        return toOrganizedMessages(messages);
+    }
+
+    private Map<String, Map<String, List<MessageDTO>>> toOrganizedMessages(List<WhatsAppMessage> messages) {
+        // Organize by category and subcategory hierarchy
+        return messages.stream()
                 .collect(Collectors.groupingBy(
-                        message -> message.getCategory() != null ? message.getCategory() : "uncategorized",
-                        Collectors.mapping(WhatsAppMessage::getMessageContent, Collectors.toList())
+                        message1 -> message1.getCategory() != null ? message1.getCategory() : "uncategorized",
+                        Collectors.groupingBy(
+                                message1 -> message1.getSubCategory() != null ? message1.getSubCategory() : "unsubcategorized",
+                                Collectors.mapping(this::convertToMessageDTO, Collectors.toList())
+                        )
                 ));
     }
 
-    public Map<String, List<WhatsAppMessage>> findMessagesByTagsGrouped(Set<String> tagNames) {
-        List<WhatsAppMessage> messages = findMessagesByTags(tagNames);
-        return messages.stream()
-                .collect(Collectors.groupingBy(
-                        message -> message.getTags().stream()
-                                .map(Tag::getName)
-                                .collect(Collectors.joining(", "))
-                ));
+    // Method to find related messages with a minimum number of shared tags
+    public Map<String, Map<String, List<MessageDTO>>> findRelatedMessagesWithMinimumSharedTags(WhatsAppMessage originalMessage, int minimumSharedTags) {
+
+        Set<Tag> messageTags = originalMessage.getTags();
+
+        if (messageTags.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        List<WhatsAppMessage> allRelatedMessages = messageRepository.findRelatedMessagesByTags(messageTags, originalMessage.getId());
+
+        List<WhatsAppMessage> filteredMessages = getFilteredMessages(minimumSharedTags, allRelatedMessages, messageTags);
+
+        return toOrganizedMessages(filteredMessages);
+    }
+
+    private static List<WhatsAppMessage> getFilteredMessages(int minimumSharedTags, List<WhatsAppMessage> allRelatedMessages, Set<Tag> messageTags) {
+        // Filter messages based on minimum shared tags
+        return allRelatedMessages.stream()
+                .filter(message -> {
+                    Set<Tag> intersection = new HashSet<>(message.getTags());
+                    intersection.retainAll(messageTags);
+                    return intersection.size() >= minimumSharedTags;
+                })
+                .collect(Collectors.toList());
+    }
+
+    private MessageDTO convertToMessageDTO(WhatsAppMessage message) {
+        return MessageDTO.builder()
+                .id(message.getId())
+                .messageContent(message.getMessageContent())
+                .category(message.getCategory())
+                .subCategory(message.getSubCategory())
+                .type(message.getType())
+                .purpose(message.getPurpose())
+                .tags(message.getTags().stream()
+                        .map(Tag::getName)
+                        .collect(Collectors.toSet()))
+                .nextSteps(message.getNextSteps().stream()
+                        .map(NextStep::getName)
+                        .collect(Collectors.toSet()))
+                .build();
     }
 
     public void addTagsAndNextSteps(WhatsAppMessage whatsAppMessage, String tagsContent, String nextStepsContent) {
         // Process tags (many-to-many)
         if (StringUtils.isNotBlank(tagsContent)) {
-            Arrays.stream(tagsContent.split(","))
-                    .map(String::trim)
-                    .filter(StringUtils::isNotBlank)
-                    .forEach(name -> {
-                        Tag tag = tagRepository.findByName(name)
-                                .orElseGet(() -> {
-                                    Tag newTag = aTag()
-                                            .name(name)
-                                            .build();
-                                    return tagRepository.save(newTag);
-                                });
-                        whatsAppMessage.getTags().add(tag);
-                    });
-
-            // Save the message again to update the tags relationship
-            messageRepository.save(whatsAppMessage);
+            addTags(whatsAppMessage, tagsContent);
         }
 
         // Process next steps
         if (StringUtils.isNotBlank(nextStepsContent)) {
-            Arrays.stream(nextStepsContent.split(","))
-                    .map(String::trim)
-                    .filter(StringUtils::isNotBlank)
-                    .forEach(name -> {
-                        NextStep nextStep = nextStepRepository.findByName(name)
-                                .orElseGet(() -> aNextStep()
-                                        .name(name)
-                                        .build());
-
-                        // Set the message reference and save
-                        nextStep.setMessage(whatsAppMessage);
-                        nextStepRepository.save(nextStep);
-                    });
+            addNextSteps(whatsAppMessage, nextStepsContent);
         }
     }
 
-    public List<WhatsAppMessage> findRelatedMessages(Long messageId) {
-        return messageRepository.findRelatedMessages(messageId);
+    private void addNextSteps(WhatsAppMessage whatsAppMessage, String nextStepsContent) {
+        Arrays.stream(nextStepsContent.split(","))
+                .map(String::trim)
+                .filter(StringUtils::isNotBlank)
+                .forEach(name -> {
+                    NextStep nextStep = nextStepRepository.findByName(name)
+                            .orElseGet(() -> aNextStep()
+                                    .name(name)
+                                    .build());
+
+                    // Set the message reference and save
+                    nextStep.setMessage(whatsAppMessage);
+                    nextStepRepository.save(nextStep);
+                });
     }
 
-    public List<WhatsAppMessage> findMessagesByTags(Set<String> tagNames) {
-        return messageRepository.findByTagNames(tagNames);
+    private void addTags(WhatsAppMessage whatsAppMessage, String tagsContent) {
+        Arrays.stream(tagsContent.split(","))
+                .map(String::trim)
+                .filter(StringUtils::isNotBlank)
+                .forEach(name -> {
+                    Tag tag = tagRepository.findByName(name)
+                            .orElseGet(() -> {
+                                Tag newTag = aTag()
+                                        .name(name)
+                                        .build();
+                                return tagRepository.save(newTag);
+                            });
+                    whatsAppMessage.getTags().add(tag);
+                });
+
+        // Save the message again to update the tags relationship
+        messageRepository.save(whatsAppMessage);
     }
 
     public WhatsAppMessage save(WhatsAppMessage whatsAppMessage) {
@@ -110,35 +157,6 @@ public class WhatsAppMessageService {
 
     public void delete(WhatsAppMessage whatsAppMessage) {
         messageRepository.delete(whatsAppMessage);
-    }
-
-    public void deleteAllMessages() {
-        messageRepository.deleteAll();
-    }
-    public void deleteAllTags() {
-        tagRepository.deleteAll();
-    }
-
-    public void deleteAllNextSteps() { nextStepRepository.deleteAll();
-    }
-
-    @Transactional
-    public void cleanDatabase() {
-        // First, clear the many-to-many relationships
-        List<WhatsAppMessage> messages = messageRepository.findAll();
-        for (WhatsAppMessage message : messages) {
-            message.getTags().clear();
-        }
-        messageRepository.saveAll(messages);
-
-        // Clear all next steps (child entities)
-        nextStepRepository.deleteAll();
-
-        // Delete all messages
-        messageRepository.deleteAll();
-
-        // Finally, delete all tags
-        tagRepository.deleteAll();
     }
 
     @Transactional
@@ -170,6 +188,7 @@ public class WhatsAppMessageService {
         }
     }
 
-
-
+    public Optional<WhatsAppMessage> findMessageById(Long messageId) {
+        return messageRepository.findById(messageId);
+    }
 }
