@@ -4,7 +4,6 @@ package com.organizer.platform.service.JMS;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mashape.unirest.http.exceptions.UnirestException;
-import com.organizer.platform.model.organizedDTO.Tag;
 import com.organizer.platform.model.organizedDTO.WhatsAppMessage;
 import com.organizer.platform.repository.TagRepository;
 import com.organizer.platform.service.AI.AiService;
@@ -19,10 +18,8 @@ import org.springframework.stereotype.Component;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Base64;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -58,16 +55,8 @@ public class MessageReceiver {
             // firstly, save the message to process it in the database.
             whatsAppMessage = messageService.save(whatsAppMessage);
 
-            // Get just the names only if there are tags
-            String tagNames = tagRepository.findAll().stream()
-                    .map(Tag::getName)
-                    .collect(Collectors.collectingAndThen(
-                            Collectors.toSet(),
-                            names -> String.join(", ", names)
-                    ));
-
             // Process message based on type
-            processMessageByType(whatsAppMessage, tagNames);
+            processMessageByType(whatsAppMessage);
             log.info("Successfully saved message to database with ID: {}", whatsAppMessage.getId());
         } catch (JsonProcessingException e) {
             log.error("Error deserializing message from queue", e);
@@ -78,15 +67,10 @@ public class MessageReceiver {
         }
     }
 
-    private void processMessageByType(WhatsAppMessage whatsAppMessage, String tagNames) throws UnirestException, JsonProcessingException {
+    private void processMessageByType(WhatsAppMessage whatsAppMessage) throws UnirestException, JsonProcessingException {
         switch (whatsAppMessage.getMessageType().toLowerCase()) {
             case "text":
-                if(tagNames.isEmpty()) {
-                    aiService.generateOrganizationFromText(whatsAppMessage, " ");
-
-                } else {
-                    aiService.generateOrganizationFromText(whatsAppMessage, tagNames);
-                }
+                aiService.generateOrganizationFromText(whatsAppMessage);
                 break;
 
             case "image":

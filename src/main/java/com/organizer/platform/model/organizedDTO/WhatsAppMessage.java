@@ -61,31 +61,20 @@ public class WhatsAppMessage implements Serializable {
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
             name = "message_tags",
-            joinColumns = @JoinColumn(name = "message_id"),
-            inverseJoinColumns = @JoinColumn(name = "tag_id")
+            joinColumns = @JoinColumn(name = "message_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "tag_id", referencedColumnName = "id")
     )
     private Set<Tag> tags = new HashSet<>();
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-    @JoinTable(
-            name = "message_next_steps",
-            joinColumns = @JoinColumn(name = "message_id"),
-            inverseJoinColumns = @JoinColumn(name = "next_step_id")
-    )
+    @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<NextStep> nextSteps = new HashSet<>();
 
-    // Add proper getters and setters
+
     public Set<Tag> getTags() {
-        if (tags == null) {
-            tags = new HashSet<>();
-        }
         return tags;
     }
 
     public Set<NextStep> getNextSteps() {
-        if (nextSteps == null) {
-            nextSteps = new HashSet<>();
-        }
         return nextSteps;
     }
 
@@ -188,8 +177,8 @@ public class WhatsAppMessage implements Serializable {
         private String type;
         private String purpose;
         private boolean processed;
-        private Set<Tag> tags;
-        private Set<NextStep> nextSteps;
+        private Set<Tag> tags = new HashSet<>();
+        private Set<NextStep> nextSteps = new HashSet<>();
 
         private WhatsAppMessageBuilder() {
         }

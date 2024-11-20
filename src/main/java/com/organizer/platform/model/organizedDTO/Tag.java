@@ -39,11 +39,7 @@ public class Tag implements Serializable {
         this.name = name;
     }
 
-    // Add proper getters and setters
     public Set<WhatsAppMessage> getMessages() {
-        if (messages == null) {
-            messages = new HashSet<>();
-        }
         return messages;
     }
 
@@ -54,7 +50,7 @@ public class Tag implements Serializable {
     public static final class TagBuilder {
         private Long id;
         private String name;
-        private Set<WhatsAppMessage> messages;
+        private Set<WhatsAppMessage> messages = new HashSet<>();
 
         private TagBuilder() {
         }

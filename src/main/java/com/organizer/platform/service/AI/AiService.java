@@ -8,17 +8,14 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import com.organizer.platform.model.AI.Response;
 import com.organizer.platform.model.organizedDTO.WhatsAppMessage;
 import com.organizer.platform.service.WhatsApp.WhatsAppMessageService;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Service
 public class AiService {
@@ -35,7 +32,7 @@ public class AiService {
 
 
 
-    public void generateOrganizationFromText(WhatsAppMessage whatsAppMessage, String existingTags) throws UnirestException, JsonProcessingException {
+    public void generateOrganizationFromText(WhatsAppMessage whatsAppMessage) throws UnirestException, JsonProcessingException {
         Unirest.setTimeouts(0, 0);
         HttpResponse<String> response = Unirest.post("https://api.anthropic.com/v1/messages")
                 .header("x-api-key", apiKey)

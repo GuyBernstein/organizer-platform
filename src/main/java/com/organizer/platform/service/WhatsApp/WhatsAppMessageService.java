@@ -9,7 +9,9 @@ import com.organizer.platform.repository.WhatsAppMessageRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -19,13 +21,15 @@ import static com.organizer.platform.model.organizedDTO.Tag.TagBuilder.aTag;
 
 @Service
 public class WhatsAppMessageService {
+    private final EntityManager entityManager;
     private final WhatsAppMessageRepository messageRepository;
     private final NextStepRepository nextStepRepository;
     private final TagRepository tagRepository;
 
     @Autowired
-    public WhatsAppMessageService(WhatsAppMessageRepository messageRepository, NextStepRepository nextStepRepository,
+    public WhatsAppMessageService(EntityManager entityManager, WhatsAppMessageRepository messageRepository, NextStepRepository nextStepRepository,
                                   TagRepository tagRepository) {
+        this.entityManager = entityManager;
         this.messageRepository = messageRepository;
         this.nextStepRepository = nextStepRepository;
         this.tagRepository = tagRepository;
@@ -51,48 +55,42 @@ public class WhatsAppMessageService {
     }
 
     public void addTagsAndNextSteps(WhatsAppMessage whatsAppMessage, String tagsContent, String nextStepsContent) {
-        if (whatsAppMessage == null) {
-            throw new IllegalArgumentException("WhatsAppMessage cannot be null");
-        }
-
-        // Process tags
+        // Process tags (many-to-many)
         if (StringUtils.isNotBlank(tagsContent)) {
-            Set<Tag> tagsSet = Arrays.stream(tagsContent.split(","))
+            Arrays.stream(tagsContent.split(","))
                     .map(String::trim)
                     .filter(StringUtils::isNotBlank)
-                    .map(name -> tagRepository.findByName(name)
-                            .orElseGet(() -> {
-                                Tag newTag = new Tag();
-                                newTag.setName(name);
-                                return tagRepository.save(newTag);
-                            }))
-                    .collect(Collectors.toSet());
+                    .forEach(name -> {
+                        Tag tag = tagRepository.findByName(name)
+                                .orElseGet(() -> {
+                                    Tag newTag = aTag()
+                                            .name(name)
+                                            .build();
+                                    return tagRepository.save(newTag);
+                                });
+                        whatsAppMessage.getTags().add(tag);
+                    });
 
-            whatsAppMessage.getTags().addAll(tagsSet);
-            // Update the bidirectional relationship
-            tagsSet.forEach(tag -> tag.getMessages().add(whatsAppMessage));
+            // Save the message again to update the tags relationship
+            messageRepository.save(whatsAppMessage);
         }
 
         // Process next steps
         if (StringUtils.isNotBlank(nextStepsContent)) {
-            Set<NextStep> nextStepsSet = Arrays.stream(nextStepsContent.split(","))
+            Arrays.stream(nextStepsContent.split(","))
                     .map(String::trim)
                     .filter(StringUtils::isNotBlank)
-                    .map(name -> nextStepRepository.findByName(name)
-                            .orElseGet(() -> {
-                                NextStep newNextStep = new NextStep();
-                                newNextStep.setName(name);
-                                return nextStepRepository.save(newNextStep);
-                            }))
-                    .collect(Collectors.toSet());
+                    .forEach(name -> {
+                        NextStep nextStep = nextStepRepository.findByName(name)
+                                .orElseGet(() -> aNextStep()
+                                        .name(name)
+                                        .build());
 
-            whatsAppMessage.getNextSteps().addAll(nextStepsSet);
-            // Update the bidirectional relationship
-            nextStepsSet.forEach(nextStep -> nextStep.getMessages().add(whatsAppMessage));
+                        // Set the message reference and save
+                        nextStep.setMessage(whatsAppMessage);
+                        nextStepRepository.save(nextStep);
+                    });
         }
-
-        // Save the updated message
-        messageRepository.save(whatsAppMessage);
     }
 
     public List<WhatsAppMessage> findRelatedMessages(Long messageId) {
@@ -123,4 +121,55 @@ public class WhatsAppMessageService {
 
     public void deleteAllNextSteps() { nextStepRepository.deleteAll();
     }
+
+    @Transactional
+    public void cleanDatabase() {
+        // First, clear the many-to-many relationships
+        List<WhatsAppMessage> messages = messageRepository.findAll();
+        for (WhatsAppMessage message : messages) {
+            message.getTags().clear();
+        }
+        messageRepository.saveAll(messages);
+
+        // Clear all next steps (child entities)
+        nextStepRepository.deleteAll();
+
+        // Delete all messages
+        messageRepository.deleteAll();
+
+        // Finally, delete all tags
+        tagRepository.deleteAll();
+    }
+
+    @Transactional
+    public void cleanDatabasePostgres() {
+        // Disable trigger temporarily
+        entityManager.createNativeQuery("ALTER TABLE message_next_steps DISABLE TRIGGER ALL").executeUpdate();
+        entityManager.createNativeQuery("ALTER TABLE message_tags DISABLE TRIGGER ALL").executeUpdate();
+        entityManager.createNativeQuery("ALTER TABLE next_steps DISABLE TRIGGER ALL").executeUpdate();
+        entityManager.createNativeQuery("ALTER TABLE whatsapp_message DISABLE TRIGGER ALL").executeUpdate();
+        entityManager.createNativeQuery("ALTER TABLE tags DISABLE TRIGGER ALL").executeUpdate();
+
+        try {
+            // Clean all join tables first
+            entityManager.createNativeQuery("TRUNCATE TABLE message_next_steps CASCADE").executeUpdate();
+            entityManager.createNativeQuery("TRUNCATE TABLE message_tags CASCADE").executeUpdate();
+
+            // Clean main tables
+            entityManager.createNativeQuery("TRUNCATE TABLE next_steps CASCADE").executeUpdate();
+            entityManager.createNativeQuery("TRUNCATE TABLE whatsapp_message CASCADE").executeUpdate();
+            entityManager.createNativeQuery("TRUNCATE TABLE tags CASCADE").executeUpdate();
+
+        } finally {
+            // Re-enable triggers
+            entityManager.createNativeQuery("ALTER TABLE message_next_steps ENABLE TRIGGER ALL").executeUpdate();
+            entityManager.createNativeQuery("ALTER TABLE message_tags ENABLE TRIGGER ALL").executeUpdate();
+            entityManager.createNativeQuery("ALTER TABLE next_steps ENABLE TRIGGER ALL").executeUpdate();
+            entityManager.createNativeQuery("ALTER TABLE whatsapp_message ENABLE TRIGGER ALL").executeUpdate();
+            entityManager.createNativeQuery("ALTER TABLE tags ENABLE TRIGGER ALL").executeUpdate();
+        }
+    }
+
+
+
 }

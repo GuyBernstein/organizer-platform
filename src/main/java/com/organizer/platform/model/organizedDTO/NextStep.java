@@ -4,9 +4,8 @@ package com.organizer.platform.model.organizedDTO;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name = "next_steps")
@@ -21,16 +20,10 @@ public class NextStep implements Serializable {
     private String name;
 
     @JsonIgnore
-    @ManyToMany(mappedBy = "nextSteps")
-    private Set<WhatsAppMessage> messages = new HashSet<>();
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "message_id", nullable = false)
+    private WhatsAppMessage message;
 
-    // Add proper getters and setters
-    public Set<WhatsAppMessage> getMessages() {
-        if (messages == null) {
-            messages = new HashSet<>();
-        }
-        return messages;
-    }
 
     public Long getId() {
         return id;
@@ -48,14 +41,18 @@ public class NextStep implements Serializable {
         this.name = name;
     }
 
-    public void setMessages(Set<WhatsAppMessage> messages) {
-        this.messages = messages;
+    public WhatsAppMessage getMessage() {
+        return message;
+    }
+
+    public void setMessage(WhatsAppMessage message) {
+        this.message = message;
     }
 
     public static final class NextStepBuilder {
         private Long id;
         private String name;
-        private Set<WhatsAppMessage> messages;
+        private WhatsAppMessage message;
 
         private NextStepBuilder() {
         }
@@ -74,8 +71,8 @@ public class NextStep implements Serializable {
             return this;
         }
 
-        public NextStepBuilder messages(Set<WhatsAppMessage> messages) {
-            this.messages = messages;
+        public NextStepBuilder message(WhatsAppMessage messages) {
+            this.message = messages;
             return this;
         }
 
@@ -83,7 +80,7 @@ public class NextStep implements Serializable {
             NextStep nextStep = new NextStep();
             nextStep.setId(id);
             nextStep.setName(name);
-            nextStep.setMessages(messages);
+            nextStep.setMessage(message);
             return nextStep;
         }
     }
