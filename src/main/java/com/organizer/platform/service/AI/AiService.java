@@ -59,37 +59,74 @@ public class AiService {
                         "\\n\\n Do not add more information besides the schema." +
                         "\"\n          }\n        ]\n      }\n    ]\n  }")
                 .asString();
-        if(response == null)
+        if(response.getBody() == null)
             throw new NullPointerException("Returned null from AI during text organization");
 
         toWhatsappMessage(response, whatsAppMessage);
     }
 
+    public void generateOrganizationFromImage(String base64Image, WhatsAppMessage whatsAppMessage) throws UnirestException, JsonProcessingException {
+        Unirest.setTimeouts(0, 0);
+        HttpResponse<String> response = Unirest.post("https://api.anthropic.com/v1/messages")
+                .header("x-api-key", apiKey)
+                .header("anthropic-version", "2023-06-01")
+                .header("content-type", "application/json")
+                .body("{\n    \"model\": \"claude-3-5-sonnet-20241022\",\n    \"max_tokens\": 8192,\n    " +
+                        "\"temperature\": 0.1,\n    \"system\": " +
+                        "\"You are a precise image organization system that helps users find their visual content easily." +
+                        "\\n\\nOutput following this schema format:\\n<content_organization_schema>" +
+                        "\\n    <!-- הגדרת הסיווג הראשי של התוכן -->\\n    <primary_classification>\\n        <category>" +
+                        "\\n            <!-- הקטגוריה הראשית של התמונה (למשל: טבע, אומנות, אירועים) -->" +
+                        "\\n        </category>\\n        <subcategory>" +
+                        "\\n            <!-- תת-קטגוריה ספציפית יותר (למשל: נוף, פורטרט, חתונה) -->" +
+                        "\\n        </subcategory>\\n    </primary_classification>\\n\\n    <content_type>" +
+                        "\\n        <type>\\n            <!-- סוג התמונה (למשל: צילום, איור, גרפיקה) -->\\n        </type>" +
+                        "\\n        <purpose>\\n            <!-- המטרה העיקרית של התמונה (למשל: מסחרי, אישי, חינוכי) -->" +
+                        "\\n        </purpose>\\n    </content_type>\\n\\n    <user_metadata>\\n        <tags>" +
+                        "\\n            <!-- תגיות מפתח חדשות, מופרדות על ידי פסיקים, המתארות את התמונה -->\\n        </tags>" +
+                        "\\n        <next_steps>\\n            <!-- פעולות המשך נדרשות, מופרדות על ידי פסיקים -->" +
+                        "\\n        </next_steps>\\n    </user_metadata>\\n</content_organization_schema>\"," +
+                        "\n    \"messages\": [\n      {\n        \"role\": \"user\",\n        \"content\": [" +
+                        "\n          {\n            \"type\": \"text\",\n            \"text\": " +
+                        "\"Analyze and organize this image content in Hebrew. Do not add any information beyond the requested XML schema:" +
+                        "\"\n          },\n          {\n            \"type\": \"image\",\n            \"source\": {\n              " +
+                        "\"type\": \"base64\",\n              \"media_type\": \"image/jpeg\",\n              " +
+                        "\"data\": \"" + base64Image + "\"\n            }\n          }\n        ]\n      }\n    ]\n  }")
+                .asString();
+
+        if(response.getBody() == null)
+            throw new NullPointerException("Returned null from AI during image organization");
+        toWhatsappMessage(response, whatsAppMessage);
+    }
+
     private void toWhatsappMessage(HttpResponse<String> response, WhatsAppMessage whatsAppMessage) throws JsonProcessingException {
-        Logger logger = LoggerFactory.getLogger(AiService.class);
-        Response res = objectMapper.readValue(response.getBody(), Response.class);
-        logger.info("aiContent: {}", res.getContent().get(0).getText());
+        try {
+            Logger logger = LoggerFactory.getLogger(AiService.class);
+            Response res = objectMapper.readValue(response.getBody(), Response.class);
+            logger.info("aiContent: {}", res.getContent().get(0).getText());
 
-        if (res.getContent().isEmpty()) {
-            logger.info("aiContent is Empty");
-            return ;
+            if (res.getContent().isEmpty())
+                return;
+            String content = res.getContent().get(0).getText();
+
+            // Extract all fields into the message entity
+            whatsAppMessage.setCategory(extractFromXMLContent(content, "category"));
+            whatsAppMessage.setSubCategory(extractFromXMLContent(content, "subcategory"));
+            whatsAppMessage.setType(extractFromXMLContent(content, "type"));
+            whatsAppMessage.setPurpose(extractFromXMLContent(content, "purpose"));
+
+            // Add tags and next steps if we have any
+            addTagsAndNextSteps(whatsAppMessage, content);
+        } catch (NullPointerException e){
+            System.out.println("Error is: " + e.getMessage());
         }
-        String content = res.getContent().get(0).getText();
 
-        // Extract all fields using helper method
-        whatsAppMessage.setCategory(extractFromXMLContent(content, "category"));
-        whatsAppMessage.setSubCategory(extractFromXMLContent(content, "subcategory"));
-        whatsAppMessage.setType(extractFromXMLContent(content, "type"));
-        whatsAppMessage.setPurpose(extractFromXMLContent(content, "purpose"));
 
-        // Handle tags
+    }
+
+    private void addTagsAndNextSteps(WhatsAppMessage whatsAppMessage, String content) {
         String tagsContent = extractFromXMLContent(content, "tags");
-
-        // Handle next steps
         String nextStepsContent = (extractFromXMLContent(content, "next_steps"));
-
-
-        // Add tags and next steps if we have any
         assert tagsContent != null;
         assert nextStepsContent != null;
         whatsAppMessageService.addTagsAndNextSteps(whatsAppMessage, tagsContent, nextStepsContent);
@@ -100,53 +137,6 @@ public class AiService {
         Matcher matcher = pattern.matcher(content);
 
         return matcher.find() ? matcher.group(1).trim() : null;
-    }
-
-    public String generateCategoryFromImage(String base64Image) throws UnirestException, JsonProcessingException {
-        Unirest.setTimeouts(0, 0);
-        HttpResponse<String> response = Unirest.post("https://api.anthropic.com/v1/messages")
-                .header("Content-Type", "application/json")
-                .header("anthropic-version", "2023-06-01")
-                .header("x-api-key", apiKey)
-                .body("{\n    \"model\": \"claude-3-5-sonnet-20241022\",\n    \"max_tokens\": 8192,\n    " +
-                        "\"temperature\": 0.1,\n    \"system\": " +
-                        "\"You are a precise image classification AI that focuses solely on visual content." +
-                        " Your purpose is to match images to the most specific relevant category available." +
-                        "\\n\\nRules:\\n- Choose the most specific matching category" +
-                        "\\n- Create a new category only if no existing ones fit" +
-                        "\\n- Consider ONLY the visual content, not implied context" +
-                        "\\n- Never add explanations to your classifications\\n" +
-                        "\\nProcess:\\n1. Identify key visual elements\\n2. Match against available categories" +
-                        "\\n3. Select best fit OR create specific new category\\n" +
-                        "\\nAlways output your classification in this format:\\n<category>קטגוריה</category>" +
-                        "\",\n    \"messages\": [\n        {\n            \"role\": \"user\",\n            \"content\":" +
-                        " [\n                {\n                    \"type\": \"text\",\n                    \"text\": " +
-                        "\"Analyze and classify the image using these categories:" +
-                        "\\n<categories>\\nטכנולוגיה\\nפוליטיקה\\nבריאות\\nסביבה\\nחינוך\\nבידור\\nספורט\\nעסקים\\nמדע\\nתרבות\\nדת\\nאוכל\\nאמנות\\nהיסטוריה\\nתיירות\\nבינה מלאכותית\\n</categories>\"" +
-                        "\n                },\n                {\n                    \"type\": \"image\"," +
-                        "\n                    \"source\": {\n                        " +
-                        "\"type\": \"base64\",\n                        \"media_type\": \"image/jpeg\"," +
-                        "\n                        \"data\": \"" + base64Image + "\"\n                    }" +
-                        "\n                }\n            ]\n        }\n    ]\n}"
-                )
-                .asString();
-
-
-        return toResult(response);
-    }
-
-    private String toResult(HttpResponse<String> response) throws JsonProcessingException {
-        Response res = objectMapper.readValue(response.getBody(), Response.class);
-        if (res.getContent().isEmpty()) {
-            return null;
-        }
-        String category = res.getContent().get(0).getText();
-        String result = category.replaceAll("<category>(.*?)</category>", "$1");
-
-        // Check if the AI did put the <category> xml tags
-        if(result.isEmpty())
-            return category;
-        return result;
     }
 
     private static String convertToJavaString(String input) {

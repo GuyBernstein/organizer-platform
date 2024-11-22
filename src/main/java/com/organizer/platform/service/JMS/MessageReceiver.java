@@ -76,7 +76,7 @@ public class MessageReceiver {
             case "image":
                 String imageName = extractImageNameFromMetadata(whatsAppMessage.getMessageContent());
                 String base64Image = fetchAndConvertImageToBase64(imageName);
-                whatsAppMessage.setCategory(aiService.generateCategoryFromImage(base64Image));
+                aiService.generateOrganizationFromImage(base64Image, whatsAppMessage);
                 break;
 
             default:
