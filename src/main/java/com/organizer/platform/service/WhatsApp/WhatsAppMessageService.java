@@ -7,6 +7,7 @@ import com.organizer.platform.model.organizedDTO.WhatsAppMessage;
 import com.organizer.platform.repository.NextStepRepository;
 import com.organizer.platform.repository.TagRepository;
 import com.organizer.platform.repository.WhatsAppMessageRepository;
+import com.organizer.platform.util.Dates;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -87,6 +88,7 @@ public class WhatsAppMessageService {
     private MessageDTO convertToMessageDTO(WhatsAppMessage message) {
         return MessageDTO.builder()
                 .id(message.getId())
+                .createdAt(message.getCreatedAt())
                 .messageContent(message.getMessageContent())
                 .category(message.getCategory())
                 .subCategory(message.getSubCategory())

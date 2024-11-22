@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Base64;
@@ -111,6 +112,7 @@ public class MessageReceiver {
 
     private String fetchAndConvertImageToBase64(String imageName) {
         try {
+            ImageProcessor imageProcessor = new ImageProcessor();
             // Get pre-signed URL
             String preSignedUrl = cloudStorageService.generateSignedUrl(imageName);
 
@@ -118,7 +120,7 @@ public class MessageReceiver {
             URL url = new URL(preSignedUrl);
             try (InputStream inputStream = url.openStream()) {
                 byte[] imageBytes = IOUtils.toByteArray(inputStream);
-                return Base64.getEncoder().encodeToString(imageBytes);
+                return imageProcessor.processAndConvertImageFromBytes(imageBytes);
             }
         } catch (Exception e) {
             log.error("Error fetching and converting image", e);
