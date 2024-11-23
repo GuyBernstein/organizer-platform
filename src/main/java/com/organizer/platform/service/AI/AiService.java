@@ -98,6 +98,23 @@ public class AiService {
             throw new NullPointerException("Returned null from AI during image organization");
         toWhatsappMessage(response, whatsAppMessage);
     }
+    public void generateOrganizationFromPDF(String base64PDF, WhatsAppMessage whatsAppMessage) throws UnirestException, JsonProcessingException {
+        Unirest.setTimeouts(0, 0);
+        HttpResponse<String> response = Unirest.post("https://api.anthropic.com/v1/messages")
+                .header("content-type", "application/json")
+                .header("x-api-key", apiKey)
+                .header("anthropic-version", "2023-06-01")
+                .header("anthropic-beta", "pdfs-2024-09-25")
+                .body("{\n  \"model\": \"claude-3-5-sonnet-20241022\",\n  \"max_tokens\": 8192,\n  \"temperature\": 0,\n  \"system\": \"you are a precise PDF document " +
+                        "organization system that helps users find their document content easily. Please organize and classify the content in Hebrew.\\n\\nOutput following this schema format:\\n<content_organization_schema>\\n    <!-- הגדרת הסיווג הראשי של התוכן -->\\n    <primary_classification>\\n        <category>\\n            <!-- הקטגוריה הראשית של המסמך (למשל: משפטי, פיננסי, טכני) -->\\n        </category>\\n        <subcategory>\\n            <!-- תת-קטגוריה ספציפית יותר (למשל: חוזה, חשבונית, מדריך) -->\\n        </subcategory>\\n    </primary_classification>\\n\\n    <content_type>\\n        <type>\\n            <!-- סוג המסמך (למשל: דוח, טופס, מצגת) -->\\n        </type>\\n        <purpose>\\n            <!-- המטרה העיקרית של המסמך (למשל: פנימי, לקוח, תיעוד) -->\\n        </purpose>\\n    </content_type>\\n\\n    <user_metadata>\\n        <tags>\\n            <!-- תגיות מפתח חדשות, מופרדות על ידי פסיקים, המתארות את המסמך -->\\n        </tags>\\n        <next_steps>\\n            <!-- פעולות המשך נדרשות, מופרדות על ידי פסיקים -->\\n        </next_steps>\\n    </user_metadata>\\n</content_organization_schema>\\n\\nDo not add any information beyond the requested XML schema.\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": [\n        {\n          \"type\": \"document\",\n          \"source\": {\n            \"type\": \"base64\",\n            \"media_type\": \"application/pdf\",\n            \"data\": \"" + base64PDF + "\"\n          }\n        },\n        {\n          \"type\": \"text\",\n          \"text\": \"Analyze and organize this PDF content:\"\n        }\n      ]\n    }\n  ]\n}")
+                .asString();
+
+
+        if(response.getBody() == null)
+            throw new NullPointerException("Returned null from AI during image organization");
+        toWhatsappMessage(response, whatsAppMessage);
+    }
+
 
     private void toWhatsappMessage(HttpResponse<String> response, WhatsAppMessage whatsAppMessage) throws JsonProcessingException {
         try {
@@ -120,8 +137,6 @@ public class AiService {
         } catch (NullPointerException e){
             System.out.println("Error is: " + e.getMessage());
         }
-
-
     }
 
     private void addTagsAndNextSteps(WhatsAppMessage whatsAppMessage, String content) {
@@ -151,7 +166,4 @@ public class AiService {
                 .replace("\"", "\\\"")
                 .replace("\t", "\\t");
     }
-
-
-
 }

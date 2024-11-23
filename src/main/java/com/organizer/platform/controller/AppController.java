@@ -149,7 +149,7 @@ public class AppController {
         }
 
         try {
-            String preSignedUrl = cloudStorageService.generateSignedUrl(imageName);
+            String preSignedUrl = cloudStorageService.generateImageSignedUrl(imageName);
             Map<String, String> response = new HashMap<>();
             response.put("imageUrl", preSignedUrl);
             response.put("fileName", imageName);

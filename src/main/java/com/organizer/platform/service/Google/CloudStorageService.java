@@ -13,9 +13,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -69,7 +67,7 @@ public class CloudStorageService {
         }
     }
 
-    public String generateSignedUrl(String imageName) {
+    public String generateImageSignedUrl(String imageName) {
         return generateSignedUrlForObject("images/" + imageName);
     }
 

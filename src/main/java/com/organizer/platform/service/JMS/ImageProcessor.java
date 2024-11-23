@@ -1,26 +1,17 @@
 package com.organizer.platform.service.JMS;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.*;
-import java.net.URL;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Base64;
-import org.apache.commons.io.IOUtils;
 
 public class ImageProcessor {
     private static final int MAX_LONG_EDGE = 1568;
     private static final int MIN_EDGE = 200;
     private static final double MAX_MEGAPIXELS = 1.15;
-
-    public String processAndConvertImageFromUrl(String preSignedUrl) throws IOException {
-        try (InputStream inputStream = new URL(preSignedUrl).openStream()) {
-            BufferedImage originalImage = ImageIO.read(inputStream);
-            if (originalImage == null) {
-                throw new IOException("Failed to read image from URL: " + preSignedUrl);
-            }
-            return processImage(originalImage);
-        }
-    }
 
     public String processAndConvertImageFromBytes(byte[] imageBytes) throws IOException {
         try (ByteArrayInputStream bis = new ByteArrayInputStream(imageBytes)) {

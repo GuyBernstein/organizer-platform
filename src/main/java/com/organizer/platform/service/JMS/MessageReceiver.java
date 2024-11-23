@@ -75,10 +75,20 @@ public class MessageReceiver {
                 break;
 
             case "image":
-                String imageName = extractImageNameFromMetadata(whatsAppMessage.getMessageContent());
-                String base64Image = fetchAndConvertImageToBase64(imageName);
+                String imageName = extractNameFromMetadata(whatsAppMessage.getMessageContent());
+                String base64Image = fetchAndConvertToBase64(imageName, "image");
                 aiService.generateOrganizationFromImage(base64Image, whatsAppMessage);
                 break;
+
+            case "document":
+                String pdfName = extractNameFromMetadata(whatsAppMessage.getMessageContent());
+                System.out.println("pdfName: " + pdfName);
+                if(pdfName.endsWith(".pdf")){
+                    String base64pdf = fetchAndConvertToBase64(pdfName, "pdf");
+                    aiService.generateOrganizationFromPDF(base64pdf, whatsAppMessage);
+                }
+            break;
+
 
             default:
                 throw new IllegalArgumentException("Unsupported message type: " + whatsAppMessage.getMessageType());
@@ -101,7 +111,7 @@ public class MessageReceiver {
         }
     }
 
-    private String extractImageNameFromMetadata(String metadata) {
+    private String extractNameFromMetadata(String metadata) {
         Pattern pattern = Pattern.compile("GCS File: (.+)$");
         Matcher matcher = pattern.matcher(metadata);
         if (matcher.find()) {
@@ -110,21 +120,39 @@ public class MessageReceiver {
         throw new RuntimeException("Could not extract image name from metadata");
     }
 
-    private String fetchAndConvertImageToBase64(String imageName) {
-        try {
-            ImageProcessor imageProcessor = new ImageProcessor();
-            // Get pre-signed URL
-            String preSignedUrl = cloudStorageService.generateSignedUrl(imageName);
-
-            // Fetch image content
-            URL url = new URL(preSignedUrl);
-            try (InputStream inputStream = url.openStream()) {
-                byte[] imageBytes = IOUtils.toByteArray(inputStream);
-                return imageProcessor.processAndConvertImageFromBytes(imageBytes);
-            }
-        } catch (Exception e) {
-            log.error("Error fetching and converting image", e);
-            throw new RuntimeException("Failed to process image: " + imageName, e);
+    private String fetchAndConvertToBase64(String fileName, String fileType) {
+        if (fileName == null || fileType == null) {
+            throw new IllegalArgumentException("fileName and fileType cannot be null");
         }
+
+        try {
+            // Get pre-signed URL
+            String preSignedUrl = fileType.equals("image")
+                    ? cloudStorageService.generateImageSignedUrl(fileName)
+                    : cloudStorageService.generateDocumentSignedUrl(fileName);
+
+            return fetchAndProcessContent(preSignedUrl, fileType);
+        } catch (Exception e) {
+            log.error("Error fetching and converting {}: {}", fileType, fileName, e);
+            throw new RuntimeException(String.format("Failed to process %s: %s", fileType, fileName), e);
+        }
+    }
+
+    private String fetchAndProcessContent(String preSignedUrl, String fileType)
+            throws IOException {
+        try (InputStream inputStream = new URL(preSignedUrl).openStream()) {
+            byte[] fileBytes = IOUtils.toByteArray(inputStream);
+            return processContent(fileBytes, fileType);
+        }
+    }
+
+    private String processContent(byte[] fileBytes, String fileType) throws IOException {
+        // returns a base64 of the media file
+        if (fileType.equals("image")) {
+            // Also resizing the image for better interaction with the AI
+            ImageProcessor imageProcessor = new ImageProcessor();
+            return imageProcessor.processAndConvertImageFromBytes(fileBytes);
+        }
+        return Base64.getEncoder().encodeToString(fileBytes);
     }
 }
