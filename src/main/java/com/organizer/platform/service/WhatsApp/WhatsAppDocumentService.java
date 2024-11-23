@@ -28,13 +28,7 @@ public class WhatsAppDocumentService {
         this.restTemplate = restTemplate;
     }
 
-    public String processAndUploadDocument(Document whatsAppDocument, String whatsAppToken) {
-        logger.info("Document ID: {}, Filename: {}, MIME Type: {}",
-                whatsAppDocument.getId(),
-                whatsAppDocument.getFilename(),
-                whatsAppDocument.getMimeType());
-        logger.info("Downloading document with ID: {} using token: {}", whatsAppDocument.getId(), whatsAppToken);
-
+    public String processAndUploadDocument(String from, Document whatsAppDocument, String whatsAppToken) {
         // Download document from WhatsApp servers using their Media API
         byte[] documentData = downloadDocumentFromWhatsApp(whatsAppDocument.getId(), whatsAppToken);
 
@@ -43,14 +37,13 @@ public class WhatsAppDocumentService {
         }
 
         // Upload to Google Cloud Storage
-        String fileName = cloudStorageService.uploadDocument(
+
+        return cloudStorageService.uploadDocument(
+                from,
                 documentData,
                 whatsAppDocument.getMimeType(),
                 whatsAppDocument.getFilename()  // Use original filename
         );
-
-        logger.info("Successfully uploaded document to GCS with filename: {}", fileName);
-        return fileName;
     }
 
     private byte[] downloadDocumentFromWhatsApp(String mediaId, String token)  {
@@ -68,8 +61,6 @@ public class WhatsAppDocumentService {
                     MediaResponse.class
             );
 
-            System.out.println("Objects.requireNonNull(mediaResponse.getBody()).getUrl(): " + Objects.requireNonNull(mediaResponse.getBody()).getUrl());
-
             if (mediaResponse.getBody() == null || mediaResponse.getBody().getUrl() == null) {
                 throw new RuntimeException("Failed to get media URL");
             }
@@ -85,7 +76,6 @@ public class WhatsAppDocumentService {
                     byte[].class
             );
 
-            logger.info("Successfully downloaded document with ID: {}", mediaId);
             return documentResponse.getBody();
 
         } catch (Exception e) {

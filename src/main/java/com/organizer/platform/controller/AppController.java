@@ -115,9 +115,9 @@ public class AppController {
         }
 
         // Check if user has permission to access this content
-        if (canAccessContent(authentication, phoneNumber)) {
+        if (canAccessContent(authentication, internationalFormat)) {
             log.warn("Unauthorized access attempt to messages for number: {} by user: {}",
-                    phoneNumber, authentication.getName());
+                    internationalFormat, authentication.getName());
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
 
@@ -135,13 +135,25 @@ public class AppController {
     public ResponseEntity<?> getImagePreSignedUrl(
             @RequestParam String imageName,
             @RequestParam String phoneNumber,
-            Authentication authentication,
-            HttpServletRequest request) {
+            Authentication authentication) {
 
-        log.info("Request received: {} {}", request.getMethod(), request.getRequestURI());
-        log.info("ImageName received: {}", imageName);
+        // Validate input phone number format and convert to international format
+        String internationalFormat;
 
-        if (canAccessContent(authentication, phoneNumber)) {
+        // Check if phone starts with 0 (0509603888)
+        if (phoneNumber.matches("^05\\d{8}$")) {
+            internationalFormat = "972" + phoneNumber.substring(1);
+        }
+        // Check if phone starts with 972 (972509603888)
+        else if (phoneNumber.matches("^972\\d{9}$")) {
+            internationalFormat = phoneNumber;
+        }
+        // Invalid format
+        else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        if (canAccessContent(authentication, internationalFormat)) {
             log.warn("Unauthorized access attempt to image: {} by user: {}",
                     imageName, authentication.getName());
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -149,7 +161,7 @@ public class AppController {
         }
 
         try {
-            String preSignedUrl = cloudStorageService.generateImageSignedUrl(imageName);
+            String preSignedUrl = cloudStorageService.generateImageSignedUrl(internationalFormat, imageName);
             Map<String, String> response = new HashMap<>();
             response.put("imageUrl", preSignedUrl);
             response.put("fileName", imageName);
@@ -165,14 +177,25 @@ public class AppController {
     public ResponseEntity<?> getDocumentPreSignedUrl(
             @RequestParam() String documentName,
             @RequestParam String phoneNumber,
-            Authentication authentication,
-            HttpServletRequest request) {
+            Authentication authentication) {
 
+        // Validate input phone number format and convert to international format
+        String internationalFormat;
 
-        log.info("Request received: {} {}", request.getMethod(), request.getRequestURI());
-        log.info("DocumentName received: {}", documentName);
+        // Check if phone starts with 0 (0509603888)
+        if (phoneNumber.matches("^05\\d{8}$")) {
+            internationalFormat = "972" + phoneNumber.substring(1);
+        }
+        // Check if phone starts with 972 (972509603888)
+        else if (phoneNumber.matches("^972\\d{9}$")) {
+            internationalFormat = phoneNumber;
+        }
+        // Invalid format
+        else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
 
-        if (canAccessContent(authentication, phoneNumber)) {
+        if (canAccessContent(authentication, internationalFormat)) {
             log.warn("Unauthorized access attempt to document: {} by user: {}",
                     documentName, authentication.getName());
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -181,7 +204,7 @@ public class AppController {
 
         try {
             // Generate pre-signed URL for the document
-            String preSignedUrl = cloudStorageService.generateDocumentSignedUrl(documentName);
+            String preSignedUrl = cloudStorageService.generateDocumentSignedUrl(internationalFormat, documentName);
 
             // Create response with additional metadata
             Map<String, String> response = new HashMap<>();
@@ -208,13 +231,26 @@ public class AppController {
     public ResponseEntity<?> getAudioPreSignedUrl(
             @RequestParam String audioName,
             @RequestParam String phoneNumber,
-            Authentication authentication,
-            HttpServletRequest request) {
+            Authentication authentication) {
 
-        log.info("Request received: {} {}", request.getMethod(), request.getRequestURI());
-        log.info("AudioName received: {}", audioName);
 
-        if (canAccessContent(authentication, phoneNumber)) {
+        // Validate input phone number format and convert to international format
+        String internationalFormat;
+
+        // Check if phone starts with 0 (0509603888)
+        if (phoneNumber.matches("^05\\d{8}$")) {
+            internationalFormat = "972" + phoneNumber.substring(1);
+        }
+        // Check if phone starts with 972 (972509603888)
+        else if (phoneNumber.matches("^972\\d{9}$")) {
+            internationalFormat = phoneNumber;
+        }
+        // Invalid format
+        else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        if (canAccessContent(authentication, internationalFormat)) {
             log.warn("Unauthorized access attempt to audio: {} by user: {}",
                     audioName, authentication.getName());
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -223,7 +259,7 @@ public class AppController {
 
         try {
             // Generate pre-signed URL for the audio file
-            String preSignedUrl = cloudStorageService.generateAudioSignedUrl(audioName);
+            String preSignedUrl = cloudStorageService.generateAudioSignedUrl(internationalFormat, audioName);
 
             // Create response with metadata
             Map<String, String> response = new HashMap<>();

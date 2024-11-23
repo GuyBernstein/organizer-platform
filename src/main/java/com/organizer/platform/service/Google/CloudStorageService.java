@@ -33,50 +33,32 @@ public class CloudStorageService {
 
     @PostConstruct
     public void initialize() throws IOException {
-        logger.info("Initializing Cloud Storage Service...");
-        logger.info("Using project ID: {}", gcsProperties.getProjectId());
-        logger.info("Using bucket name: {}", gcsProperties.getBucketName());
+        Resource resource = new ClassPathResource(gcsProperties.getCredentialsPath().replace("classpath:", ""));
+        GoogleCredentials credentials = GoogleCredentials.fromStream(resource.getInputStream());
 
-        try {
-            Resource resource = new ClassPathResource(gcsProperties.getCredentialsPath().replace("classpath:", ""));
-            GoogleCredentials credentials = GoogleCredentials.fromStream(resource.getInputStream());
-            logger.info("Successfully loaded credentials");
+        storage = StorageOptions.newBuilder()
+                .setProjectId(gcsProperties.getProjectId())
+                .setCredentials(credentials)
+                .build()
+                .getService();
 
-            storage = StorageOptions.newBuilder()
-                    .setProjectId(gcsProperties.getProjectId())
-                    .setCredentials(credentials)
-                    .build()
-                    .getService();
-            logger.info("Successfully created Storage service");
-
-            // Test bucket access
-            bucket = storage.get(gcsProperties.getBucketName());
-            if (bucket == null) {
-                throw new IllegalStateException("Bucket not found: " + gcsProperties.getBucketName());
-            }
-            logger.info("Successfully connected to bucket: {}", gcsProperties.getBucketName());
-
-            // Test bucket listing to verify permissions
-            bucket.list().iterateAll().forEach(blob ->
-                    logger.info("Found blob: {}", blob.getName())
-            );
-
-        } catch (Exception e) {
-            logger.error("Failed to initialize Cloud Storage", e);
-            throw e;
+        // Test bucket access
+        bucket = storage.get(gcsProperties.getBucketName());
+        if (bucket == null) {
+            throw new IllegalStateException("Bucket not found: " + gcsProperties.getBucketName());
         }
     }
 
-    public String generateImageSignedUrl(String imageName) {
-        return generateSignedUrlForObject("images/" + imageName);
+    public String generateImageSignedUrl(String fromNumber, String imageName) {
+        return generateSignedUrlForObject("images/" + fromNumber + "/" + imageName);
     }
 
-    public String generateDocumentSignedUrl(String documentName) {
-        return generateSignedUrlForObject("documents/" + documentName);
+    public String generateDocumentSignedUrl(String fromNumber, String documentName) {
+        return generateSignedUrlForObject("documents/" + fromNumber + "/" + documentName);
     }
 
-    public String generateAudioSignedUrl(String audioName) {
-        return generateSignedUrlForObject("audios/" + audioName);
+    public String generateAudioSignedUrl(String fromNumber, String audioName) {
+        return generateSignedUrlForObject("audios/" + fromNumber + "/" + audioName);
     }
 
     private String generateSignedUrlForObject(String objectPath) {
@@ -89,14 +71,14 @@ public class CloudStorageService {
                 .toString();
     }
 
-    public String uploadDocument(byte[] documentData, String mimeType, String originalFilename) {
+    public String uploadDocument(String fromNumber, byte[] documentData, String mimeType, String originalFilename) {
         try {
             // Create a unique filename using timestamp and original filename
             String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(Dates.nowUTC());
             String uniqueFilename = timestamp + "_" + originalFilename;
 
-            // Create document path in GCS
-            String documentPath = "documents/" + uniqueFilename;
+            // Create document path in GCS with fromNumber prefix
+            String documentPath = "documents/" + fromNumber + "/" + uniqueFilename;
 
             BlobId blobId = BlobId.of(gcsProperties.getBucketName(), documentPath);
             BlobInfo blobInfo = BlobInfo.newBuilder(blobId)
@@ -107,17 +89,17 @@ public class CloudStorageService {
             return documentPath;
 
         } catch (Exception e) {
-            logger.error("Storage error while uploading document: " + originalFilename, e);
+            logger.error("Storage error while uploading document for {}: {}", fromNumber, originalFilename, e);
             throw new RuntimeException("Failed to upload document to Google Cloud Storage", e);
         }
     }
 
-    public String uploadImage(byte[] imageData, String mimeType, String originalFileName) {
+    public String uploadImage(String fromNumber, byte[] imageData, String mimeType, String originalFileName) {
         // Generates a unique filename
         String fileName = generateFileName(originalFileName);
 
-        // Create image path in GCS
-        String imagePath = "images/" + fileName;
+        // Create image path in GCS with fromNumber prefix
+        String imagePath = "images/" + fromNumber + "/" + fileName;
 
         // Creates a blob (file) in GCS
         BlobId blobId = BlobId.of(gcsProperties.getBucketName(), imagePath);
@@ -130,16 +112,16 @@ public class CloudStorageService {
         return imagePath;
     }
 
-    public String uploadAudio(byte[] audioData, String mimeType, String originalFileName) {
+    public String uploadAudio(String fromNumber, byte[] audioData, String mimeType, String originalFileName) {
         try {
-            logger.info("Starting audio upload process for file: {}", originalFileName);
+            logger.info("Starting audio upload process for file: {} from: {}", originalFileName, fromNumber);
 
             // Generate a unique filename using timestamp and original filename
             String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(Dates.nowUTC());
             String uniqueFilename = timestamp + "_" + originalFileName;
 
-            // Create audio path in GCS under 'audio' directory
-            String audioPath = "audios/" + uniqueFilename;
+            // Create audio path in GCS under 'audio' directory with fromNumber prefix
+            String audioPath = "audios/" + fromNumber + "/" + uniqueFilename;
 
             logger.info("Uploading audio to path: {}", audioPath);
 
@@ -156,7 +138,7 @@ public class CloudStorageService {
             return audioPath;
 
         } catch (Exception e) {
-            logger.error("Storage error while uploading audio: " + originalFileName, e);
+            logger.error("Storage error while uploading audio from {}: {}", fromNumber, originalFileName, e);
             throw new RuntimeException("Failed to upload audio to Google Cloud Storage", e);
         }
     }

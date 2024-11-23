@@ -3,8 +3,6 @@ package com.organizer.platform.service.WhatsApp;
 import com.organizer.platform.model.WhatsApp.Audio;
 import com.organizer.platform.model.WhatsApp.MediaResponse;
 import com.organizer.platform.service.Google.CloudStorageService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -15,7 +13,6 @@ import org.springframework.web.client.RestTemplate;
 
 @Service
 public class WhatsAppAudioService {
-    private static final Logger logger = LoggerFactory.getLogger(WhatsAppDocumentService.class);
     private final CloudStorageService cloudStorageService;
     private final RestTemplate restTemplate;
 
@@ -25,13 +22,7 @@ public class WhatsAppAudioService {
         this.restTemplate = restTemplate;
     }
 
-    public String processAndUploadAudio(Audio whatsAppAudio, String whatsAppToken) {
-        logger.info("Audio ID: {}, Filename: {}, MIME Type: {}",
-                whatsAppAudio.getId(),
-                whatsAppAudio.getVoice(),
-                whatsAppAudio.getMimeType());
-        logger.info("Downloading audio with ID: {} using token: {}", whatsAppAudio.getId(), whatsAppToken);
-
+    public String processAndUploadAudio(String from, Audio whatsAppAudio, String whatsAppToken) {
         // Download document from WhatsApp servers using their Media API
         byte[] audioData = downloadAudioFromWhatsApp(whatsAppAudio.getId(), whatsAppToken);
 
@@ -40,14 +31,12 @@ public class WhatsAppAudioService {
         }
 
         // Upload to Google Cloud Storage
-        String fileName = cloudStorageService.uploadAudio(
+        return cloudStorageService.uploadAudio(
+                from,
                 audioData,
                 whatsAppAudio.getMimeType(),
                 whatsAppAudio.getId() + "." + getExtensionFromMimeType(whatsAppAudio.getMimeType())
         );
-
-        logger.info("Successfully uploaded document to GCS with filename: {}", fileName);
-        return fileName;
     }
 
     private byte[] downloadAudioFromWhatsApp(String mediaId, String token) {
@@ -79,12 +68,9 @@ public class WhatsAppAudioService {
                     new HttpEntity<>(downloadHeaders),
                     byte[].class
             );
-
-            logger.info("Successfully downloaded audio with ID: {}", mediaId);
             return audioResponse.getBody();
 
         } catch (Exception e) {
-            logger.error("Error downloading audio with ID: {}", mediaId, e);
             throw new RuntimeException("Failed to download audio", e);
         }
     }
@@ -107,8 +93,6 @@ public class WhatsAppAudioService {
             case "audio/aac":
                 return "aac";
             default:
-                // Log unexpected MIME type
-                logger.warn("Unexpected audio MIME type: {}. Defaulting to 'ogg'", mimeType);
                 return "ogg";
         }
     }

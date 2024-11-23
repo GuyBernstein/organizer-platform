@@ -27,11 +27,7 @@ public class WhatsAppImageService {
         this.restTemplate = restTemplate;
     }
 
-    public String processAndUploadImage(Image whatsAppImage, String whatsAppToken) {
-        logger.info("Image ID: {} Image sha256 {} Image mymetype {}", whatsAppImage.getId(), whatsAppImage.getSha256(),
-        whatsAppImage.getMimeType());
-        logger.info("Downloading image with ID: {} using token: {}", whatsAppImage.getId(), whatsAppToken);
-
+    public String processAndUploadImage(String from, Image whatsAppImage, String whatsAppToken) {
         // Download image from WhatsApp servers using their Media API
         byte[] imageData = downloadImageFromWhatsApp(whatsAppImage.getId(), whatsAppToken);
 
@@ -41,14 +37,12 @@ public class WhatsAppImageService {
         }
 
         // Upload to Google Cloud Storage
-        String fileName = cloudStorageService.uploadImage(
+        return cloudStorageService.uploadImage(
+                from,
                 imageData,
                 whatsAppImage.getMimeType(),
                 whatsAppImage.getId() + "." + getExtensionFromMimeType(whatsAppImage.getMimeType())
         );
-
-        logger.info("Successfully uploaded image to GCS with filename: {}", fileName);
-        return fileName;
     }
 
     private byte[] downloadImageFromWhatsApp(String mediaId, String token)  {
@@ -66,8 +60,6 @@ public class WhatsAppImageService {
                     MediaResponse.class
             );
 
-            System.out.println("Objects.requireNonNull(mediaResponse.getBody()).getUrl(): " + Objects.requireNonNull(mediaResponse.getBody()).getUrl());
-
             if (mediaResponse.getBody() == null || mediaResponse.getBody().getUrl() == null) {
                 throw new RuntimeException("Failed to get media URL");
             }
@@ -83,7 +75,6 @@ public class WhatsAppImageService {
                     byte[].class
             );
 
-            logger.info("Successfully downloaded image with ID: {}", mediaId);
             return imageResponse.getBody();
 
         } catch (Exception e) {

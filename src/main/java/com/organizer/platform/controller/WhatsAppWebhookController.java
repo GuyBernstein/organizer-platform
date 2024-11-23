@@ -136,6 +136,7 @@ public class WhatsAppWebhookController {
         if (message.getAudio() != null) {
             // Upload audio to Google Cloud Storage
             String storedFileName = whatsAppAudioService.processAndUploadAudio(
+                    message.getFrom(),
                     message.getAudio(),
                     whatsAppToken
             );
@@ -151,6 +152,7 @@ public class WhatsAppWebhookController {
         if (message.getDocument() != null) {
             // Upload document to Google Cloud Storage
             String storedFileName = whatsAppDocumentService.processAndUploadDocument(
+                    message.getFrom(),
                     message.getDocument(),
                     whatsAppToken
             );
@@ -166,6 +168,7 @@ public class WhatsAppWebhookController {
         if (message.getImage() != null) {
             // Upload image to Google Cloud Storage
             String storedFileName = whatsAppImageService.processAndUploadImage(
+                    message.getFrom(),
                     message.getImage(),
                     whatsAppToken
             );

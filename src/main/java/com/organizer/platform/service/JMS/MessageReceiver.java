@@ -75,19 +75,20 @@ public class MessageReceiver {
                 break;
 
             case "image":
-                String imageName = extractNameFromMetadata(whatsAppMessage.getMessageContent());
-                String base64Image = fetchAndConvertToBase64(imageName, "image");
+                String imageName = extractNameFromMetadata(whatsAppMessage.getMessageContent(),
+                        whatsAppMessage.getFromNumber() + "/");
+                String base64Image = fetchAndConvertToBase64(whatsAppMessage.getFromNumber(), imageName, "image");
                 aiService.generateOrganizationFromImage(base64Image, whatsAppMessage);
                 break;
 
             case "document":
-                String pdfName = extractNameFromMetadata(whatsAppMessage.getMessageContent());
-                System.out.println("pdfName: " + pdfName);
+                String pdfName = extractNameFromMetadata(whatsAppMessage.getMessageContent(),
+                        whatsAppMessage.getFromNumber() + "/");
                 if(pdfName.endsWith(".pdf")){
-                    String base64pdf = fetchAndConvertToBase64(pdfName, "pdf");
+                    String base64pdf = fetchAndConvertToBase64(whatsAppMessage.getFromNumber(), pdfName, "pdf");
                     aiService.generateOrganizationFromPDF(base64pdf, whatsAppMessage);
                 }
-            break;
+                break;
 
 
             default:
@@ -111,8 +112,8 @@ public class MessageReceiver {
         }
     }
 
-    private String extractNameFromMetadata(String metadata) {
-        Pattern pattern = Pattern.compile("GCS File: (.+)$");
+    private String extractNameFromMetadata(String metadata, String from) {
+        Pattern pattern = Pattern.compile("GCS File: " + Pattern.quote(from) + "(.+)$");
         Matcher matcher = pattern.matcher(metadata);
         if (matcher.find()) {
             return matcher.group(1).trim();
@@ -120,7 +121,7 @@ public class MessageReceiver {
         throw new RuntimeException("Could not extract image name from metadata");
     }
 
-    private String fetchAndConvertToBase64(String fileName, String fileType) {
+    private String fetchAndConvertToBase64(String from, String fileName, String fileType) {
         if (fileName == null || fileType == null) {
             throw new IllegalArgumentException("fileName and fileType cannot be null");
         }
@@ -128,8 +129,8 @@ public class MessageReceiver {
         try {
             // Get pre-signed URL
             String preSignedUrl = fileType.equals("image")
-                    ? cloudStorageService.generateImageSignedUrl(fileName)
-                    : cloudStorageService.generateDocumentSignedUrl(fileName);
+                    ? cloudStorageService.generateImageSignedUrl(from, fileName)
+                    : cloudStorageService.generateDocumentSignedUrl(from, fileName);
 
             return fetchAndProcessContent(preSignedUrl, fileType);
         } catch (Exception e) {
