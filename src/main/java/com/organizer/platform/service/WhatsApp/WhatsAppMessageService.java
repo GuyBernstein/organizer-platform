@@ -196,67 +196,48 @@ public class WhatsAppMessageService {
     }
 
     @Transactional
-    public MessageDTO partialUpdateMessage(Long messageId, MessageDTO updateRequest) {
-        WhatsAppMessage message = findMessageById(messageId)
-                .orElseThrow(() -> new EntityNotFoundException("Message not found with id: " + messageId));
+    public MessageDTO partialUpdateMessage(WhatsAppMessage message, MessageDTO updateRequest) {
+        // Update simple fields only if they're not null in the request
+        Optional.ofNullable(updateRequest.getMessageContent())
+                .ifPresent(message::setMessageContent);
+        Optional.ofNullable(updateRequest.getCategory())
+                .ifPresent(message::setCategory);
+        Optional.ofNullable(updateRequest.getSubCategory())
+                .ifPresent(message::setSubCategory);
+        Optional.ofNullable(updateRequest.getType())
+                .ifPresent(message::setType);
+        Optional.ofNullable(updateRequest.getPurpose())
+                .ifPresent(message::setPurpose);
 
-        // Only update fields that are not null in the request
-        if (updateRequest.getMessageContent() != null) {
-            message.setMessageContent(updateRequest.getMessageContent());
-        }
+        // Handle tags update if provided
+        Optional.ofNullable(updateRequest.getTags())
+                .ifPresent(tags -> { // many-to-many
+                    message.getTags().forEach((tag -> { // disconnect the relation from the tags to this message
+                        tag.getMessages().remove(message);
+                        if(tag.getMessages().isEmpty()) // if removed the last message
+                            tagRepository.delete(tag);
+                    }));
+                    message.getTags().clear(); // disconnect the relation from the other side
 
-        if (updateRequest.getCategory() != null) {
-            message.setCategory(updateRequest.getCategory());
-        }
+                    String tagsContent = String.join(",", tags);
+                    if (!tagsContent.isEmpty()) {
+                        addTags(message, tagsContent);
+                    }
+                });
 
-        if (updateRequest.getSubCategory() != null) {
-            message.setSubCategory(updateRequest.getSubCategory());
-        }
+        // Handle next steps update if provided
+        Optional.ofNullable(updateRequest.getNextSteps())
+                .ifPresent(nextSteps -> { // one-to-many
+                    nextStepRepository.deleteAll(message.getNextSteps());
+                    message.getNextSteps().clear();
 
-        if (updateRequest.getType() != null) {
-            message.setType(updateRequest.getType());
-        }
+                    String nextStepsContent = String.join(",", nextSteps);
+                    if (!nextStepsContent.isEmpty()) {
+                        addNextSteps(message, nextStepsContent);
+                    }
+                });
 
-        if (updateRequest.getPurpose() != null) {
-            message.setPurpose(updateRequest.getPurpose());
-        }
-
-        // Handle tags update
-        if (updateRequest.getTags() != null) {
-            // Clear existing tags
-            message.getTags().clear();
-            messageRepository.save(message); // Save to update the relationships
-
-            // Convert Set<String> to comma-separated string and add new tags
-            String tagsContent = String.join(",", updateRequest.getTags());
-            if (!tagsContent.isEmpty()) {
-                addTags(message, tagsContent);
-            }
-        }
-
-        // Handle next steps update
-        if (updateRequest.getNextSteps() != null) {
-            // Clear existing next steps by removing message reference
-            message.getNextSteps().forEach(nextStep -> {
-                nextStep.setMessage(null);
-                nextStepRepository.save(nextStep);
-            });
-            message.getNextSteps().clear();
-            messageRepository.save(message); // Save to update the relationships
-
-            // Convert Set<String> to comma-separated string and add new next steps
-            String nextStepsContent = String.join(",", updateRequest.getNextSteps());
-            if (!nextStepsContent.isEmpty()) {
-                addNextSteps(message, nextStepsContent);
-            }
-        }
-
-        // Refresh the message to get the updated relationships
-        message = messageRepository.findById(messageId)
-                .orElseThrow(() -> new EntityNotFoundException("Message not found after update"));
-
-
-        // Convert to DTO and return
-        return convertToMessageDTO(message);
+        // Save and refresh to get updated relationships
+        return convertToMessageDTO(messageRepository.save(message));
     }
 }
