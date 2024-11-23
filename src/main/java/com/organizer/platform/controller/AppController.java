@@ -1,5 +1,6 @@
 package com.organizer.platform.controller;
 
+import com.organizer.platform.model.User.AccessControlResponse;
 import com.organizer.platform.model.User.AppUser;
 import com.organizer.platform.model.organizedDTO.MessageDTO;
 import com.organizer.platform.model.organizedDTO.WhatsAppMessage;
@@ -29,7 +30,7 @@ import java.util.Optional;
 @RequestMapping("/api/content")
 @Api(tags = "Content Management API")
 public class AppController {
-    private static final Logger log = LoggerFactory.getLogger(WhatsAppImageService.class);
+    private static final Logger log = LoggerFactory.getLogger(AppController.class);
     private final WhatsAppMessageService messageService;
     private final CloudStorageService cloudStorageService;
     private final UserService userService;
@@ -42,18 +43,20 @@ public class AppController {
     }
 
     private boolean canAccessContent(Authentication authentication, String phoneNumber) {
-        if (authentication == null)
-            return true;
+        // If no authentication, deny access
+        if (authentication == null) {
+            return false;
+        }
 
         OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
         String email = oauth2User.getAttribute("email");
 
         // Admin can access all content
         if (userService.isAdmin(email)) {
-            return false;
+            return true;
         }
 
-        // For regular users, check if the phone number matches their account
+        // For regular users, check if they are authorized and the phone number matches their account
         Optional<AppUser> user = userService.findByEmail(email);
         return user.map(appUser ->
                 appUser.isAuthorized() &&
@@ -63,10 +66,71 @@ public class AppController {
         ).orElse(false);
     }
 
+    private AccessControlResponse checkAccessControl(Authentication authentication, String phoneNumber) {
+        // If no authentication, deny access
+        if (authentication == null) {
+            return AccessControlResponse.denied(
+                    HttpStatus.UNAUTHORIZED,
+                    "Authentication required",
+                    "Please log in to access this content"
+            );
+        }
+
+        OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
+        String email = oauth2User.getAttribute("email");
+
+        // Admin can access all content
+        if (userService.isAdmin(email)) {
+            return AccessControlResponse.allowed();
+        }
+
+        // For regular users, check if they are authorized and the phone number matches their account
+        Optional<AppUser> user = userService.findByEmail(email);
+
+        if (user.isEmpty()) {
+            return AccessControlResponse.denied(
+                    HttpStatus.FORBIDDEN,
+                    "User not found",
+                    "No user account found for your email address"
+            );
+        }
+
+        AppUser appUser = user.get();
+
+        if (!appUser.isAuthorized()) {
+            return AccessControlResponse.denied(
+                    HttpStatus.FORBIDDEN,
+                    "Account not authorized",
+                    "Your account is pending authorization. Please contact an administrator"
+            );
+        }
+
+        if (appUser.getWhatsappNumber() == null) {
+            return AccessControlResponse.denied(
+                    HttpStatus.FORBIDDEN,
+                    "No WhatsApp number linked",
+                    "Your account does not have a linked WhatsApp number"
+            );
+        }
+
+        boolean numberMatches = appUser.getWhatsappNumber().equals(phoneNumber) ||
+                appUser.getWhatsappNumber().equals("972" + phoneNumber.substring(1));
+
+        if (!numberMatches) {
+            return AccessControlResponse.denied(
+                    HttpStatus.FORBIDDEN,
+                    "Unauthorized access",
+                    "You can only access content associated with your own number: " + appUser.getWhatsappNumber()
+            );
+        }
+
+        return AccessControlResponse.allowed();
+    }
+
     @GetMapping("/{messageId}/related")
     @ApiOperation(value = "Get related messages by shared tags",
             notes = "Retrieves all messages that share tags with the specified message, organized by category and subcategory")
-    public ResponseEntity<Map<String, Map<String, List<MessageDTO>>>> getRelatedMessages(
+    public ResponseEntity<?> getRelatedMessages(
             @PathVariable Long messageId,
             @RequestParam(required = false, defaultValue = "1") int minimumSharedTags,
             Authentication authentication) {
@@ -75,10 +139,12 @@ public class AppController {
         WhatsAppMessage message = messageService.findMessageById(messageId)
                 .orElseThrow(() -> new EntityNotFoundException("Message not found with id: " + messageId));
 
-        if (canAccessContent(authentication, message.getFromNumber())) {
-            log.warn("Unauthorized access attempt to related messages for message: {} by user: {}",
-                    messageId, authentication.getName());
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        // Check access control
+        AccessControlResponse accessControl = checkAccessControl(authentication, message.getFromNumber());
+        if (!accessControl.isAllowed()) {
+            log.warn("Unauthorized access attempt to related messages for number: {} by user: {} - {}",
+                    message.getFromNumber(), authentication.getName(), accessControl.getMessage());
+            return accessControl.toResponseEntity();
         }
 
         Map<String, Map<String, List<MessageDTO>>> relatedMessages;
@@ -94,7 +160,7 @@ public class AppController {
     @GetMapping("/messages/{phoneNumber}")
     @ApiOperation(value = "Get message contents by phone number",
             notes = "Retrieves all message contents sent from a specific phone number. Accepts formats: 0509603888 or 972509603888")
-    public ResponseEntity<Map<String, Map<String, List<MessageDTO>>>> getMessageContentsByPhoneNumber(
+    public ResponseEntity<?> getMessageContentsByPhoneNumber(
             @PathVariable String phoneNumber,
             Authentication authentication) {
 
@@ -111,21 +177,26 @@ public class AppController {
         }
         // Invalid format
         else {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.badRequest()
+                    .body(Map.of(
+                            "message", "Invalid phone number format",
+                            "details", "Phone number must start with '05' or '972'"
+                    ));
         }
 
-        // Check if user has permission to access this content
-        if (canAccessContent(authentication, internationalFormat)) {
-            log.warn("Unauthorized access attempt to messages for number: {} by user: {}",
-                    internationalFormat, authentication.getName());
-            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        // Check access control
+        AccessControlResponse accessControl = checkAccessControl(authentication, internationalFormat);
+        if (!accessControl.isAllowed()) {
+            log.warn("Unauthorized access attempt to messages for number: {} by user: {} - {}",
+                    internationalFormat, authentication.getName(), accessControl.getMessage());
+            return accessControl.toResponseEntity();
         }
 
         Map<String, Map<String, List<MessageDTO>>>  organizedMessages =
                 messageService.findMessageContentsByFromNumberGroupedByCategoryAndGroupedBySubCategory(internationalFormat);
 
         if (organizedMessages.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            return ResponseEntity.noContent().build();
         }
 
         return new ResponseEntity<>(organizedMessages, HttpStatus.OK);
@@ -150,14 +221,19 @@ public class AppController {
         }
         // Invalid format
         else {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.badRequest()
+                    .body(Map.of(
+                            "message", "Invalid phone number format",
+                            "details", "Phone number must start with '05' or '972'"
+                    ));
         }
 
-        if (canAccessContent(authentication, internationalFormat)) {
-            log.warn("Unauthorized access attempt to image: {} by user: {}",
-                    imageName, authentication.getName());
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("error", "Unauthorized access"));
+        // Check access control
+        AccessControlResponse accessControl = checkAccessControl(authentication, internationalFormat);
+        if (!accessControl.isAllowed()) {
+            log.warn("Unauthorized access attempt to image: {} for number: {} by user: {} - {}",
+                    imageName, internationalFormat, authentication.getName(), accessControl.getMessage());
+            return accessControl.toResponseEntity();
         }
 
         try {
@@ -192,14 +268,19 @@ public class AppController {
         }
         // Invalid format
         else {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.badRequest()
+                    .body(Map.of(
+                            "message", "Invalid phone number format",
+                            "details", "Phone number must start with '05' or '972'"
+                    ));
         }
 
-        if (canAccessContent(authentication, internationalFormat)) {
-            log.warn("Unauthorized access attempt to document: {} by user: {}",
-                    documentName, authentication.getName());
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("error", "Unauthorized access"));
+        // Check access control
+        AccessControlResponse accessControl = checkAccessControl(authentication, internationalFormat);
+        if (!accessControl.isAllowed()) {
+            log.warn("Unauthorized access attempt to document: {} for number: {} by user: {} - {}",
+                    documentName, internationalFormat, authentication.getName(), accessControl.getMessage());
+            return accessControl.toResponseEntity();
         }
 
         try {
@@ -247,14 +328,19 @@ public class AppController {
         }
         // Invalid format
         else {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            return ResponseEntity.badRequest()
+                    .body(Map.of(
+                            "message", "Invalid phone number format",
+                            "details", "Phone number must start with '05' or '972'"
+                    ));
         }
 
-        if (canAccessContent(authentication, internationalFormat)) {
-            log.warn("Unauthorized access attempt to audio: {} by user: {}",
-                    audioName, authentication.getName());
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(Map.of("error", "Unauthorized access"));
+        // Check access control
+        AccessControlResponse accessControl = checkAccessControl(authentication, internationalFormat);
+        if (!accessControl.isAllowed()) {
+            log.warn("Unauthorized access attempt to audio: {} for number: {} by user: {} - {}",
+                    audioName, internationalFormat, authentication.getName(), accessControl.getMessage());
+            return accessControl.toResponseEntity();
         }
 
         try {
@@ -287,12 +373,17 @@ public class AppController {
     }
 
     @DeleteMapping("/all")
-    public ResponseEntity<Void> deleteAll(Authentication authentication) {
+    public ResponseEntity<?> deleteAll(Authentication authentication) {
         OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
         String email = oauth2User.getAttribute("email");
         if (!userService.isAdmin(email)) {
+            AccessControlResponse accessControl = AccessControlResponse.denied(
+                    HttpStatus.UNAUTHORIZED,
+                    "Authentication required",
+                    "Only admin can access this content"
+            );
             log.warn("Unauthorized deletion attempt by user: {}", email);
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            return accessControl.toResponseEntity();
         }
         messageService.cleanDatabasePostgres();
         return ResponseEntity.ok().build();

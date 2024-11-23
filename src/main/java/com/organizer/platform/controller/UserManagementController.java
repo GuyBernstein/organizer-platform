@@ -101,7 +101,6 @@ public class UserManagementController {
                     AppUser.setAuthorized(true);
                     AppUser.setRole(UserRole.USER);
                     AppUser updatedUser = userService.save(AppUser);
-                    logger.info("AppUser {} authorized by admin", userId);
                     return ResponseEntity.ok(updatedUser);
                 })
                 .orElseGet(() -> {
@@ -131,7 +130,6 @@ public class UserManagementController {
                     AppUser.setAuthorized(false);
                     AppUser.setRole(UserRole.UNAUTHORIZED);
                     AppUser updatedUser = userService.save(AppUser);
-                    logger.info("AppUser {} deauthorized by admin", userId);
                     return ResponseEntity.ok(updatedUser);
                 })
                 .orElseGet(() -> {
@@ -220,13 +218,31 @@ public class UserManagementController {
                 .map(user -> {
                     user.setWhatsappNumber(whatsappNumber);
                     AppUser updatedUser = userService.save(user);
-                    logger.info("WhatsApp number {} linked to user {}", whatsappNumber, userId);
                     return ResponseEntity.ok(updatedUser);
                 })
                 .orElseGet(() -> {
                     logger.warn("Attempt to link WhatsApp to non-existent user: {}", userId);
                     return ResponseEntity.notFound().build();
                 });
+    }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<?> deleteUser(
+            @PathVariable Long userId,
+            Authentication authentication) {
+        if (!isAdminUser(authentication)) {
+            logger.warn("Unauthorized access attempt to delete a user by the user: {}",
+                    authentication.getName());
+            return ResponseEntity.status(403)
+                    .body("Only administrators can delete a user");
+        }
+        return userService.findById(userId)
+                .map(user -> {
+                    userService.delete(user);
+                    return ResponseEntity.status(200)
+                            .body("User with id " + userId + " has been deleted");
+                })
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
 }

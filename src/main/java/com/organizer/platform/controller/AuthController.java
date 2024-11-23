@@ -76,9 +76,7 @@ public class AuthController {
         }
 
         Optional<AppUser> existingUser = userService.findByEmail(email);
-        AppUser user;
-
-        user = existingUser.orElseGet(() -> userService.save(AppUser.UserBuilder.anUser()
+        AppUser user = existingUser.orElseGet(() -> userService.save(AppUser.UserBuilder.anUser()
                 .email(email)
                 .role(UserRole.UNAUTHORIZED)
                 .authorized(false)

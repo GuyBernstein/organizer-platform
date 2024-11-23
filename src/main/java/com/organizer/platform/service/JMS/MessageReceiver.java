@@ -90,6 +90,9 @@ public class MessageReceiver {
                 }
                 break;
 
+            case "audio":
+                break; // prefer not to process audio with ai, because the cost isn't worth it in the meanwhile
+
 
             default:
                 throw new IllegalArgumentException("Unsupported message type: " + whatsAppMessage.getMessageType());

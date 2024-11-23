@@ -40,10 +40,17 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/error"),
                                 new AntPathRequestMatcher("/css/**"),
                                 new AntPathRequestMatcher("/js/**"),
+                                new AntPathRequestMatcher("/images/**"),
+                                new AntPathRequestMatcher("/favicon.ico"),
                                 new AntPathRequestMatcher("/oauth2/**"),
                                 new AntPathRequestMatcher("/login/oauth2/code/*"),
                                 new AntPathRequestMatcher("/auth-status"),
-                                new AntPathRequestMatcher("/webhook")
+                                new AntPathRequestMatcher("/webhook"),
+                                // Swagger UI paths
+                                new AntPathRequestMatcher("/swagger-ui/**"),
+                                new AntPathRequestMatcher("/v2/api-docs"),
+                                new AntPathRequestMatcher("/swagger-resources/**"),
+                                new AntPathRequestMatcher("/webjars/**")
 
                         ).permitAll()
                         .anyRequest().authenticated()
@@ -61,6 +68,8 @@ public class SecurityConfig {
                 )
                 .logout(logout -> logout
                         .logoutSuccessUrl("/")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID")
                         .permitAll()
                 )
                 .exceptionHandling(exc -> exc
