@@ -251,6 +251,36 @@ public class AppController {
         return ResponseEntity.ok().build();
     }
 
+    @PutMapping("/messages/{messageId}")
+    @ApiOperation(value = "Update message content and metadata",
+            notes = "Updates only the provided non-null fields of the message, preserving existing values for null fields")
+    public ResponseEntity<?> updateMessage(
+            @PathVariable Long messageId,
+            @RequestBody MessageDTO updateRequest,
+            Authentication authentication) {
+
+        // Validate message exists and get current message
+        WhatsAppMessage message = messageService.findMessageById(messageId)
+                .orElseThrow(() -> new EntityNotFoundException("Message not found with id: " + messageId));
+
+        // Check access control
+        AccessControlResponse accessControl = checkAccessControl(authentication, message.getFromNumber());
+        if (!accessControl.isAllowed()) {
+            log.warn("Unauthorized update attempt for message: {} by user: {} - {}",
+                    messageId, authentication.getName(), accessControl.getMessage());
+            return accessControl.toResponseEntity();
+        }
+
+        try {
+            MessageDTO updatedMessage = messageService.partialUpdateMessage(messageId, updateRequest);
+            return new ResponseEntity<>(updatedMessage, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error updating message with id: {}", messageId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to update message: " + e.getMessage()));
+        }
+    }
+
     private String getAudioContentType(String fileExtension) {
         if (fileExtension == null) return null;
         switch (fileExtension.toLowerCase())

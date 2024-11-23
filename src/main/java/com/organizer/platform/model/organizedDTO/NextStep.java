@@ -24,7 +24,6 @@ public class NextStep implements Serializable {
     @JoinColumn(name = "message_id", nullable = false)
     private WhatsAppMessage message;
 
-
     public Long getId() {
         return id;
     }

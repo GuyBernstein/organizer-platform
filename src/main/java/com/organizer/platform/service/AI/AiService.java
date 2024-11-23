@@ -30,8 +30,6 @@ public class AiService {
         this.whatsAppMessageService = whatsAppMessageService;
     }
 
-
-
     public void generateOrganizationFromText(WhatsAppMessage whatsAppMessage) throws UnirestException, JsonProcessingException {
         Unirest.setTimeouts(0, 0);
         HttpResponse<String> response = Unirest.post("https://api.anthropic.com/v1/messages")
@@ -40,6 +38,7 @@ public class AiService {
                 .header("content-type", "application/json")
                 .body("{\n    \"model\": \"claude-3-5-haiku-20241022\",\n    \"max_tokens\": 8192,\n    " +
                         "\"temperature\": 0,\n    \"system\": \"You are a precise text organization system that helps users find their content easily." +
+                        " Please organize and classify the content in Hebrew" +
                         "\\n\\nOutput following this example format:\\n<content_organization_schema>" +
                         "\\n    <!-- הגדרת הסיווג הראשי של התוכן -->\\n    <primary_classification>" +
                         "\\n        <category>\\n            <!-- הקטגוריה הראשית של התוכן (למשל: קריירה, חינוך, עסקים) -->" +
@@ -52,11 +51,11 @@ public class AiService {
                         "\\n    </content_type>\\n    \\n    <user_metadata>\\n        <tags>" +
                         "\\n            <!-- תגיות מפתח חדשות, מופרדות על ידי פסיקים, המתארות את התוכן בהתבסס על ניתוח מעמיק של הטקסט -->" +
                         "\\n        </tags>\\n        <next_steps>\\n            <!-- פעולות המשך נדרשות, מופרדות על ידי פסיקים -->" +
-                        "\\n        </next_steps>\\n    </user_metadata>\\n</content_organization_schema>\",\n    " +
+                        "\\n        </next_steps>\\n    </user_metadata>\\n</content_organization_schema> " +
+                        "\\n\\nDo not add any information beyond the requested XML schema.\",\n    " +
                         "\"messages\": [\n      {\n        \"role\": \"user\",\n        \"content\": [\n          " +
                         "{\n            \"type\": \"text\",\n            \"text\": \"Analyze and organize this content:" +
                         "\\n\\n<input_text>\\n" + convertToJavaString(whatsAppMessage.getMessageContent()) + " \\n</input_text>" +
-                        "\\n\\n Do not add more information besides the schema." +
                         "\"\n          }\n        ]\n      }\n    ]\n  }")
                 .asString();
         if(response.getBody() == null)
@@ -74,6 +73,7 @@ public class AiService {
                 .body("{\n    \"model\": \"claude-3-5-sonnet-20241022\",\n    \"max_tokens\": 8192,\n    " +
                         "\"temperature\": 0.1,\n    \"system\": " +
                         "\"You are a precise image organization system that helps users find their visual content easily." +
+                        "  Please organize and classify the content in Hebrew" +
                         "\\n\\nOutput following this schema format:\\n<content_organization_schema>" +
                         "\\n    <!-- הגדרת הסיווג הראשי של התוכן -->\\n    <primary_classification>\\n        <category>" +
                         "\\n            <!-- הקטגוריה הראשית של התמונה (למשל: טבע, אומנות, אירועים) -->" +
@@ -85,10 +85,11 @@ public class AiService {
                         "\\n        </purpose>\\n    </content_type>\\n\\n    <user_metadata>\\n        <tags>" +
                         "\\n            <!-- תגיות מפתח חדשות, מופרדות על ידי פסיקים, המתארות את התמונה -->\\n        </tags>" +
                         "\\n        <next_steps>\\n            <!-- פעולות המשך נדרשות, מופרדות על ידי פסיקים -->" +
-                        "\\n        </next_steps>\\n    </user_metadata>\\n</content_organization_schema>\"," +
+                        "\\n        </next_steps>\\n    </user_metadata>\\n</content_organization_schema>" +
+                        "\\n\\nDo not add any information beyond the requested XML schema.\"," +
                         "\n    \"messages\": [\n      {\n        \"role\": \"user\",\n        \"content\": [" +
                         "\n          {\n            \"type\": \"text\",\n            \"text\": " +
-                        "\"Analyze and organize this image content in Hebrew. Do not add any information beyond the requested XML schema:" +
+                        "\"Analyze and organize this image content." +
                         "\"\n          },\n          {\n            \"type\": \"image\",\n            \"source\": {\n              " +
                         "\"type\": \"base64\",\n              \"media_type\": \"image/jpeg\",\n              " +
                         "\"data\": \"" + base64Image + "\"\n            }\n          }\n        ]\n      }\n    ]\n  }")
@@ -106,7 +107,25 @@ public class AiService {
                 .header("anthropic-version", "2023-06-01")
                 .header("anthropic-beta", "pdfs-2024-09-25")
                 .body("{\n  \"model\": \"claude-3-5-sonnet-20241022\",\n  \"max_tokens\": 8192,\n  \"temperature\": 0,\n  \"system\": \"you are a precise PDF document " +
-                        "organization system that helps users find their document content easily. Please organize and classify the content in Hebrew.\\n\\nOutput following this schema format:\\n<content_organization_schema>\\n    <!-- הגדרת הסיווג הראשי של התוכן -->\\n    <primary_classification>\\n        <category>\\n            <!-- הקטגוריה הראשית של המסמך (למשל: משפטי, פיננסי, טכני) -->\\n        </category>\\n        <subcategory>\\n            <!-- תת-קטגוריה ספציפית יותר (למשל: חוזה, חשבונית, מדריך) -->\\n        </subcategory>\\n    </primary_classification>\\n\\n    <content_type>\\n        <type>\\n            <!-- סוג המסמך (למשל: דוח, טופס, מצגת) -->\\n        </type>\\n        <purpose>\\n            <!-- המטרה העיקרית של המסמך (למשל: פנימי, לקוח, תיעוד) -->\\n        </purpose>\\n    </content_type>\\n\\n    <user_metadata>\\n        <tags>\\n            <!-- תגיות מפתח חדשות, מופרדות על ידי פסיקים, המתארות את המסמך -->\\n        </tags>\\n        <next_steps>\\n            <!-- פעולות המשך נדרשות, מופרדות על ידי פסיקים -->\\n        </next_steps>\\n    </user_metadata>\\n</content_organization_schema>\\n\\nDo not add any information beyond the requested XML schema.\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": [\n        {\n          \"type\": \"document\",\n          \"source\": {\n            \"type\": \"base64\",\n            \"media_type\": \"application/pdf\",\n            \"data\": \"" + base64PDF + "\"\n          }\n        },\n        {\n          \"type\": \"text\",\n          \"text\": \"Analyze and organize this PDF content:\"\n        }\n      ]\n    }\n  ]\n}")
+                        "organization system that helps users find their document content easily." +
+                        " Please organize and classify the content in Hebrew.\\n\\nOutput following this schema format:" +
+                        "\\n<content_organization_schema>\\n    <!-- הגדרת הסיווג הראשי של התוכן -->\\n    " +
+                        "<primary_classification>\\n        <category>" +
+                        "\\n            <!-- הקטגוריה הראשית של המסמך (למשל: משפטי, פיננסי, טכני) -->\\n        </category>" +
+                        "\\n        <subcategory>\\n            <!-- תת-קטגוריה ספציפית יותר (למשל: חוזה, חשבונית, מדריך) -->" +
+                        "\\n        </subcategory>\\n    </primary_classification>\\n\\n    <content_type>\\n        <type>" +
+                        "\\n            <!-- סוג המסמך (למשל: דוח, טופס, מצגת) -->\\n        </type>\\n        <purpose>" +
+                        "\\n            <!-- המטרה העיקרית של המסמך (למשל: פנימי, לקוח, תיעוד) -->\\n        </purpose>" +
+                        "\\n    </content_type>\\n\\n    <user_metadata>\\n        <tags>" +
+                        "\\n            <!-- תגיות מפתח חדשות, מופרדות על ידי פסיקים, המתארות את המסמך -->\\n        </tags>" +
+                        "\\n        <next_steps>\\n            <!-- פעולות המשך נדרשות, מופרדות על ידי פסיקים -->" +
+                        "\\n        </next_steps>\\n    </user_metadata>\\n</content_organization_schema>" +
+                        "\\n\\nDo not add any information beyond the requested XML schema.\",\n  \"messages\":" +
+                        " [\n    {\n      \"role\": \"user\",\n      \"content\": [\n        {\n          \"type\": " +
+                        "\"document\",\n          \"source\": {\n            \"type\": \"base64\",\n            " +
+                        "\"media_type\": \"application/pdf\",\n            \"data\": \"" + base64PDF +
+                        "\"\n          }\n        },\n        {\n          \"type\": \"text\",\n          " +
+                        "\"text\": \"Analyze and organize this PDF content:\"\n        }\n      ]\n    }\n  ]\n}")
                 .asString();
 
 

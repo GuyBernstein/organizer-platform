@@ -8,7 +8,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Base64;
 
-public class ImageProcessor {
+public class MediaProcessor {
     private static final int MAX_LONG_EDGE = 1568;
     private static final int MIN_EDGE = 200;
     private static final double MAX_MEGAPIXELS = 1.15;

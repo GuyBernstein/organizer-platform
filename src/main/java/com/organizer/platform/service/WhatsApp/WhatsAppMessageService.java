@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
+import javax.persistence.EntityNotFoundException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -121,13 +122,16 @@ public class WhatsAppMessageService {
                 .filter(StringUtils::isNotBlank)
                 .forEach(name -> {
                     NextStep nextStep = nextStepRepository.findByName(name)
-                            .orElseGet(() -> aNextStep()
-                                    .name(name)
-                                    .build());
+                            .orElseGet(() -> {
+                                NextStep newNextStep = aNextStep()
+                                        .name(name)
+                                        .message(whatsAppMessage)
+                                        .build();
+                                        return nextStepRepository.save(newNextStep);
+                                    });
 
                     // Set the message reference and save
-                    nextStep.setMessage(whatsAppMessage);
-                    nextStepRepository.save(nextStep);
+                    whatsAppMessage.getNextSteps().add(nextStep);
                 });
     }
 
@@ -145,9 +149,6 @@ public class WhatsAppMessageService {
                             });
                     whatsAppMessage.getTags().add(tag);
                 });
-
-        // Save the message again to update the tags relationship
-        messageRepository.save(whatsAppMessage);
     }
 
     public WhatsAppMessage save(WhatsAppMessage whatsAppMessage) {
@@ -192,5 +193,70 @@ public class WhatsAppMessageService {
 
     public Optional<WhatsAppMessage> findMessageById(Long messageId) {
         return messageRepository.findById(messageId);
+    }
+
+    @Transactional
+    public MessageDTO partialUpdateMessage(Long messageId, MessageDTO updateRequest) {
+        WhatsAppMessage message = findMessageById(messageId)
+                .orElseThrow(() -> new EntityNotFoundException("Message not found with id: " + messageId));
+
+        // Only update fields that are not null in the request
+        if (updateRequest.getMessageContent() != null) {
+            message.setMessageContent(updateRequest.getMessageContent());
+        }
+
+        if (updateRequest.getCategory() != null) {
+            message.setCategory(updateRequest.getCategory());
+        }
+
+        if (updateRequest.getSubCategory() != null) {
+            message.setSubCategory(updateRequest.getSubCategory());
+        }
+
+        if (updateRequest.getType() != null) {
+            message.setType(updateRequest.getType());
+        }
+
+        if (updateRequest.getPurpose() != null) {
+            message.setPurpose(updateRequest.getPurpose());
+        }
+
+        // Handle tags update
+        if (updateRequest.getTags() != null) {
+            // Clear existing tags
+            message.getTags().clear();
+            messageRepository.save(message); // Save to update the relationships
+
+            // Convert Set<String> to comma-separated string and add new tags
+            String tagsContent = String.join(",", updateRequest.getTags());
+            if (!tagsContent.isEmpty()) {
+                addTags(message, tagsContent);
+            }
+        }
+
+        // Handle next steps update
+        if (updateRequest.getNextSteps() != null) {
+            // Clear existing next steps by removing message reference
+            message.getNextSteps().forEach(nextStep -> {
+                nextStep.setMessage(null);
+                nextStepRepository.save(nextStep);
+            });
+            message.getNextSteps().clear();
+            messageRepository.save(message); // Save to update the relationships
+
+            // Convert Set<String> to comma-separated string and add new next steps
+            String nextStepsContent = String.join(",", updateRequest.getNextSteps());
+            if (!nextStepsContent.isEmpty()) {
+                addNextSteps(message, nextStepsContent);
+            }
+        }
+
+        // Refresh the message to get the updated relationships
+        message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new EntityNotFoundException("Message not found after update"));
+
+
+        // Convert to DTO and return
+        return convertToMessageDTO(message);
     }
 }

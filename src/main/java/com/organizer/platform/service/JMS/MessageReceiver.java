@@ -58,6 +58,7 @@ public class MessageReceiver {
 
             // Process message based on type
             processMessageByType(whatsAppMessage);
+            messageService.save(whatsAppMessage); // finally, save again after updating all fields.
             log.info("Successfully saved message to database with ID: {}", whatsAppMessage.getId());
         } catch (JsonProcessingException e) {
             log.error("Error deserializing message from queue", e);
@@ -154,8 +155,8 @@ public class MessageReceiver {
         // returns a base64 of the media file
         if (fileType.equals("image")) {
             // Also resizing the image for better interaction with the AI
-            ImageProcessor imageProcessor = new ImageProcessor();
-            return imageProcessor.processAndConvertImageFromBytes(fileBytes);
+            MediaProcessor mediaProcessor = new MediaProcessor();
+            return mediaProcessor.processAndConvertImageFromBytes(fileBytes);
         }
         return Base64.getEncoder().encodeToString(fileBytes);
     }
