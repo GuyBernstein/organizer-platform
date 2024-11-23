@@ -1,4 +1,4 @@
-package com.organizer.platform.model.User;
+package com.organizer.platform.util;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,13 +1,13 @@
 package com.organizer.platform.controller;
 
-import com.organizer.platform.model.User.AccessControlResponse;
+import com.organizer.platform.util.AccessControlResponse;
 import com.organizer.platform.model.User.AppUser;
 import com.organizer.platform.model.organizedDTO.MessageDTO;
 import com.organizer.platform.model.organizedDTO.WhatsAppMessage;
 import com.organizer.platform.service.Google.CloudStorageService;
 import com.organizer.platform.service.User.UserService;
-import com.organizer.platform.service.WhatsApp.WhatsAppImageService;
 import com.organizer.platform.service.WhatsApp.WhatsAppMessageService;
+import com.organizer.platform.util.PhoneNumberValidator;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
@@ -20,11 +20,13 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 import javax.persistence.EntityNotFoundException;
-import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+
+import static com.organizer.platform.util.PhoneNumberValidator.validateAndCheckAccess;
+import static com.organizer.platform.util.PhoneNumberValidator.validatePhoneNumber;
 
 @RestController
 @RequestMapping("/api/content")
@@ -40,91 +42,6 @@ public class AppController {
         this.messageService = messageService;
         this.cloudStorageService = cloudStorageService;
         this.userService = userService;
-    }
-
-    private boolean canAccessContent(Authentication authentication, String phoneNumber) {
-        // If no authentication, deny access
-        if (authentication == null) {
-            return false;
-        }
-
-        OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
-        String email = oauth2User.getAttribute("email");
-
-        // Admin can access all content
-        if (userService.isAdmin(email)) {
-            return true;
-        }
-
-        // For regular users, check if they are authorized and the phone number matches their account
-        Optional<AppUser> user = userService.findByEmail(email);
-        return user.map(appUser ->
-                appUser.isAuthorized() &&
-                        appUser.getWhatsappNumber() != null &&
-                        (appUser.getWhatsappNumber().equals(phoneNumber) ||
-                                appUser.getWhatsappNumber().equals("972" + phoneNumber.substring(1)))
-        ).orElse(false);
-    }
-
-    private AccessControlResponse checkAccessControl(Authentication authentication, String phoneNumber) {
-        // If no authentication, deny access
-        if (authentication == null) {
-            return AccessControlResponse.denied(
-                    HttpStatus.UNAUTHORIZED,
-                    "Authentication required",
-                    "Please log in to access this content"
-            );
-        }
-
-        OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
-        String email = oauth2User.getAttribute("email");
-
-        // Admin can access all content
-        if (userService.isAdmin(email)) {
-            return AccessControlResponse.allowed();
-        }
-
-        // For regular users, check if they are authorized and the phone number matches their account
-        Optional<AppUser> user = userService.findByEmail(email);
-
-        if (user.isEmpty()) {
-            return AccessControlResponse.denied(
-                    HttpStatus.FORBIDDEN,
-                    "User not found",
-                    "No user account found for your email address"
-            );
-        }
-
-        AppUser appUser = user.get();
-
-        if (!appUser.isAuthorized()) {
-            return AccessControlResponse.denied(
-                    HttpStatus.FORBIDDEN,
-                    "Account not authorized",
-                    "Your account is pending authorization. Please contact an administrator"
-            );
-        }
-
-        if (appUser.getWhatsappNumber() == null) {
-            return AccessControlResponse.denied(
-                    HttpStatus.FORBIDDEN,
-                    "No WhatsApp number linked",
-                    "Your account does not have a linked WhatsApp number"
-            );
-        }
-
-        boolean numberMatches = appUser.getWhatsappNumber().equals(phoneNumber) ||
-                appUser.getWhatsappNumber().equals("972" + phoneNumber.substring(1));
-
-        if (!numberMatches) {
-            return AccessControlResponse.denied(
-                    HttpStatus.FORBIDDEN,
-                    "Unauthorized access",
-                    "You can only access content associated with your own number: " + appUser.getWhatsappNumber()
-            );
-        }
-
-        return AccessControlResponse.allowed();
     }
 
     @GetMapping("/{messageId}/related")
@@ -165,32 +82,20 @@ public class AppController {
             Authentication authentication) {
 
         // Validate input phone number format and convert to international format
-        String internationalFormat;
+        ResponseEntity<?> validationResponse = validateAndCheckAccess(
+                phoneNumber,
+                authentication,
+                this::checkAccessControl
+        );
 
-        // Check if phone starts with 0 (0509603888)
-        if (phoneNumber.matches("^05\\d{8}$")) {
-            internationalFormat = "972" + phoneNumber.substring(1);
-        }
-        // Check if phone starts with 972 (972509603888)
-        else if (phoneNumber.matches("^972\\d{9}$")) {
-            internationalFormat = phoneNumber;
-        }
-        // Invalid format
-        else {
-            return ResponseEntity.badRequest()
-                    .body(Map.of(
-                            "message", "Invalid phone number format",
-                            "details", "Phone number must start with '05' or '972'"
-                    ));
+        if (validationResponse != null) {
+            return validationResponse;
         }
 
-        // Check access control
-        AccessControlResponse accessControl = checkAccessControl(authentication, internationalFormat);
-        if (!accessControl.isAllowed()) {
-            log.warn("Unauthorized access attempt to messages for number: {} by user: {} - {}",
-                    internationalFormat, authentication.getName(), accessControl.getMessage());
-            return accessControl.toResponseEntity();
-        }
+        // Get the validated international format
+        String internationalFormat = validatePhoneNumber(phoneNumber)
+                .getInternationalFormat();
+
 
         Map<String, Map<String, List<MessageDTO>>>  organizedMessages =
                 messageService.findMessageContentsByFromNumberGroupedByCategoryAndGroupedBySubCategory(internationalFormat);
@@ -208,33 +113,18 @@ public class AppController {
             @RequestParam String phoneNumber,
             Authentication authentication) {
 
-        // Validate input phone number format and convert to international format
-        String internationalFormat;
+        ResponseEntity<?> validationResponse = PhoneNumberValidator.validateAndCheckAccess(
+                phoneNumber,
+                authentication,
+                this::checkAccessControl
+        );
 
-        // Check if phone starts with 0 (0509603888)
-        if (phoneNumber.matches("^05\\d{8}$")) {
-            internationalFormat = "972" + phoneNumber.substring(1);
-        }
-        // Check if phone starts with 972 (972509603888)
-        else if (phoneNumber.matches("^972\\d{9}$")) {
-            internationalFormat = phoneNumber;
-        }
-        // Invalid format
-        else {
-            return ResponseEntity.badRequest()
-                    .body(Map.of(
-                            "message", "Invalid phone number format",
-                            "details", "Phone number must start with '05' or '972'"
-                    ));
+        if (validationResponse != null) {
+            return validationResponse;
         }
 
-        // Check access control
-        AccessControlResponse accessControl = checkAccessControl(authentication, internationalFormat);
-        if (!accessControl.isAllowed()) {
-            log.warn("Unauthorized access attempt to image: {} for number: {} by user: {} - {}",
-                    imageName, internationalFormat, authentication.getName(), accessControl.getMessage());
-            return accessControl.toResponseEntity();
-        }
+        String internationalFormat = PhoneNumberValidator.validatePhoneNumber(phoneNumber)
+                .getInternationalFormat();
 
         try {
             String preSignedUrl = cloudStorageService.generateImageSignedUrl(internationalFormat, imageName);
@@ -256,32 +146,18 @@ public class AppController {
             Authentication authentication) {
 
         // Validate input phone number format and convert to international format
-        String internationalFormat;
+        ResponseEntity<?> validationResponse = PhoneNumberValidator.validateAndCheckAccess(
+                phoneNumber,
+                authentication,
+                this::checkAccessControl
+        );
 
-        // Check if phone starts with 0 (0509603888)
-        if (phoneNumber.matches("^05\\d{8}$")) {
-            internationalFormat = "972" + phoneNumber.substring(1);
-        }
-        // Check if phone starts with 972 (972509603888)
-        else if (phoneNumber.matches("^972\\d{9}$")) {
-            internationalFormat = phoneNumber;
-        }
-        // Invalid format
-        else {
-            return ResponseEntity.badRequest()
-                    .body(Map.of(
-                            "message", "Invalid phone number format",
-                            "details", "Phone number must start with '05' or '972'"
-                    ));
+        if (validationResponse != null) {
+            return validationResponse;
         }
 
-        // Check access control
-        AccessControlResponse accessControl = checkAccessControl(authentication, internationalFormat);
-        if (!accessControl.isAllowed()) {
-            log.warn("Unauthorized access attempt to document: {} for number: {} by user: {} - {}",
-                    documentName, internationalFormat, authentication.getName(), accessControl.getMessage());
-            return accessControl.toResponseEntity();
-        }
+        String internationalFormat = PhoneNumberValidator.validatePhoneNumber(phoneNumber)
+                .getInternationalFormat();
 
         try {
             // Generate pre-signed URL for the document
@@ -316,32 +192,18 @@ public class AppController {
 
 
         // Validate input phone number format and convert to international format
-        String internationalFormat;
+        ResponseEntity<?> validationResponse = PhoneNumberValidator.validateAndCheckAccess(
+                phoneNumber,
+                authentication,
+                this::checkAccessControl
+        );
 
-        // Check if phone starts with 0 (0509603888)
-        if (phoneNumber.matches("^05\\d{8}$")) {
-            internationalFormat = "972" + phoneNumber.substring(1);
-        }
-        // Check if phone starts with 972 (972509603888)
-        else if (phoneNumber.matches("^972\\d{9}$")) {
-            internationalFormat = phoneNumber;
-        }
-        // Invalid format
-        else {
-            return ResponseEntity.badRequest()
-                    .body(Map.of(
-                            "message", "Invalid phone number format",
-                            "details", "Phone number must start with '05' or '972'"
-                    ));
+        if (validationResponse != null) {
+            return validationResponse;
         }
 
-        // Check access control
-        AccessControlResponse accessControl = checkAccessControl(authentication, internationalFormat);
-        if (!accessControl.isAllowed()) {
-            log.warn("Unauthorized access attempt to audio: {} for number: {} by user: {} - {}",
-                    audioName, internationalFormat, authentication.getName(), accessControl.getMessage());
-            return accessControl.toResponseEntity();
-        }
+        String internationalFormat = PhoneNumberValidator.validatePhoneNumber(phoneNumber)
+                .getInternationalFormat();
 
         try {
             // Generate pre-signed URL for the audio file
@@ -414,5 +276,66 @@ public class AppController {
         if (fileName == null) return null;
         int lastDotIndex = fileName.lastIndexOf('.');
         return lastDotIndex > 0 ? fileName.substring(lastDotIndex + 1) : null;
+    }
+
+    private AccessControlResponse checkAccessControl(Authentication authentication, String phoneNumber) {
+        // If no authentication, deny access
+        if (authentication == null) {
+            return AccessControlResponse.denied(
+                    HttpStatus.UNAUTHORIZED,
+                    "Authentication required",
+                    "Please log in to access this content"
+            );
+        }
+
+        OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
+        String email = oauth2User.getAttribute("email");
+
+        // Admin can access all content
+        if (userService.isAdmin(email)) {
+            return AccessControlResponse.allowed();
+        }
+
+        // For regular users, check if they are authorized and the phone number matches their account
+        Optional<AppUser> user = userService.findByEmail(email);
+
+        if (user.isEmpty()) {
+            return AccessControlResponse.denied(
+                    HttpStatus.FORBIDDEN,
+                    "User not found",
+                    "No user account found for your email address"
+            );
+        }
+
+        AppUser appUser = user.get();
+
+        if (!appUser.isAuthorized()) {
+            return AccessControlResponse.denied(
+                    HttpStatus.FORBIDDEN,
+                    "Account not authorized",
+                    "Your account is pending authorization. Please contact an administrator"
+            );
+        }
+
+        if (appUser.getWhatsappNumber() == null) {
+            return AccessControlResponse.denied(
+                    HttpStatus.FORBIDDEN,
+                    "No WhatsApp number linked",
+                    "Your account does not have a linked WhatsApp number"
+            );
+        }
+
+        boolean numberMatches = appUser.getWhatsappNumber().equals(phoneNumber) ||
+                appUser.getWhatsappNumber().equals("972" + phoneNumber.substring(1));
+
+        if (!numberMatches) {
+            return AccessControlResponse.denied(
+                    HttpStatus.FORBIDDEN,
+                    "Unauthorized access",
+                    "You can only access content associated with your own number: " + appUser.getWhatsappNumber()
+            );
+        }
+
+        return AccessControlResponse.allowed();
     }
 }

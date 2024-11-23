@@ -29,11 +29,10 @@ public class SwaggerConfig {
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-                .title("EnhanceAI Content API")
-                .description("AI-powered content processing API")
+                .title("WhatsApp Organizer API")
+                .description("WhatsApp message organization and processing API")
                 .version("1.0")
-                .termsOfServiceUrl("Terms of service")
-                .contact(new Contact("Guy Bernstein", "www.example.com", "guyu669@gmail.com"))
+                .contact(new Contact("Guy Bernstein", "www.tapitim.com", "guyu669@gmail.com"))
                 .license("License of API")
                 .licenseUrl("API license URL")
                 .build();
