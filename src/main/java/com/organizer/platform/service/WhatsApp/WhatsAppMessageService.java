@@ -7,14 +7,12 @@ import com.organizer.platform.model.organizedDTO.WhatsAppMessage;
 import com.organizer.platform.repository.NextStepRepository;
 import com.organizer.platform.repository.TagRepository;
 import com.organizer.platform.repository.WhatsAppMessageRepository;
-import com.organizer.platform.util.Dates;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
-import javax.persistence.EntityNotFoundException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -197,7 +195,7 @@ public class WhatsAppMessageService {
 
     @Transactional
     public MessageDTO partialUpdateMessage(WhatsAppMessage message, MessageDTO updateRequest) {
-        // Update simple fields only if they're not null in the request
+        // Update fields only if they're not null in the request
         Optional.ofNullable(updateRequest.getMessageContent())
                 .ifPresent(message::setMessageContent);
         Optional.ofNullable(updateRequest.getCategory())
@@ -208,36 +206,44 @@ public class WhatsAppMessageService {
                 .ifPresent(message::setType);
         Optional.ofNullable(updateRequest.getPurpose())
                 .ifPresent(message::setPurpose);
-
-        // Handle tags update if provided
         Optional.ofNullable(updateRequest.getTags())
-                .ifPresent(tags -> { // many-to-many
-                    message.getTags().forEach((tag -> { // disconnect the relation from the tags to this message
-                        tag.getMessages().remove(message);
-                        if(tag.getMessages().isEmpty()) // if removed the last message
-                            tagRepository.delete(tag);
-                    }));
-                    message.getTags().clear(); // disconnect the relation from the other side
-
-                    String tagsContent = String.join(",", tags);
-                    if (!tagsContent.isEmpty()) {
-                        addTags(message, tagsContent);
-                    }
-                });
-
-        // Handle next steps update if provided
+                .ifPresent(tags -> replaceTags(message, tags));
         Optional.ofNullable(updateRequest.getNextSteps())
-                .ifPresent(nextSteps -> { // one-to-many
-                    nextStepRepository.deleteAll(message.getNextSteps());
-                    message.getNextSteps().clear();
-
-                    String nextStepsContent = String.join(",", nextSteps);
-                    if (!nextStepsContent.isEmpty()) {
-                        addNextSteps(message, nextStepsContent);
-                    }
-                });
+                .ifPresent(nextSteps -> replaceNextSteps(message, nextSteps));
 
         // Save and refresh to get updated relationships
         return convertToMessageDTO(messageRepository.save(message));
+    }
+
+    private void replaceNextSteps(WhatsAppMessage message, Set<String> nextSteps) {
+        deleteNextSteps(message);
+
+        String nextStepsContent = String.join(",", nextSteps);
+        if (!nextStepsContent.isEmpty()) {
+            addNextSteps(message, nextStepsContent);
+        }
+    }
+
+    private void replaceTags(WhatsAppMessage message, Set<String> tags) {
+        deleteTags(message);
+
+        String tagsContent = String.join(",", tags);
+        if (!tagsContent.isEmpty()) {
+            addTags(message, tagsContent);
+        }
+    }
+
+    public void deleteNextSteps(WhatsAppMessage message) {
+        nextStepRepository.deleteAll(message.getNextSteps()); // disconnect the relation from the next steps to this message
+        message.getNextSteps().clear(); // disconnect the relation from the other side
+    }
+
+    public void deleteTags(WhatsAppMessage message) {
+        message.getTags().forEach((tag -> { // disconnect the relation from the tags to this message
+            tag.getMessages().remove(message);
+            if(tag.getMessages().isEmpty()) // if removed the last message
+                tagRepository.delete(tag);
+        }));
+        message.getTags().clear(); // disconnect the relation from the other side
     }
 }

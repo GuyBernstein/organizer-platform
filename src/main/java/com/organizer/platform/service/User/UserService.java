@@ -40,23 +40,23 @@ public class UserService {
         });
     }
 
-    public AppUser createUnauthorizedUser(String whatsappNumber) {
-        return repository.findByWhatsappNumber(whatsappNumber)
-                .orElseGet(() -> {
-                    // First check if this is a temporary user that was replaced
-                    Optional<AppUser> linkedUser = findLinkedGoogleUser(whatsappNumber);
-                    if (linkedUser.isPresent()) {
-                        return linkedUser.get();
-                    }
+    public void createUnauthorizedUser(String whatsappNumber) {
+        repository.findByWhatsappNumber(whatsappNumber) // ensure if exists
+            .orElseGet(() -> {
+                // First check if this is a temporary user that was replaced
+                Optional<AppUser> linkedUser = findLinkedGoogleUser(whatsappNumber);
+                if (linkedUser.isPresent()) {
+                    return linkedUser.get();
+                }
 
-                    // If no linked user found, create temporary user
-                    String tempEmail =
-                            "whatsapp." + whatsappNumber.replaceAll("[^0-9]", "") + "@temp.platform.com";
+                // If no linked user found, create temporary user
+                String tempEmail =
+                        "whatsapp." + whatsappNumber.replaceAll("[^0-9]", "") + "@temp.platform.com";
 
-                    AppUser newUser = toUser(whatsappNumber, tempEmail);
+                AppUser newUser = toUser(whatsappNumber, tempEmail);
 
-                    return repository.save(newUser);
-                });
+                return repository.save(newUser);
+            });
     }
 
     private Optional<AppUser> findLinkedGoogleUser(String whatsappNumber) {

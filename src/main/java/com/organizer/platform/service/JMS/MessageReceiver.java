@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Base64;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -53,12 +54,14 @@ public class MessageReceiver {
             validateMessage(whatsAppMessage);
             whatsAppMessage.setProcessed(true);
 
-            // firstly, save the message to process it in the database.
-            whatsAppMessage = messageService.save(whatsAppMessage);
+            // firstly, save the message to process it in the database if it does not exist.
+            if (whatsAppMessage.getId() == null) {
+                whatsAppMessage = messageService.save(whatsAppMessage);
+            }
 
             // Process message based on type
             processMessageByType(whatsAppMessage);
-            messageService.save(whatsAppMessage); // finally, save again after updating all fields.
+            whatsAppMessage = messageService.save(whatsAppMessage); // finally, save after updating all fields.
             log.info("Successfully saved message to database with ID: {}", whatsAppMessage.getId());
         } catch (JsonProcessingException e) {
             log.error("Error deserializing message from queue", e);

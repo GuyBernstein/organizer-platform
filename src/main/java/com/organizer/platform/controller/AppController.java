@@ -1,13 +1,14 @@
 package com.organizer.platform.controller;
 
-import com.organizer.platform.util.AccessControlResponse;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.organizer.platform.model.User.AppUser;
 import com.organizer.platform.model.organizedDTO.MessageDTO;
 import com.organizer.platform.model.organizedDTO.WhatsAppMessage;
 import com.organizer.platform.service.Google.CloudStorageService;
 import com.organizer.platform.service.User.UserService;
 import com.organizer.platform.service.WhatsApp.WhatsAppMessageService;
-import com.organizer.platform.util.PhoneNumberValidator;
+import com.organizer.platform.util.AccessControlResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
@@ -15,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
@@ -36,12 +38,16 @@ public class AppController {
     private final WhatsAppMessageService messageService;
     private final CloudStorageService cloudStorageService;
     private final UserService userService;
+    private final ObjectMapper objectMapper;
+    private final JmsTemplate jmsTemplate;
 
     @Autowired
-    public AppController(WhatsAppMessageService messageService, CloudStorageService cloudStorageService, UserService userService) {
+    public AppController(WhatsAppMessageService messageService, CloudStorageService cloudStorageService, UserService userService, ObjectMapper objectMapper, JmsTemplate jmsTemplate) {
         this.messageService = messageService;
         this.cloudStorageService = cloudStorageService;
         this.userService = userService;
+        this.objectMapper = objectMapper;
+        this.jmsTemplate = jmsTemplate;
     }
 
     @GetMapping("/{messageId}/related")
@@ -113,7 +119,7 @@ public class AppController {
             @RequestParam String phoneNumber,
             Authentication authentication) {
 
-        ResponseEntity<?> validationResponse = PhoneNumberValidator.validateAndCheckAccess(
+        ResponseEntity<?> validationResponse = validateAndCheckAccess(
                 phoneNumber,
                 authentication,
                 this::checkAccessControl
@@ -123,7 +129,7 @@ public class AppController {
             return validationResponse;
         }
 
-        String internationalFormat = PhoneNumberValidator.validatePhoneNumber(phoneNumber)
+        String internationalFormat = validatePhoneNumber(phoneNumber)
                 .getInternationalFormat();
 
         try {
@@ -146,7 +152,7 @@ public class AppController {
             Authentication authentication) {
 
         // Validate input phone number format and convert to international format
-        ResponseEntity<?> validationResponse = PhoneNumberValidator.validateAndCheckAccess(
+        ResponseEntity<?> validationResponse = validateAndCheckAccess(
                 phoneNumber,
                 authentication,
                 this::checkAccessControl
@@ -156,7 +162,7 @@ public class AppController {
             return validationResponse;
         }
 
-        String internationalFormat = PhoneNumberValidator.validatePhoneNumber(phoneNumber)
+        String internationalFormat = validatePhoneNumber(phoneNumber)
                 .getInternationalFormat();
 
         try {
@@ -192,7 +198,7 @@ public class AppController {
 
 
         // Validate input phone number format and convert to international format
-        ResponseEntity<?> validationResponse = PhoneNumberValidator.validateAndCheckAccess(
+        ResponseEntity<?> validationResponse = validateAndCheckAccess(
                 phoneNumber,
                 authentication,
                 this::checkAccessControl
@@ -202,7 +208,7 @@ public class AppController {
             return validationResponse;
         }
 
-        String internationalFormat = PhoneNumberValidator.validatePhoneNumber(phoneNumber)
+        String internationalFormat = validatePhoneNumber(phoneNumber)
                 .getInternationalFormat();
 
         try {
@@ -283,6 +289,64 @@ public class AppController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
+            log.error("Error updating message with id: {}", messageId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to update message: " + e.getMessage()));
+        }
+    }
+
+    @PutMapping("/messages/{messageId}/{content}")
+    @ApiOperation(value = "Smart Update message content and metadata",
+            notes = "Updates only the provided non-null fields of the message, preserving existing values for null fields")
+    public ResponseEntity<?> SmartUpdateMessage(
+            @PathVariable Long messageId,
+            @PathVariable String content,
+            Authentication authentication) {
+
+        if (content == null) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Smart Update's content cannot be null"));
+        }
+
+        try {
+            // Single message retrieval that will be used by both access control and update
+            WhatsAppMessage message = messageService.findMessageById(messageId)
+                    .orElseThrow(() -> new EntityNotFoundException("Message not found with id: " + messageId));
+
+            // Check access control
+            AccessControlResponse accessControl = checkAccessControl(authentication, message.getFromNumber());
+            if (!accessControl.isAllowed()) {
+                log.warn("Unauthorized update attempt for message: {} by user: {} - {}",
+                        messageId, authentication.getName(), accessControl.getMessage());
+                return accessControl.toResponseEntity();
+            }
+
+            // remove relations in the database from both sides
+            messageService.deleteTags(message);
+            messageService.deleteNextSteps(message);
+
+            // set only the message content
+            message.setMessageContent(content);
+
+            // Serialize the WhatsAppMessage to JSON string
+            String serializedMessage = objectMapper.writeValueAsString(message);
+            log.info("Serialized message sent to JMS queue: {}", serializedMessage);
+
+            // Send the serialized JSON string to the queue for a reorganization of the message
+            jmsTemplate.convertAndSend("exampleQueue", serializedMessage);
+
+            return ResponseEntity.ok()
+                    .body(Map.of("processing", "updating message: " + serializedMessage));
+
+        } catch (EntityNotFoundException e) {
+            log.warn("Message not found with id: {}", messageId);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage()));
+        } catch (JsonProcessingException e) {
+            log.error("Error serializing WhatsAppMessage", e);
+            throw new RuntimeException("Error processing message", e);
+        }
+        catch (Exception e) {
             log.error("Error updating message with id: {}", messageId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to update message: " + e.getMessage()));
