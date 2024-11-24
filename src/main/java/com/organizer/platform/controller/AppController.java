@@ -14,19 +14,24 @@ import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.EntityNotFoundException;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.organizer.platform.controller.WhatsAppWebhookController.createImageMetadata;
+import static com.organizer.platform.model.organizedDTO.WhatsAppMessage.WhatsAppMessageBuilder.aWhatsAppMessage;
 import static com.organizer.platform.util.PhoneNumberValidator.validateAndCheckAccess;
 import static com.organizer.platform.util.PhoneNumberValidator.validatePhoneNumber;
 
@@ -35,6 +40,7 @@ import static com.organizer.platform.util.PhoneNumberValidator.validatePhoneNumb
 @Api(tags = "Content Management API")
 public class AppController {
     private static final Logger log = LoggerFactory.getLogger(AppController.class);
+
     private final WhatsAppMessageService messageService;
     private final CloudStorageService cloudStorageService;
     private final UserService userService;
@@ -196,7 +202,6 @@ public class AppController {
             @RequestParam String phoneNumber,
             Authentication authentication) {
 
-
         // Validate input phone number format and convert to international format
         ResponseEntity<?> validationResponse = validateAndCheckAccess(
                 phoneNumber,
@@ -297,7 +302,7 @@ public class AppController {
 
     @PutMapping("/messages/{messageId}/{content}")
     @ApiOperation(value = "Smart Update message content and metadata",
-            notes = "Updates only the provided non-null fields of the message, preserving existing values for null fields")
+            notes = "Updates only the provided content of the message, while regenerating values for other fields")
     public ResponseEntity<?> SmartUpdateMessage(
             @PathVariable Long messageId,
             @PathVariable String content,
@@ -350,6 +355,150 @@ public class AppController {
             log.error("Error updating message with id: {}", messageId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to update message: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/messages/text/{content}")
+    @ApiOperation(value = "Create message content and metadata",
+            notes = "Get input only the provided text content of the message, while generating values for other fields")
+    public ResponseEntity<?> createTextMessage(
+            @PathVariable String content,
+            @RequestParam String phoneNumber,
+            Authentication authentication) {
+
+        if (content == null) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "For creating message, text content cannot be null"));
+        }
+
+        // Validate input phone number format and convert to international format
+        ResponseEntity<?> validationResponse = validateAndCheckAccess(
+                phoneNumber,
+                authentication,
+                this::checkAccessControl
+        );
+
+        if (validationResponse != null) {
+            return validationResponse;
+        }
+
+        String internationalFormat = validatePhoneNumber(phoneNumber)
+                .getInternationalFormat();
+
+        // message creation
+        WhatsAppMessage message = aWhatsAppMessage()
+                .fromNumber(internationalFormat)
+                .messageContent(content)
+                .messageType("text")
+                .processed(false)
+                .build();
+
+        try {
+            // Check access control
+            AccessControlResponse accessControl = checkAccessControl(authentication, message.getFromNumber());
+            if (!accessControl.isAllowed()) {
+                log.warn("Unauthorized update attempt for message: {} by user: {} - {}",
+                        message.getId(), authentication.getName(), accessControl.getMessage());
+                return accessControl.toResponseEntity();
+            }
+
+            // Serialize the WhatsAppMessage to JSON string
+            String serializedMessage = objectMapper.writeValueAsString(message);
+            log.info("Serialized message sent to JMS queue: {}", serializedMessage);
+
+            // Send the serialized JSON string to the queue for a reorganization of the message
+            jmsTemplate.convertAndSend("exampleQueue", serializedMessage);
+
+            return ResponseEntity.ok()
+                    .body(Map.of("Processing...", "Updating message: " + serializedMessage));
+
+        } catch (JsonProcessingException e) {
+            log.error("Error serializing WhatsAppMessage", e);
+            throw new RuntimeException("Error processing message", e);
+        }
+        catch (Exception e) {
+            log.error("Error creating message with id: {}", message.getId(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to create message: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/messages/image")
+    @ApiOperation(value = "Create message with image content and metadata",
+            notes = "Handles image file upload and creates a WhatsApp message with image content")
+    public ResponseEntity<?> createImageMessage(
+            @RequestParam("image") MultipartFile image,
+            @RequestParam String phoneNumber,
+            Authentication authentication) throws IOException {
+
+        if (image == null || image.isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Image file is required"));
+        }
+
+        // Validate file type
+        String contentType = image.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Invalid file type. Only images are allowed"));
+        }
+
+        // Validate input phone number format and convert to international format
+        ResponseEntity<?> validationResponse = validateAndCheckAccess(
+                phoneNumber,
+                authentication,
+                this::checkAccessControl
+        );
+
+        if (validationResponse != null) {
+            return validationResponse;
+        }
+
+        String internationalFormat = validatePhoneNumber(phoneNumber)
+                .getInternationalFormat();
+
+
+        String storedFileName = cloudStorageService.uploadImage(internationalFormat,
+                image.getBytes(),
+                image.getContentType(),
+                image.getOriginalFilename()
+        );
+        String imagesPrefix = "images/";
+        // Create image metadata and GCS filename
+        String cleanFileName = storedFileName.startsWith(imagesPrefix)
+                ? storedFileName.substring(imagesPrefix.length())
+                : storedFileName;  // get after the prefix "images/" to get the actual file name
+        String imageMetadata = String.format("MIME Type: %s, GCS File: %s",
+                image.getContentType(),
+                cleanFileName);
+
+        // message creation
+        WhatsAppMessage message = aWhatsAppMessage()
+                .fromNumber(internationalFormat)
+                .messageContent(imageMetadata)
+                .messageType("image")
+                .processed(false)
+                .build();
+
+        try {
+            // Serialize the WhatsAppMessage to JSON string
+            String serializedMessage = objectMapper.writeValueAsString(message);
+            log.info("Serialized message sent to JMS queue: {}", serializedMessage);
+
+            // Send the serialized JSON string to the queue for a reorganization of the message
+            jmsTemplate.convertAndSend("exampleQueue", serializedMessage);
+
+            return ResponseEntity.ok()
+                    .body(Map.of("Processing...", "Creating message: " + serializedMessage));
+
+        } catch (JsonProcessingException e) {
+            log.error("Error serializing WhatsAppMessage", e);
+            throw new RuntimeException("Error processing message", e);
+        }
+        catch (Exception e) {
+            log.error("Error creating message with id: {}", message.getId(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to create message: " + e.getMessage()));
         }
     }
 

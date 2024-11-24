@@ -52,7 +52,6 @@ public class WhatsAppWebhookController {
         this.userService = userService;
     }
 
-
     @PostMapping
     public ResponseEntity<String> receiveMessage(@RequestBody WhatsAppWebhookRequest webhookRequest) {
         try {
@@ -193,7 +192,7 @@ public class WhatsAppWebhookController {
                 cleanFileName);
     }
 
-    private static String createImageMetadata(Message message, String storedFileName) {
+    public static String createImageMetadata(Message message, String storedFileName) {
         // Create image metadata and GCS filename
         String cleanFileName = storedFileName.startsWith("images/")
                 ? storedFileName.substring("images/".length())
