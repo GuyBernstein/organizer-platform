@@ -512,7 +512,7 @@ public class AppController {
                 document.getOriginalFilename()
         );
 
-        String documentMetadata = storedMediaName("documents/",document, storedFileName);
+        String documentMetadata = storedMediaName("documents/", document, storedFileName);
 
         // message creation
         WhatsAppMessage message = aWhatsAppMessage()

@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Base64;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -30,16 +29,14 @@ public class MessageReceiver {
     private final WhatsAppMessageService messageService;
     private final ObjectMapper objectMapper;
     private final CloudStorageService cloudStorageService;
-    private final TagRepository tagRepository;
 
     @Autowired
     public MessageReceiver(AiService aiService, WhatsAppMessageService messageService,
-                           ObjectMapper objectMapper, CloudStorageService cloudStorageService, TagRepository tagRepository) {
+                           ObjectMapper objectMapper, CloudStorageService cloudStorageService) {
         this.aiService = aiService;
         this.messageService = messageService;
         this.objectMapper = objectMapper;
         this.cloudStorageService = cloudStorageService;
-        this.tagRepository = tagRepository;
     }
 
     @JmsListener(destination = "exampleQueue")
@@ -52,16 +49,13 @@ public class MessageReceiver {
 
             // Validate message
             validateMessage(whatsAppMessage);
-            whatsAppMessage.setProcessed(true);
 
-            // firstly, save the message to process it in the database if it does not exist.
-            if (whatsAppMessage.getId() == null) {
-                whatsAppMessage = messageService.save(whatsAppMessage);
-            }
+            String mediaName = extractNameFromMetadata(whatsAppMessage.getMessageContent(),
+                    whatsAppMessage.getFromNumber() + "/");
 
-            // Process message based on type
-            processMessageByType(whatsAppMessage);
-            messageService.save(whatsAppMessage); // finally, save after updating all fields.
+            validateAIProcessing(whatsAppMessage, mediaName);
+
+            whatsAppMessage = saveMessage(whatsAppMessage, mediaName);
             log.info("Successfully saved message to database with ID: {}", whatsAppMessage.getId());
         } catch (JsonProcessingException e) {
             log.error("Error deserializing message from queue", e);
@@ -72,39 +66,63 @@ public class MessageReceiver {
         }
     }
 
-    private void processMessageByType(WhatsAppMessage whatsAppMessage) throws UnirestException, JsonProcessingException {
+    private static void validateAIProcessing(WhatsAppMessage whatsAppMessage, String mediaName) {
+        // Determine if message needs AI processing
+        switch (whatsAppMessage.getMessageType().toLowerCase()) {
+            case "text":
+            case "image":
+                whatsAppMessage.setProcessed(true);
+                break;
+            case "document":
+                whatsAppMessage.setProcessed(mediaName.toLowerCase().endsWith(".pdf"));
+                if (!whatsAppMessage.isProcessed()) {
+                    whatsAppMessage.setCategory("קבצים אחרים");
+                    whatsAppMessage.setSubCategory(mediaName);
+                }
+                break;
+            case "audio":
+                whatsAppMessage.setCategory("קבצים אחרים");
+                whatsAppMessage.setSubCategory(mediaName);
+                break;
+        }
+    }
+
+    private WhatsAppMessage saveMessage(WhatsAppMessage whatsAppMessage, String mediaName) throws UnirestException, JsonProcessingException {
+        // Save initially only if was not in the database
+        if (whatsAppMessage.getId() == null) {
+            whatsAppMessage = messageService.save(whatsAppMessage);
+        }
+
+        // Process message based on type
+        processMessageByType(whatsAppMessage, mediaName);
+
+        // Save again only if processed by AI
+        if (whatsAppMessage.isProcessed()) {
+            messageService.save(whatsAppMessage);
+        }
+        return whatsAppMessage;
+    }
+
+    private void processMessageByType(WhatsAppMessage whatsAppMessage, String mediaName) throws UnirestException, JsonProcessingException {
         switch (whatsAppMessage.getMessageType().toLowerCase()) {
             case "text":
                 aiService.generateOrganizationFromText(whatsAppMessage);
                 break;
 
             case "image":
-                String imageName = extractNameFromMetadata(whatsAppMessage.getMessageContent(),
-                        whatsAppMessage.getFromNumber() + "/");
-                String base64Image = fetchAndConvertToBase64(whatsAppMessage.getFromNumber(), imageName, "image");
+                String base64Image = fetchAndConvertToBase64(whatsAppMessage.getFromNumber(), mediaName, "image");
                 aiService.generateOrganizationFromImage(base64Image, whatsAppMessage);
                 break;
 
             case "document":
-                String pdfName = extractNameFromMetadata(whatsAppMessage.getMessageContent(),
-                        whatsAppMessage.getFromNumber() + "/");
-                if(pdfName.endsWith(".pdf")){
-                    String base64pdf = fetchAndConvertToBase64(whatsAppMessage.getFromNumber(), pdfName, "pdf");
+                if(mediaName.toLowerCase().endsWith(".pdf")){ // AI process only pdf files
+                    String base64pdf = fetchAndConvertToBase64(whatsAppMessage.getFromNumber(), mediaName, "pdf");
                     aiService.generateOrganizationFromPDF(base64pdf, whatsAppMessage);
                 }
-                else {
-                    whatsAppMessage.setCategory("קבצים אחרים");
-                    whatsAppMessage.setSubCategory(pdfName);
-                } // prefer not to process audio with ai, because the cost isn't worth it in the meanwhile
                 break;
 
             case "audio":
-                String audioName = extractNameFromMetadata(whatsAppMessage.getMessageContent(),
-                        whatsAppMessage.getFromNumber() + "/");
-                whatsAppMessage.setCategory("קבצים אחרים");
-                whatsAppMessage.setSubCategory(audioName);
-                break; // prefer not to process audio with ai, because the cost isn't worth it in the meanwhile
-
+                break; // prefer not to process audio with AI, because the cost isn't worth it in the meanwhile
 
             default:
                 throw new IllegalArgumentException("Unsupported message type: " + whatsAppMessage.getMessageType());
