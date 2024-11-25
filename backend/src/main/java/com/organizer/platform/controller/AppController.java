@@ -471,29 +471,6 @@ public class AppController {
         return sendToJMS(message);
     }
 
-    private ResponseEntity<?> sendToJMS(WhatsAppMessage message) {
-        try {
-            // Serialize the WhatsAppMessage to JSON string
-            String serializedMessage = objectMapper.writeValueAsString(message);
-            log.info("Serialized message sent to JMS queue: {}", serializedMessage);
-
-            // Send the serialized JSON string to the queue for a reorganization of the message
-            jmsTemplate.convertAndSend("exampleQueue", serializedMessage);
-
-            return ResponseEntity.ok()
-                    .body(Map.of("Processing...", "Creating message: " + serializedMessage));
-
-        } catch (JsonProcessingException e) {
-            log.error("Error serializing WhatsAppMessage", e);
-            throw new RuntimeException("Error processing message", e);
-        }
-        catch (Exception e) {
-            log.error("Error creating message with id: {}", message.getId(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Failed to create message: " + e.getMessage()));
-        }
-    }
-
     @PostMapping("/messages/document")
     @ApiOperation(value = "Create message with document content and metadata",
             notes = "Handles document file upload and creates a WhatsApp message with document content")
@@ -546,6 +523,29 @@ public class AppController {
                 .build();
 
         return sendToJMS(message);
+    }
+
+    private ResponseEntity<?> sendToJMS(WhatsAppMessage message) {
+        try {
+            // Serialize the WhatsAppMessage to JSON string
+            String serializedMessage = objectMapper.writeValueAsString(message);
+            log.info("Serialized message sent to JMS queue: {}", serializedMessage);
+
+            // Send the serialized JSON string to the queue for a reorganization of the message
+            jmsTemplate.convertAndSend("exampleQueue", serializedMessage);
+
+            return ResponseEntity.ok()
+                    .body(Map.of("Processing...", "Creating message: " + serializedMessage));
+
+        } catch (JsonProcessingException e) {
+            log.error("Error serializing WhatsAppMessage", e);
+            throw new RuntimeException("Error processing message", e);
+        }
+        catch (Exception e) {
+            log.error("Error creating message with id: {}", message.getId(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Failed to create message: " + e.getMessage()));
+        }
     }
 
     private static String storedMediaName(String mediaPrefix, MultipartFile document, String storedFileName) {

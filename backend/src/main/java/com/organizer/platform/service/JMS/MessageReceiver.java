@@ -61,7 +61,7 @@ public class MessageReceiver {
 
             // Process message based on type
             processMessageByType(whatsAppMessage);
-            whatsAppMessage = messageService.save(whatsAppMessage); // finally, save after updating all fields.
+            messageService.save(whatsAppMessage); // finally, save after updating all fields.
             log.info("Successfully saved message to database with ID: {}", whatsAppMessage.getId());
         } catch (JsonProcessingException e) {
             log.error("Error deserializing message from queue", e);
@@ -92,9 +92,17 @@ public class MessageReceiver {
                     String base64pdf = fetchAndConvertToBase64(whatsAppMessage.getFromNumber(), pdfName, "pdf");
                     aiService.generateOrganizationFromPDF(base64pdf, whatsAppMessage);
                 }
+                else {
+                    whatsAppMessage.setCategory("קבצים אחרים");
+                    whatsAppMessage.setSubCategory(pdfName);
+                } // prefer not to process audio with ai, because the cost isn't worth it in the meanwhile
                 break;
 
             case "audio":
+                String audioName = extractNameFromMetadata(whatsAppMessage.getMessageContent(),
+                        whatsAppMessage.getFromNumber() + "/");
+                whatsAppMessage.setCategory("קבצים אחרים");
+                whatsAppMessage.setSubCategory(audioName);
                 break; // prefer not to process audio with ai, because the cost isn't worth it in the meanwhile
 
 
