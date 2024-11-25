@@ -14,7 +14,6 @@ import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jms.core.JmsTemplate;
@@ -25,12 +24,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.persistence.EntityNotFoundException;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
-import static com.organizer.platform.controller.WhatsAppWebhookController.createImageMetadata;
 import static com.organizer.platform.model.organizedDTO.WhatsAppMessage.WhatsAppMessageBuilder.aWhatsAppMessage;
 import static com.organizer.platform.util.PhoneNumberValidator.validateAndCheckAccess;
 import static com.organizer.platform.util.PhoneNumberValidator.validatePhoneNumber;
@@ -463,14 +458,7 @@ public class AppController {
                 image.getContentType(),
                 image.getOriginalFilename()
         );
-        String imagesPrefix = "images/";
-        // Create image metadata and GCS filename
-        String cleanFileName = storedFileName.startsWith(imagesPrefix)
-                ? storedFileName.substring(imagesPrefix.length())
-                : storedFileName;  // get after the prefix "images/" to get the actual file name
-        String imageMetadata = String.format("MIME Type: %s, GCS File: %s",
-                image.getContentType(),
-                cleanFileName);
+        String imageMetadata = storedMediaName("images/", image, storedFileName);
 
         // message creation
         WhatsAppMessage message = aWhatsAppMessage()
@@ -480,6 +468,10 @@ public class AppController {
                 .processed(false)
                 .build();
 
+        return sendToJMS(message);
+    }
+
+    private ResponseEntity<?> sendToJMS(WhatsAppMessage message) {
         try {
             // Serialize the WhatsAppMessage to JSON string
             String serializedMessage = objectMapper.writeValueAsString(message);
@@ -500,6 +492,83 @@ public class AppController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to create message: " + e.getMessage()));
         }
+    }
+
+    @PostMapping("/messages/document")
+    @ApiOperation(value = "Create message with document content and metadata",
+            notes = "Handles document file upload and creates a WhatsApp message with document content")
+    public ResponseEntity<?> createDocumentMessage(
+            @RequestParam("document") MultipartFile document,
+            @RequestParam String phoneNumber,
+            Authentication authentication) throws IOException {
+
+        if (document == null || document.isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Document file is required"));
+        }
+
+        // Validate file type
+        String contentType = document.getContentType();
+        if (contentType == null || !isValidDocumentType(contentType)) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Invalid file type. Supported formats: PDF, DOC, DOCX, TXT, XLS, XLSX"));
+        }
+
+        // Validate input phone number format and convert to international format
+        ResponseEntity<?> validationResponse = validateAndCheckAccess(
+                phoneNumber,
+                authentication,
+                this::checkAccessControl
+        );
+
+        if (validationResponse != null) {
+            return validationResponse;
+        }
+
+        String internationalFormat = validatePhoneNumber(phoneNumber)
+                .getInternationalFormat();
+
+
+        String storedFileName = cloudStorageService.uploadDocument(internationalFormat,
+                document.getBytes(),
+                document.getContentType(),
+                document.getOriginalFilename()
+        );
+
+        String documentMetadata = storedMediaName("documents/",document, storedFileName);
+
+        // message creation
+        WhatsAppMessage message = aWhatsAppMessage()
+                .fromNumber(internationalFormat)
+                .messageContent(documentMetadata)
+                .messageType("document")
+                .processed(false)
+                .build();
+
+        return sendToJMS(message);
+    }
+
+    private static String storedMediaName(String mediaPrefix, MultipartFile document, String storedFileName) {
+        // Create document metadata and GCS filename
+        String cleanFileName = storedFileName.startsWith(mediaPrefix)
+                ? storedFileName.substring(mediaPrefix.length())
+                : storedFileName;  // get after the prefix to get the actual file name
+        return String.format("MIME Type: %s, Size: %d KB, GCS File: %s",
+                document.getContentType(),
+                document.getSize() / 1024,
+                cleanFileName);
+    }
+
+    private boolean isValidDocumentType(String contentType) {
+        Set<String> validTypes = Set.of(
+                "application/pdf",
+                "application/msword",
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "text/plain",
+                "application/vnd.ms-excel",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        );
+        return validTypes.contains(contentType.toLowerCase());
     }
 
     private String getAudioContentType(String fileExtension) {
