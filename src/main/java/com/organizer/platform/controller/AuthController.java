@@ -4,7 +4,6 @@ import com.organizer.platform.model.User.AppUser;
 import com.organizer.platform.model.User.UserRole;
 import com.organizer.platform.service.User.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -12,13 +11,16 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
 @Controller
+@RequestMapping("/")
 public class AuthController {
 
     private final UserService userService;
@@ -28,14 +30,43 @@ public class AuthController {
         this.userService = userService;
     }
 
-    @GetMapping("/")
-    public String home() {
-        return "home";
+    @GetMapping
+    public String home(Model model) {
+        model.addAttribute("title", "דף הבית - Organizer Platform");
+        return "pages/home";
     }
 
     @GetMapping("/login")
-    public String login() {
-        return "login";
+    public String login(Model model) {
+        model.addAttribute("title", "התחברות - Organizer Platform");
+        return "pages/auth/login";
+    }
+
+    @GetMapping("/dashboard")
+    @PreAuthorize("isAuthenticated()")
+    public String dashboard(@AuthenticationPrincipal OAuth2User principal, Model model) {
+        String name = principal.getAttribute("name");
+        String email = principal.getAttribute("email");
+
+        model.addAttribute("title", "לוח בקרה - Organizer Platform");
+        model.addAttribute("name", name != null ? name : "אורח");
+        model.addAttribute("email", email);
+
+        // Ensure user exists in our system
+        if (email != null) {
+            Optional<AppUser> appUser = userService.findByEmail(email);
+            if (appUser.isEmpty()) {
+                // Create new user if they don't exist
+                AppUser newUser = AppUser.UserBuilder.anUser()
+                        .email(email)
+                        .role(UserRole.UNAUTHORIZED)
+                        .authorized(false)
+                        .build();
+                userService.save(newUser);
+            }
+        }
+
+        return "pages/dashboard/index";
     }
 
     @GetMapping("/auth-status")
@@ -47,10 +78,10 @@ public class AuthController {
             response.put("status", "Not authenticated");
             return response;
         }
+
         String email = principal.getAttribute("email");
         response.put("oauth2_details", principal.getAttributes());
 
-        // Check if user exists in our database
         Optional<AppUser> appUser = userService.findByEmail(email);
         response.put("user_exists", appUser.isPresent());
         appUser.ifPresent(user -> response.put("app_user_details", Map.of(
@@ -63,39 +94,12 @@ public class AuthController {
         return response;
     }
 
-    @PostMapping("/ensure-user-created")
-    @ResponseBody
-    public ResponseEntity<Map<String, Object>> ensureUserCreated(@AuthenticationPrincipal OAuth2User principal) {
-        if (principal == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Not authenticated"));
+    @PostMapping("/logout")
+    public String logout(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+        if (session != null) {
+            session.invalidate();
         }
-
-        String email = principal.getAttribute("email");
-        if (email == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "No email found in OAuth2 details"));
-        }
-
-        Optional<AppUser> existingUser = userService.findByEmail(email);
-        AppUser user = existingUser.orElseGet(() -> userService.save(AppUser.UserBuilder.anUser()
-                .email(email)
-                .role(UserRole.UNAUTHORIZED)
-                .authorized(false)
-                .build()));
-
-        return ResponseEntity.ok(Map.of(
-                "status", "success",
-                "user_id", user.getId(),
-                "email", user.getEmail(),
-                "role", user.getRole(),
-                "authorized", user.isAuthorized()
-        ));
-    }
-
-    @GetMapping("/dashboard")
-    @PreAuthorize("isAuthenticated()")
-    public String dashboard(@AuthenticationPrincipal OAuth2User principal, Model model) {
-        model.addAttribute("name", principal.getAttribute("name"));
-        model.addAttribute("email", principal.getAttribute("email"));
-        return "dashboard";
+        return "redirect:/";
     }
 }

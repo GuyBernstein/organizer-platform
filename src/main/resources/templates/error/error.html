@@ -1,22 +1,15 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <title>Error</title>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body>
-<div style="text-align: center; margin-top: 50px;">
-    <h1>Oops! Something went wrong</h1>
+<html th:replace="~{layout :: html(content=~{::div})}" lang="he" dir = "ltr">
+<div>
+    <div class="text-center py-5">
+        <h1 class="display-4 mb-4">Oops! Something went wrong</h1>
 
-    <div style="margin: 20px;">
-        <p th:if="${error}" th:text="${error}">Error Message</p>
-        <p th:if="${status}" th:text="${status}">Status Code</p>
-    </div>
+        <div class="alert alert-danger mx-auto" style="max-width: 500px;">
+            <h4 class="alert-heading" th:text="${error ?: 'Error'}">Error</h4>
+            <p class="mb-0" th:text="${status ?: 'Status Code'}">Status Code</p>
+        </div>
 
-    <div style="margin-top: 20px;">
-        <a href="/" style="color: #4285f4;">Back to Home</a>
+        <a th:href="@{/}" class="btn btn-primary mt-4">Back to Home</a>
     </div>
 </div>
-</body>
 </html>

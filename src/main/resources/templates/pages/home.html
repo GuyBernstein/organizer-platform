@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+<div th:fragment="content">
+    <div class="text-center py-5">
+        <h1 class="display-4 mb-4">ברוכים הבאים לפלטפורמת הארגון</h1>
+        <p class="lead">ייעול תהליכי העבודה והגברת הפרודוקטיביות עם כלי הארגון החכמים שלנו</p>
+
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="d-grid gap-3">
+                    <a th:href="@{/dashboard}" class="btn btn-primary btn-lg"
+                       sec:authorize="isAuthenticated()">עבור ללוח הבקרה</a>
+                    <a th:href="@{/login}" class="btn btn-outline-primary btn-lg"
+                       sec:authorize="!isAuthenticated()">התחל כאן</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="content">
+    <div class="login-container">
+        <div class="card shadow">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">התחברות</h2>
+
+                <div class="alert alert-danger" th:if="${param.error}" role="alert">
+                    פרטי ההתחברות שגויים או שההתחברות נכשלה
+                </div>
+
+                <div class="d-grid gap-3">
+                    <a th:href="@{/oauth2/authorization/google}" class="btn btn-google btn-lg">
+                        <img src="https://cdn.cdnlogo.com/logos/g/35/google-icon.svg"
+                             alt="Google Logo" style="height: 24px;">
+                        התחבר עם Google
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

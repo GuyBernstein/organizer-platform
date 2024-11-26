@@ -1,0 +1,25 @@
+<nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-light bg-light"
+     xmlns:sec="http://www.w3.org/1999/xhtml">
+  <div class="container">
+    <a class="navbar-brand" th:href="@{/}">Organizer Platform</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" th:href="@{/}">דף הבית</a>
+        </li>
+        <li class="nav-item" sec:authorize="isAuthenticated()">
+          <a class="nav-link" th:href="@{/dashboard}">לוח בקרה</a>
+        </li>
+      </ul>
+      <div class="d-flex">
+        <a class="btn btn-outline-primary" th:href="@{/login}" sec:authorize="!isAuthenticated()">התחברות</a>
+        <form th:action="@{/logout}" method="post" sec:authorize="isAuthenticated()" class="d-inline">
+          <button type="submit" class="btn btn-outline-danger">התנתקות</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</nav>

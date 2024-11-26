@@ -1,0 +1,47 @@
+/* Main styles */
+.footer {
+    margin-top: auto;
+}
+
+.navbar-brand {
+    font-weight: 600;
+}
+
+.main-content {
+    margin-top: 2rem;
+    min-height: calc(100vh - 160px);
+}
+
+/* Card styles */
+.card {
+    transition: transform 0.2s;
+    margin-bottom: 1rem;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+/* Alert styles */
+.alert {
+    margin-bottom: 1rem;
+}
+
+/* Custom button styles */
+.btn-google {
+    color: #545454;
+    background-color: #ffffff;
+    border: 1px solid #d2d2d2;
+}
+
+.btn-google:hover {
+    background-color: #f8f9fa;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+}

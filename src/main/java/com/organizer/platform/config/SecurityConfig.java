@@ -44,13 +44,18 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/"),
                                 new AntPathRequestMatcher("/login/**"),
                                 new AntPathRequestMatcher("/error"),
+                                // Static resources
+                                new AntPathRequestMatcher("/static/**"),
                                 new AntPathRequestMatcher("/css/**"),
                                 new AntPathRequestMatcher("/js/**"),
                                 new AntPathRequestMatcher("/images/**"),
+                                new AntPathRequestMatcher("/fonts/**"),
                                 new AntPathRequestMatcher("/favicon.ico"),
+                                // OAuth2 paths
                                 new AntPathRequestMatcher("/oauth2/**"),
                                 new AntPathRequestMatcher("/login/oauth2/code/*"),
                                 new AntPathRequestMatcher("/auth-status"),
+                                // for whatsapp paths
                                 new AntPathRequestMatcher("/webhook"),
                                 // Swagger UI paths
                                 new AntPathRequestMatcher("/swagger-ui/**"),
