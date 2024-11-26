@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html th:replace="~{layout :: html(content=~{::div})}" lang="he" dir = "ltr">
+<html th:replace="~{layout :: html(content=~{::div})}" lang="he" dir = "rtl">
 <div>
     <div class="text-center py-5">
-        <h1 class="display-4 mb-4">Oops! Something went wrong</h1>
+        <h1 class="display-4 mb-4">אופס! משהו השתבש</h1>
 
         <div class="alert alert-danger mx-auto" style="max-width: 500px;">
-            <h4 class="alert-heading" th:text="${error ?: 'Error'}">Error</h4>
-            <p class="mb-0" th:text="${status ?: 'Status Code'}">Status Code</p>
+            <h4 class="alert-heading" th:text="${error ?: 'Error'}">שגיאה</h4>
+            <p class="mb-0" th:text="${status ?: 'Status Code'}">סטטוס קוד</p>
         </div>
 
-        <a th:href="@{/}" class="btn btn-primary mt-4">Back to Home</a>
+        <a th:href="@{/}" class="btn btn-primary mt-4">בחזרה הביתה</a>
     </div>
 </div>
 </html>

@@ -1,42 +1,47 @@
 /* RTL and Hebrew optimizations */
-body {
-    font-family: 'Rubik', sans-serif;
+html[dir="rtl"] {
+    direction: rtl;
     text-align: right;
 }
 
-/* Fix Bootstrap RTL specific issues */
+body {
+    font-family: 'Rubik', sans-serif;
+}
+
+/* Bootstrap RTL fixes */
 .dropdown-menu {
     text-align: right;
 }
 
-.ms-auto {
+/* Fix Bootstrap margins */
+html[dir="rtl"] .ms-auto {
     margin-right: auto !important;
     margin-left: 0 !important;
 }
 
-.me-auto {
+html[dir="rtl"] .me-auto {
     margin-left: auto !important;
     margin-right: 0 !important;
 }
 
-/* Mobile optimizations */
-@media (max-width: 768px) {
-    .container {
-        padding: 1rem;
-    }
+/* Fix Bootstrap grid alignment */
+html[dir="rtl"] .text-start {
+    text-align: right !important;
+}
 
-    .navbar-brand {
-        font-size: 1.2rem;
-    }
+html[dir="rtl"] .text-end {
+    text-align: left !important;
+}
 
-    .btn {
-        width: 100%;
-        margin-bottom: 0.5rem;
-    }
+/* Fix form controls */
+html[dir="rtl"] .form-control {
+    text-align: right;
+}
 
-    .card {
-        margin-bottom: 1rem;
-    }
+/* Fix button icons alignment */
+html[dir="rtl"] .btn i {
+    margin-left: 0.5rem;
+    margin-right: 0;
 }
 
 /* Custom styles */
@@ -72,4 +77,24 @@ body {
 
 .btn-google:hover {
     background-color: #f8f9fa;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+
+    .navbar-brand {
+        font-size: 1.2rem;
+    }
+
+    .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+
+    .card {
+        margin-bottom: 1rem;
+    }
 }
