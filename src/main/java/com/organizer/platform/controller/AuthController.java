@@ -33,13 +33,15 @@ public class AuthController {
     @GetMapping
     public String home(Model model) {
         model.addAttribute("title", "דף הבית - Organizer Platform");
-        return "pages/home";
+        model.addAttribute("content", "pages/home");
+        return "layout/base";
     }
 
     @GetMapping("/login")
     public String login(Model model) {
         model.addAttribute("title", "התחברות - Organizer Platform");
-        return "pages/auth/login";
+        model.addAttribute("content", "pages/auth/login");
+        return "layout/base";
     }
 
     @GetMapping("/dashboard")
@@ -51,6 +53,7 @@ public class AuthController {
         model.addAttribute("title", "לוח בקרה - Organizer Platform");
         model.addAttribute("name", name != null ? name : "אורח");
         model.addAttribute("email", email);
+        model.addAttribute("content", "pages/dashboard/index");
 
         // Ensure user exists in our system
         if (email != null) {
@@ -66,7 +69,7 @@ public class AuthController {
             }
         }
 
-        return "pages/dashboard/index";
+        return "layout/base";
     }
 
     @GetMapping("/auth-status")
