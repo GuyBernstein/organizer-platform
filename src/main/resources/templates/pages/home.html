@@ -14,20 +14,33 @@
             ייעול תהליכי העבודה והגברת הפרודוקטיביות עם כלי הארגון החכמים שלנו
         </p>
 
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="d-grid gap-3">
-                    <a th:href="@{/dashboard}"
-                       class="btn btn-primary btn-lg"
-                       sec:authorize="isAuthenticated()">
-                        עבור ללוח הבקרה
-                    </a>
-                    <a th:href="@{/login}"
-                       class="btn btn-outline-primary btn-lg"
-                       sec:authorize="!isAuthenticated()">
-                        התחל כאן
-                    </a>
+        <!-- Show this section for non-authenticated users -->
+        <div sec:authorize="isAnonymous()" class="login-section">
+            <div class="card shadow-sm mx-auto" style="max-width: 400px;">
+                <div class="card-body py-4">
+                    <div class="alert alert-danger" th:if="${param.error}" role="alert">
+                        פרטי ההתחברות שגויים או שההתחברות נכשלה
+                    </div>
+
+                    <div class="d-grid gap-3">
+                        <a th:href="@{/oauth2/authorization/google}"
+                           class="btn btn-google btn-lg">
+                            <img src="https://cdn.cdnlogo.com/logos/g/35/google-icon.svg"
+                                 alt="Google Logo"
+                                 style="height: 24px; margin-left: 8px;">
+                            התחבר עם Google
+                        </a>
+                    </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Show this section for authenticated users -->
+        <div sec:authorize="isAuthenticated()" class="dashboard-section">
+            <div class="d-grid gap-3" style="max-width: 400px; margin: 0 auto;">
+                <a th:href="@{/dashboard}" class="btn btn-primary btn-lg">
+                    עבור ללוח הבקרה
+                </a>
             </div>
         </div>
     </div>

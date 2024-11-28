@@ -12,12 +12,6 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.Arrays;
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -37,7 +31,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
+        return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeRequests(authz -> authz
                         .requestMatchers(
@@ -70,12 +64,8 @@ public class SecurityConfig {
                         .clientRegistrationRepository(clientRegistrationRepository)
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService))
-                        .loginPage("/login")
+                        .loginPage("/")
                         .defaultSuccessUrl("/dashboard", true)
-                        .failureHandler((request, response, exception) -> {
-                            logger.error("OAuth2 authentication failed", exception);
-                            response.sendRedirect("/login?error=true");
-                        })
                 )
                 .logout(logout -> logout
                         .logoutSuccessUrl("/")
@@ -83,12 +73,6 @@ public class SecurityConfig {
                         .deleteCookies("JSESSIONID")
                         .permitAll()
                 )
-                .exceptionHandling(exc -> exc
-                        .authenticationEntryPoint((request, response, authException) -> {
-                            logger.error("Authentication entry point failed", authException);
-                            response.sendRedirect("/login");
-                        }));
-
-        return http.build();
+                .build();
     }
 }
