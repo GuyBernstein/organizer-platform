@@ -6,44 +6,120 @@
     <title>Home</title>
 </head>
 <body>
-<div th:fragment="content">
-    <div class="text-center py-5">
-        <h1 class="display-4 mb-4">ברוכים הבאים לפלטפורמת הארגון</h1>
+    <div th:fragment="content">
+        <div class="text-center py-4">
+            <h1 class="display-4 mb-4">ברוכים הבאים: WhatsApp Organizer</h1>
+            <p class="lead mb-5">
+                נהלו את ההודעות שלכם בצורה חכמה ויעילה
+            </p>
 
-        <p class="lead">
-            ייעול תהליכי העבודה והגברת הפרודוקטיביות עם כלי הארגון החכמים שלנו
-        </p>
+            <section class="feature-articles">
+            <!-- Core Features Card -->
+            <article class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <div class="feature-content">
+                    <h2 class="feature-title">ארגון הודעות</h2>
+                    <p class="feature-description">
+                        מיון אוטומטי של הודעות לפי קטגוריות, תת-קטגוריות, תגיות ומטרות
+                    </p>
+                </div>
+            </article>
 
-        <!-- Show this section for non-authenticated users -->
-        <div sec:authorize="isAnonymous()" class="login-section">
-            <div class="card shadow-sm mx-auto" style="max-width: 400px;">
-                <div class="card-body py-4">
-                    <div class="alert alert-danger" th:if="${param.error}" role="alert">
-                        פרטי ההתחברות שגויים או שההתחברות נכשלה
+            <!-- Smart Search Card -->
+            <article class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <div class="feature-content">
+                    <h2 class="feature-title">חיפוש מתקדם</h2>
+                    <p class="feature-description">
+                        מצא כל הודעה בקלות עם מנוע חיפוש המבוסס על תגיות וקטגוריות
+                    </p>
+                </div>
+            </article>
+
+            <!-- Tasks Card -->
+            <article class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <div class="feature-content">
+                    <h2 class="feature-title">צעדים הבאים</h2>
+                    <p class="feature-description">
+                        הגדרה אוטומטית של משימות המשך
+                    </p>
+                </div>
+            </article>
+
+            <!-- Data Export Card -->
+            <article class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-file-export"></i>
+                </div>
+                <div class="feature-content">
+                    <h2 class="feature-title">עריכת נתונים</h2>
+                    <p class="feature-description">
+                        אפשרות לסדר את המידע המאורגן ידנית או אוטומטית
+                    </p>
+                </div>
+            </article>
+        </section>
+
+            <!-- Authentication Section -->
+            <div class="auth-section mt-5">
+                <!-- Non-authenticated users section -->
+                <div sec:authorize="isAnonymous()" class="login-section">
+                    <div class="card shadow-sm mx-auto" style="max-width: 400px; border-radius: 15px;">
+                        <div class="card-body p-4">
+                            <!-- Alert for login errors -->
+                            <div class="alert alert-danger alert-dismissible fade show"
+                                 th:if="${param.error}"
+                                 role="alert">
+                                <i class="fas fa-exclamation-circle me-2"></i>
+                                פרטי ההתחברות שגויים או שההתחברות נכשלה
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+
+                            <!-- Login button -->
+                            <div class="d-grid gap-3">
+                                <a th:href="@{/oauth2/authorization/google}"
+                                   class="btn btn-light btn-lg position-relative shadow-sm"
+                                   style="background: white; border: 1px solid #e0e0e0; transition: all 0.3s ease;">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <img src="https://cdn.cdnlogo.com/logos/g/35/google-icon.svg"
+                                             alt="Google Logo"
+                                             style="height: 24px; margin-left: 12px;">
+                                        <span style="font-family: 'Rubik', sans-serif; font-weight: 500;">
+                                            התחבר עם Google
+                                        </span>
+                                    </div>
+                                </a>
+
+                                <!-- Optional: Additional login options or information -->
+                                <div class="text-muted mt-3" style="font-size: 0.9rem;">
+                                    <i class="fas fa-shield-alt me-1"></i>
+                                    ההתחברות מאובטחת ובטוחה
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                </div>
 
-                    <div class="d-grid gap-3">
-                        <a th:href="@{/oauth2/authorization/google}"
-                           class="btn btn-google btn-lg">
-                            <img src="https://cdn.cdnlogo.com/logos/g/35/google-icon.svg"
-                                 alt="Google Logo"
-                                 style="height: 24px; margin-left: 8px;">
-                            התחבר עם Google
+                <!-- Authenticated users section -->
+                <div sec:authorize="isAuthenticated()" class="dashboard-section">
+                    <div class="d-grid gap-3" style="max-width: 400px; margin: 0 auto;">
+                        <a th:href="@{/dashboard}"
+                           class="btn btn-success btn-lg shadow-sm"
+                           style="background-color: var(--whatsapp-teal); border: none;">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            עבור ללוח הבקרה
                         </a>
                     </div>
                 </div>
             </div>
         </div>
-
-        <!-- Show this section for authenticated users -->
-        <div sec:authorize="isAuthenticated()" class="dashboard-section">
-            <div class="d-grid gap-3" style="max-width: 400px; margin: 0 auto;">
-                <a th:href="@{/dashboard}" class="btn btn-primary btn-lg">
-                    עבור ללוח הבקרה
-                </a>
-            </div>
-        </div>
     </div>
-</div>
 </body>
 </html>

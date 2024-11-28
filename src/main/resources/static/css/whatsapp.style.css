@@ -1,0 +1,147 @@
+/* WhatsApp theme variables */
+:root {
+    --whatsapp-green: #25D366;
+    --whatsapp-light-green: #DCF8C6;
+    --whatsapp-dark: #075E54;
+    --whatsapp-teal: #128C7E;
+    --whatsapp-blue: #34B7F1;
+    --whatsapp-grey: #ECE5DD;
+    --whatsapp-dark-grey: #4A4A4A;
+}
+/* Target by ID */
+#ברוכים-הבאים-whatsapp-organizer,
+[id="ברוכים-הבאים-whatsapp-organizer"] {
+    color: var(--whatsapp-green) !important;
+    font-family: 'Rubik', sans-serif;
+    font-weight: 600;
+}
+
+/* Target by class combination */
+.display-4.mb-4 {
+    color: var(--whatsapp-green) !important;
+    font-family: 'Rubik', sans-serif;
+    font-weight: 600;
+}
+
+/* Target by heading in specific section */
+.text-center.py-4 h1 {
+    color: var(--whatsapp-green) !important;
+    font-family: 'Rubik', sans-serif;
+    font-weight: 600;
+}
+
+
+/* Card layout styles */
+.feature-articles {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 2rem auto;
+    justify-content: center;
+    max-width: 75rem;
+    gap: 1.5rem;
+    padding: 0 1rem;
+}
+
+.feature-card {
+    max-width: 20rem;
+    cursor: pointer;
+    position: relative;
+    display: block;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    border-radius: 1rem;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.2);
+}
+
+.feature-icon {
+    width: 100%;
+    height: 13rem;
+    background: var(--whatsapp-light-green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.feature-icon i {
+    font-size: 4rem;
+    color: var(--whatsapp-green);
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover .feature-icon i {
+    transform: scale(1.2);
+}
+
+.feature-content {
+    padding: 1.5rem;
+}
+
+.feature-title {
+    margin: 0 0 1rem 0;
+    font-size: 1.4rem;
+    color: var(--whatsapp-dark);
+    font-weight: 600;
+}
+
+.feature-description {
+    color: var(--whatsapp-dark-grey);
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+
+.feature-link {
+    display: inline-flex;
+    align-items: center;
+    color: var(--whatsapp-teal);
+    text-decoration: none;
+    font-weight: 500;
+    gap: 0.5rem;
+}
+
+.feature-link:hover {
+    color: var(--whatsapp-green);
+}
+
+/* RTL Support */
+html[dir="rtl"] .feature-articles {
+    text-align: right;
+}
+
+html[dir="rtl"] .feature-link {
+    flex-direction: row-reverse;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .feature-card {
+        max-width: 100%;
+    }
+
+    .feature-icon {
+        height: 10rem;
+    }
+}
+
+/* Animation for card loading */
+@keyframes cardAppear {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.feature-card {
+    animation: cardAppear 0.5s ease-out forwards;
+}
