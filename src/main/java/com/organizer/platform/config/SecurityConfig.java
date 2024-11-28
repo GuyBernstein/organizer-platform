@@ -36,8 +36,6 @@ public class SecurityConfig {
                 .authorizeRequests(authz -> authz
                         .requestMatchers(
                                 new AntPathRequestMatcher("/"),
-                                new AntPathRequestMatcher("/login/**"),
-                                new AntPathRequestMatcher("/error"),
                                 // Static resources
                                 new AntPathRequestMatcher("/static/**"),
                                 new AntPathRequestMatcher("/css/**"),

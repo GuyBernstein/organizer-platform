@@ -34,13 +34,6 @@ public class AuthController {
         return "layout/base";
     }
 
-    @GetMapping("/login")
-    public String login(Model model) {
-        model.addAttribute("title", "התחברות - Organizer Platform");
-        model.addAttribute("content", "pages/auth/login");
-        return "layout/base";
-    }
-
     @GetMapping("/dashboard")
     @PreAuthorize("isAuthenticated()")
     public String dashboard(@AuthenticationPrincipal OAuth2User principal, Model model) {

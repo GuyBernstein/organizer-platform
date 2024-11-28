@@ -15,7 +15,7 @@
         </li>
       </ul>
       <div class="d-flex">
-        <a class="btn btn-outline-primary" th:href="@{/login}" sec:authorize="!isAuthenticated()">התחברות</a>
+        <a class="btn btn-outline-primary" th:href="@{/dashboard}" sec:authorize="!isAuthenticated()">התחברות</a>
         <form th:action="@{/logout}" method="post" sec:authorize="isAuthenticated()" class="d-inline">
           <button type="submit" class="btn btn-outline-danger">התנתקות</button>
         </form>
