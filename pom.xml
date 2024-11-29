@@ -188,6 +188,12 @@
 			<version>2.11.0</version>
 		</dependency>
 
+		<!-- jsoup -->
+		<dependency>
+			<groupId>org.jsoup</groupId>
+			<artifactId>jsoup</artifactId>
+			<version>1.15.4</version>
+		</dependency>
 
 	</dependencies>
 
