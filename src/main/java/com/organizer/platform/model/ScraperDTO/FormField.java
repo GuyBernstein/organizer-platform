@@ -9,8 +9,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class HeadingInfo {
-    private String text;
-    private int level;
-    private String context;
+public class FormField {
+    private String name;
+    private String type;
+    private String value;
+    private boolean required;
 }

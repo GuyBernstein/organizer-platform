@@ -12,11 +12,14 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class WebPageContent {
+public class WebsiteContent {
     private String title;
-    private List<String> mainContent;
-    private NavigationInfo navigation;
-    private List<HeadingInfo> headings;
-    private List<LinkInfo> links;
+    private String description;
     private Map<String, String> metadata;
+    private List<TextBlock> textBlocks;
+    private List<String> scripts;
+    private List<String> styles;
+    private Map<String, List<String>> lists;
+    private List<TableInfo> tables;
+    private List<FormInfo> forms;
 }

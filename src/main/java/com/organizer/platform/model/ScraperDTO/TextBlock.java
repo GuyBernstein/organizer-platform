@@ -9,9 +9,12 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class LinkInfo {
+public class TextBlock {
     private String text;
-    private String href;
-    private String title;
-    private boolean followable;
+    private String tag;
+    private String cssClass;
+    private String id;
+    private int depth;
+    private String parentTags;
+    private boolean isVisible;
 }

@@ -11,6 +11,8 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class NavigationInfo {
-    private List<NavItem> items;
+public class TableInfo {
+    private List<String> headers;
+    private List<List<String>> rows;
+    private String caption;
 }
