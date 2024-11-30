@@ -26,11 +26,6 @@
             <i class="fas fa-users"></i> קבוצות
           </a>
         </li>
-        <li>
-          <a href="#" class="dropdown-item" onclick="handleLogout(event)">
-            <i class="fas fa-sign-out-alt"></i> התנתק
-          </a>
-        </li>
       </ul>
 
       <!-- Authentication Section -->
@@ -70,9 +65,11 @@
               <hr class="dropdown-divider">
             </li>
             <li>
-              <a href="/oauth2/authorization/google/logout" class="dropdown-item">
-                <i class="fas fa-sign-out-alt"></i> התנתק
-              </a>
+              <form th:action="@{/logout}" method="post" id="logoutForm">
+                <button type="submit" class="dropdown-item">
+                  <i class="fas fa-sign-out-alt"></i> התנתק
+                </button>
+              </form>
             </li>
           </ul>
         </div>
@@ -80,6 +77,3 @@
     </div>
   </div>
 </nav>
-
-
-
