@@ -2,10 +2,14 @@ package com.organizer.platform.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.organizer.platform.model.ScraperDTO.ProcessingResult;
+import com.organizer.platform.model.ScraperDTO.WebsiteContent;
 import com.organizer.platform.model.User.AppUser;
 import com.organizer.platform.model.organizedDTO.MessageDTO;
 import com.organizer.platform.model.organizedDTO.WhatsAppMessage;
 import com.organizer.platform.service.Google.CloudStorageService;
+import com.organizer.platform.service.Scraper.ContentProcessorService;
+import com.organizer.platform.service.Scraper.WebContentScraperService;
 import com.organizer.platform.service.User.UserService;
 import com.organizer.platform.service.WhatsApp.WhatsAppMessageService;
 import com.organizer.platform.util.AccessControlResponse;
@@ -25,10 +29,14 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.persistence.EntityNotFoundException;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static com.organizer.platform.model.organizedDTO.WhatsAppMessage.WhatsAppMessageBuilder.aWhatsAppMessage;
 import static com.organizer.platform.util.PhoneNumberValidator.validateAndCheckAccess;
 import static com.organizer.platform.util.PhoneNumberValidator.validatePhoneNumber;
+import com.organizer.platform.model.ScraperDTO.TextBlock;
 
 @RestController
 @RequestMapping("/api/content")
@@ -41,14 +49,17 @@ public class AppController {
     private final UserService userService;
     private final ObjectMapper objectMapper;
     private final JmsTemplate jmsTemplate;
+    private final WebContentScraperService scraperService;
+
 
     @Autowired
-    public AppController(WhatsAppMessageService messageService, CloudStorageService cloudStorageService, UserService userService, ObjectMapper objectMapper, JmsTemplate jmsTemplate) {
+    public AppController(WhatsAppMessageService messageService, CloudStorageService cloudStorageService, UserService userService, ObjectMapper objectMapper, JmsTemplate jmsTemplate, WebContentScraperService scraperService) {
         this.messageService = messageService;
         this.cloudStorageService = cloudStorageService;
         this.userService = userService;
         this.objectMapper = objectMapper;
         this.jmsTemplate = jmsTemplate;
+        this.scraperService = scraperService;
     }
 
     @GetMapping("/{messageId}/related")
@@ -295,12 +306,12 @@ public class AppController {
         }
     }
 
-    @PutMapping("/messages/{messageId}/{content}")
+    @PutMapping("/messages/{messageId}/content")
     @ApiOperation(value = "Smart Update message content and metadata",
             notes = "Updates only the provided content of the message, while regenerating values for other fields")
     public ResponseEntity<?> SmartUpdateMessage(
             @PathVariable Long messageId,
-            @PathVariable String content,
+            @RequestParam String content,
             Authentication authentication) {
 
         if (content == null) {
@@ -325,8 +336,14 @@ public class AppController {
             messageService.deleteTags(message);
             messageService.deleteNextSteps(message);
 
+            // scrape url content, if any
+            ContentProcessorService processor = new ContentProcessorService(scraperService);
+            ProcessingResult result = processor.processContent(content);
+
             // set only the message content
-            message.setMessageContent(content);
+            message.setMessageContent(result.getOriginalContent());
+            // and purpose for possible url in content
+            message.setPurpose(result.getScrapedContent());
 
             // Serialize the WhatsAppMessage to JSON string
             String serializedMessage = objectMapper.writeValueAsString(message);
@@ -353,11 +370,11 @@ public class AppController {
         }
     }
 
-    @PostMapping("/messages/text/{content}")
-    @ApiOperation(value = "Create message content and metadata",
+    @PostMapping("/messages/text/")
+    @ApiOperation(value = "Create an organized content from text",
             notes = "Get input only the provided text content of the message, while generating values for other fields")
     public ResponseEntity<?> createTextMessage(
-            @PathVariable String content,
+            @RequestParam String content,
             @RequestParam String phoneNumber,
             Authentication authentication) {
 
@@ -380,19 +397,24 @@ public class AppController {
         String internationalFormat = validatePhoneNumber(phoneNumber)
                 .getInternationalFormat();
 
+        // scrape url content, if any
+        ContentProcessorService processor = new ContentProcessorService(scraperService);
+        ProcessingResult result = processor.processContent(content);
+
         // message creation
         WhatsAppMessage message = aWhatsAppMessage()
                 .fromNumber(internationalFormat)
-                .messageContent(content)
+                .messageContent(result.getOriginalContent())
                 .messageType("text")
                 .processed(false)
+                .purpose(result.getScrapedContent()) // should be empty if not scrapable or no url included
                 .build();
 
         try {
             // Check access control
-            AccessControlResponse accessControl = checkAccessControl(authentication, message.getFromNumber());
+            AccessControlResponse accessControl = checkAccessControl(authentication, internationalFormat);
             if (!accessControl.isAllowed()) {
-                log.warn("Unauthorized update attempt for message: {} by user: {} - {}",
+                log.warn("Unauthorized Create attempt for message: {} by user: {} - {}",
                         message.getId(), authentication.getName(), accessControl.getMessage());
                 return accessControl.toResponseEntity();
             }
@@ -405,7 +427,7 @@ public class AppController {
             jmsTemplate.convertAndSend("exampleQueue", serializedMessage);
 
             return ResponseEntity.ok()
-                    .body(Map.of("Processing...", "Updating message: " + serializedMessage));
+                    .body(Map.of("Processing...", "Creating message: " + serializedMessage));
 
         } catch (JsonProcessingException e) {
             log.error("Error serializing WhatsAppMessage", e);

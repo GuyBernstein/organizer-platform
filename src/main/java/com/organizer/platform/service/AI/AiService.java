@@ -134,6 +134,48 @@ public class AiService {
         toWhatsappMessage(response, whatsAppMessage);
     }
 
+    public void generateOrganizationFromURL(WhatsAppMessage whatsAppMessage) throws UnirestException, JsonProcessingException {
+        System.out.println("gay");
+        Unirest.setTimeouts(0, 0);
+        HttpResponse<String> response = Unirest.post("https://api.anthropic.com/v1/messages")
+                .header("x-api-key", apiKey)
+                .header("anthropic-version", "2023-06-01")
+                .header("content-type", "application/json")
+                .body("{\n    \"model\": \"claude-3-5-haiku-20241022\",\n    \"max_tokens\": 8192,\n    " +
+                        "\"temperature\": 0,\n    \"system\": \"You are an advanced content organization system" +
+                        " designed to classify and structure Hebrew web content. Your task is to analyze both the" +
+                        " URL and the scraped content of a webpage, then organize this information into a structured" +
+                        " XML format for easy retrieval and management.\\n\\nOutput following this example format:" +
+                        "\\n<content_organization_schema>\\n    <!-- הגדרת הסיווג הראשי של התוכן -->\\n    " +
+                        "<primary_classification>\\n        <category>" +
+                        "\\n            <!-- הקטגוריה הראשית של התוכן (למשל: קריירה, חינוך, עסקים) -->\\n        " +
+                        "</category>\\n        <subcategory>" +
+                        "\\n            <!-- תת-קטגוריה ספציפית יותר (למשל: מכתב פנייה, קורות חיים, הצעת עבודה) -->" +
+                        "\\n        </subcategory>\\n    </primary_classification>\\n    \\n    <content_type>" +
+                        "\\n        <type>\\n            <!-- סוג המסמך או התוכן (למשל: מכתב, מצגת, דו\\\"ח, מסמך) -->" +
+                        "\\n        </type>\\n        <purpose>" +
+                        "\\n            <!-- המטרה העיקרית של התוכן (למשל: עסקי, אישי, לימודי) -->\\n        </purpose>" +
+                        "\\n    </content_type>\\n    \\n    <user_metadata>\\n        <tags>" +
+                        "\\n            <!-- תגיות מפתח חדשות, מופרדות בפסיקים, המתארות את התוכן בהתבסס על ניתוח מעמיק של הטקסט -->" +
+                        "\\n        </tags>\\n        <next_steps>\\n            <!-- פעולות המשך נדרשות, המופרדות בפסיקים -->" +
+                        "\\n        </next_steps>\\n    </user_metadata>\\n</content_organization_schema>" +
+                        "\\n\\nDo not add any information beyond what is requested in the XML schema." +
+                        "\",\n    \"messages\": [\n      {\n        \"role\": \"user\",\n        \"content\": [" +
+                        "\n          {\n            \"type\": \"text\",\n            \"text\": " +
+                        "\"Carefully analyze both the input <input> and scraped content <scraped_content> below " +
+                        "to classify and organize the information.\\n\\n<input>\\n" + convertToJavaString(whatsAppMessage.getMessageContent()) +
+                        "\\n</input>\\n\\n<scraped_content>\\n" + convertToJavaString(whatsAppMessage.getPurpose()) +
+                        "\\n</scraped_content>\"\n          }\n        ]\n      }\n    ]\n  }")
+                .asString();
+
+        if(response.getBody() == null)
+            throw new NullPointerException("Returned null from AI during URL organization");
+        toWhatsappMessage(response, whatsAppMessage);
+    }
+
+
+
+
 
     private void toWhatsappMessage(HttpResponse<String> response, WhatsAppMessage whatsAppMessage) throws JsonProcessingException {
         try {

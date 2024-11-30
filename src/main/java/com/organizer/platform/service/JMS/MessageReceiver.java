@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mashape.unirest.http.exceptions.UnirestException;
 import com.organizer.platform.model.organizedDTO.WhatsAppMessage;
-import com.organizer.platform.repository.TagRepository;
 import com.organizer.platform.service.AI.AiService;
 import com.organizer.platform.service.Google.CloudStorageService;
 import com.organizer.platform.service.WhatsApp.WhatsAppMessageService;
@@ -50,12 +49,14 @@ public class MessageReceiver {
             // Validate message
             validateMessage(whatsAppMessage);
 
-            String mediaName = extractNameFromMetadata(whatsAppMessage.getMessageContent(),
+            String mediaName = "";
+            if(!whatsAppMessage.getMessageType().equals("text"))  // only not text message
+                mediaName = extractNameFromMetadata(whatsAppMessage.getMessageContent(),
                     whatsAppMessage.getFromNumber() + "/");
 
             validateAIProcessing(whatsAppMessage, mediaName);
 
-            whatsAppMessage = saveMessage(whatsAppMessage, mediaName);
+            whatsAppMessage = saveAfterProcessedMessage(whatsAppMessage, mediaName);
             log.info("Successfully saved message to database with ID: {}", whatsAppMessage.getId());
         } catch (JsonProcessingException e) {
             log.error("Error deserializing message from queue", e);
@@ -87,7 +88,7 @@ public class MessageReceiver {
         }
     }
 
-    private WhatsAppMessage saveMessage(WhatsAppMessage whatsAppMessage, String mediaName) throws UnirestException, JsonProcessingException {
+    private WhatsAppMessage saveAfterProcessedMessage(WhatsAppMessage whatsAppMessage, String mediaName) throws UnirestException, JsonProcessingException {
         // Save initially only if was not in the database
         if (whatsAppMessage.getId() == null) {
             whatsAppMessage = messageService.save(whatsAppMessage);
@@ -106,6 +107,12 @@ public class MessageReceiver {
     private void processMessageByType(WhatsAppMessage whatsAppMessage, String mediaName) throws UnirestException, JsonProcessingException {
         switch (whatsAppMessage.getMessageType().toLowerCase()) {
             case "text":
+                String purpose = whatsAppMessage.getPurpose();
+                if (purpose != null && !purpose.isBlank()) { // Only URL case needs non-null, non-empty purpose
+                    aiService.generateOrganizationFromURL(whatsAppMessage);
+                    break;
+                }
+                // All other cases (null or empty purpose) go to text generation
                 aiService.generateOrganizationFromText(whatsAppMessage);
                 break;
 
@@ -146,6 +153,7 @@ public class MessageReceiver {
     }
 
     private String extractNameFromMetadata(String metadata, String from) {
+
         Pattern pattern = Pattern.compile("GCS File: " + Pattern.quote(from) + "(.+)$");
         Matcher matcher = pattern.matcher(metadata);
         if (matcher.find()) {

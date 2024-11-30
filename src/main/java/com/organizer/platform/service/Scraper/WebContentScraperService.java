@@ -1,15 +1,15 @@
 package com.organizer.platform.service.Scraper;
 
 import com.organizer.platform.model.ScraperDTO.*;
-import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
+
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
-import org.jsoup.nodes.Element;
 
 @Service
 public class WebContentScraperService {
