@@ -135,7 +135,6 @@ public class AiService {
     }
 
     public void generateOrganizationFromURL(WhatsAppMessage whatsAppMessage) throws UnirestException, JsonProcessingException {
-        System.out.println("gay");
         Unirest.setTimeouts(0, 0);
         HttpResponse<String> response = Unirest.post("https://api.anthropic.com/v1/messages")
                 .header("x-api-key", apiKey)
