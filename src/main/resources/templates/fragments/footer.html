@@ -1,10 +1,109 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="he" dir="rtl">
 <body>
-  <footer th:fragment="footer" class="footer mt-auto py-3 bg-light">
-    <div class="container text-center">
-      <span class="text-muted">© 2024 Organizer Platform. All rights reserved.</span>
+<footer th:fragment="footer" class="footer mt-auto py-4 nav-whatsapp">
+  <div class="container">
+    <!-- Main Footer Content -->
+    <div class="row g-4">
+      <!-- About Section -->
+      <div class="col-12 col-md-6 col-lg-4 mb-4 mb-lg-0">
+        <h5 class="text-white mb-3 fw-bold">WhatsApp Organizer</h5>
+        <p class="text-white-50 mb-3">
+          מערכת חכמה לניהול וארגון התכתובות שלך בוואטסאפ
+        </p>
+        <div class="social-links d-flex gap-3">
+          <a href="https://www.facebook.com/guy.borenstein/" class="text-white-50 text-decoration-none transition-hover">
+            <i class="fab fa-facebook fa-lg"></i>
+          </a>
+          <a href="https://github.com/GuyBernstein?tab=repositories" class="text-white-50 text-decoration-none transition-hover">
+            <i class="fab fa-github fa-lg"></i>
+          </a>
+          <a href="https://www.instagram.com/guybernstein75/" class="text-white-50 text-decoration-none transition-hover">
+            <i class="fab fa-instagram fa-lg"></i>
+          </a>
+          <a href="https://www.linkedin.com/in/guy-gavriel-berenstien-3bb039304" class="text-white-50 text-decoration-none transition-hover">
+            <i class="fab fa-linkedin fa-lg"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="col-12 col-md-6 col-lg-4 mb-4 mb-lg-0">
+        <h5 class="text-white mb-3 fw-bold">קישורים מהירים</h5>
+        <div class="row">
+          <div class="col-6">
+            <ul class="list-unstyled">
+              <li class="mb-2">
+                <a href="#" class="text-white-50 text-decoration-none transition-hover">
+                  <i class="bi bi-arrow-left-short"></i>
+                  אודות
+                </a>
+              </li>
+              <li class="mb-2">
+                <a href="#" class="text-white-50 text-decoration-none transition-hover">
+                  <i class="bi bi-arrow-left-short"></i>
+                  סטטיסטיקה
+                </a>
+              </li>
+            </ul>
+          </div>
+
+          <div class="col-6">
+            <ul class="list-unstyled">
+              <li class="mb-2">
+                <a href="/dashboard" class="text-white-50 text-decoration-none transition-hover">
+                  <i class="bi bi-arrow-left-short"></i>
+                  לוח בקרה
+                </a>
+              </li>
+              <li class="mb-2">
+                <a href="/faq" class="text-white-50 text-decoration-none transition-hover">
+                  <i class="bi bi-arrow-left-short"></i>
+                  שאלות נפוצות
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact Info -->
+      <div class="col-lg-4">
+        <h5 class="text-white mb-3">צור קשר</h5>
+        <ul class="list-unstyled">
+          <li class="mb-2 text-white-50">
+            <a href="/images/cv.pdf" class="text-white-50 text-decoration-none transition-hover">
+              <i class="bi bi-file-earmark-person-fill me-2"></i>
+              קורות חיים
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="mailto:info@whatsapp-organizer.com" class="text-white-50 text-decoration-none transition-hover">
+              <i class="bi bi-envelope-fill me-2"></i>
+              guyu669@gmail.com
+            </a>
+          </li>
+          <li class="mb-2">
+            <a href="tel:+972123456789" class="text-white-50 text-decoration-none transition-hover">
+              <i class="bi bi-telephone-fill me-2"></i>
+              0509603888
+            </a>
+          </li>
+        </ul>
+      </div>
     </div>
-  </footer>
+
+    <!-- Copyright Bar -->
+    <div class="row mt-4 pt-3 border-top border-secondary">
+      <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
+        <span class="text-white-50">© 2024 WhatsApp Organizer. כל הזכויות שמורות.</span>
+      </div>
+      <div class="col-md-6 text-center text-md-end">
+        <a href="#" class="text-white-50 text-decoration-none me-3 transition-hover">תנאי שימוש</a>
+        <a href="#" class="text-white-50 text-decoration-none transition-hover">מדיניות פרטיות</a>
+      </div>
+    </div>
+  </div>
+</footer>
 </body>
 </html>

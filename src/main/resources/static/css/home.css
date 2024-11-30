@@ -1,29 +1,53 @@
-/* Essential WhatsApp theme variables and Hebrew support */
+/* WhatsApp Theme Variables */
 :root {
     --whatsapp-green: #25D366;
     --whatsapp-light-green: #DCF8C6;
     --whatsapp-dark: #075E54;
     --whatsapp-teal: #128C7E;
+    --whatsapp-gray: #ECE5DD;
+    --whatsapp-light-gray: #F5F5F5;
+    --whatsapp-footer-dark: #1a1a1a;
 }
 
-/* Hebrew heading styles */
-#ברוכים-הבאים-whatsapp-organizer,
-.display-4.mb-4 {
-    color: var(--whatsapp-green);
+/* Global Typography */
+body {
     font-family: 'Rubik', sans-serif;
-    font-weight: 600;
+    line-height: 1.6;
 }
 
-/* RTL layout fixes */
-html[dir="rtl"] .feature-articles {
+/* RTL Support */
+html[dir="rtl"] {
     text-align: right;
 }
 
-/* Essential brand styling */
+/* Headings */
+.display-4,
+.h1, .h2, .h3, .h4, .h5, .h6,
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Rubik', sans-serif;
+    font-weight: 600;
+    color: var(--whatsapp-dark);
+}
+
+/* Brand Colors and Elements */
+.text-whatsapp {
+    color: var(--whatsapp-green) !important;
+}
+
+.bg-whatsapp {
+    background-color: var(--whatsapp-green) !important;
+}
+
+.bg-whatsapp-light {
+    background-color: var(--whatsapp-light-green) !important;
+}
+
+/* Buttons */
 .btn-whatsapp {
     background-color: var(--whatsapp-teal);
     border: none;
     color: white;
+    transition: background-color 0.3s ease;
 }
 
 .btn-whatsapp:hover {
@@ -31,17 +55,117 @@ html[dir="rtl"] .feature-articles {
     color: white;
 }
 
+.btn-whatsapp-outline {
+    border: 2px solid var(--whatsapp-teal);
+    color: var(--whatsapp-teal);
+    background: transparent;
+    transition: all 0.3s ease;
+}
+
+.btn-whatsapp-outline:hover {
+    background-color: var(--whatsapp-teal);
+    color: white;
+}
+
+/* Feature Cards and Icons */
 .feature-icon {
     background: var(--whatsapp-light-green);
     min-height: 200px;
+    border-radius: 10px;
+    transition: transform 0.3s ease;
 }
 
-@media (max-width: 576px) {
+.feature-icon:hover {
+    transform: translateY(-5px);
+}
+
+.feature-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Footer Styles */
+.footer {
+    background-color: var(--whatsapp-footer-dark);
+}
+
+.footer a {
+    text-decoration: none;
+}
+
+.transition-hover {
+    transition: color 0.3s ease-in-out;
+}
+
+.transition-hover:hover {
+    color: var(--whatsapp-green) !important;
+}
+
+.social-links a {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.social-links a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-3px);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
     .display-4 {
-        font-size: calc(1.375rem + 1.5vw); /* Smaller title on mobile */
+        font-size: calc(1.375rem + 1.5vw);
     }
 
     .feature-icon {
-        min-height: 150px; /* Smaller icons on mobile */
+        min-height: 150px;
     }
+
+    .footer .row > div {
+        text-align: center;
+    }
+
+    .footer .social-links {
+        justify-content: center;
+    }
+
+    .footer .list-unstyled {
+        margin-bottom: 2rem;
+    }
+}
+
+/* Custom Animations */
+.hover-grow {
+    transition: transform 0.3s ease;
+}
+
+.hover-grow:hover {
+    transform: scale(1.05);
+}
+
+/* Material Design inspired card shadows */
+.shadow-whatsapp {
+    box-shadow: 0 2px 5px rgba(37, 211, 102, 0.1);
+    transition: box-shadow 0.3s ease;
+}
+
+.shadow-whatsapp:hover {
+    box-shadow: 0 5px 15px rgba(37, 211, 102, 0.2);
+}
+
+/* Form Elements */
+.form-control:focus {
+    border-color: var(--whatsapp-teal);
+    box-shadow: 0 0 0 0.25rem rgba(37, 211, 102, 0.25);
 }
