@@ -1,0 +1,88 @@
+/* Additional WhatsApp Navbar Styles */
+.nav-whatsapp {
+    background-color: var(--whatsapp-dark);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.nav-whatsapp .navbar-brand {
+    color: white;
+}
+
+.nav-whatsapp .brand-text {
+    font-family: 'Rubik', sans-serif;
+    font-weight: 600;
+    color: white;
+}
+
+.nav-whatsapp .navbar-toggler {
+    border-color: rgba(255,255,255,0.3);
+}
+
+.nav-whatsapp .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.7%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+.nav-whatsapp .nav-link {
+    color: rgba(255,255,255,0.9);
+    padding: 0.5rem 1rem;
+    transition: color 0.2s ease-in-out;
+}
+
+.nav-whatsapp .nav-link:hover,
+.nav-whatsapp .nav-link.active {
+    color: var(--whatsapp-green);
+}
+
+.nav-whatsapp .btn-google {
+    background-color: white;
+    color: #757575;
+    border: 1px solid #ddd;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.nav-whatsapp .btn-google:hover {
+    background-color: #f8f9fa;
+    color: #555;
+}
+
+.nav-whatsapp .btn-profile {
+    background-color: rgba(255,255,255,0.1);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+}
+
+.nav-whatsapp .btn-profile:hover {
+    background-color: rgba(255,255,255,0.2);
+}
+
+.nav-whatsapp .dropdown-menu {
+    background-color: white;
+    border: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.nav-whatsapp .dropdown-item {
+    color: #333;
+    padding: 0.75rem 1rem;
+}
+
+.nav-whatsapp .dropdown-item:hover {
+    background-color: var(--whatsapp-light-green);
+}
+
+.nav-whatsapp .dropdown-item i {
+    width: 1.5rem;
+    color: var(--whatsapp-teal);
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .nav-whatsapp .nav-auth {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(255,255,255,0.1);
+    }
+}

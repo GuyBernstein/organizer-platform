@@ -1,8 +1,6 @@
 package com.organizer.platform.config;
 
 import com.organizer.platform.service.Google.CustomOAuth2UserService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,8 +14,6 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
-
     private final ClientRegistrationRepository clientRegistrationRepository;
     private final CustomOAuth2UserService customOAuth2UserService;
 
@@ -51,6 +47,7 @@ public class SecurityConfig {
                                 new AntPathRequestMatcher("/webhook"),
                                 // Swagger UI paths
                                 new AntPathRequestMatcher("/swagger-ui/**"),
+                                new AntPathRequestMatcher("/v3/api-docs/**"),
                                 new AntPathRequestMatcher("/v2/api-docs"),
                                 new AntPathRequestMatcher("/swagger-resources/**"),
                                 new AntPathRequestMatcher("/webjars/**")

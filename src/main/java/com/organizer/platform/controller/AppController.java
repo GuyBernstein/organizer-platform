@@ -62,6 +62,23 @@ public class AppController {
         this.scraperService = scraperService;
     }
 
+    @DeleteMapping("/all")
+    public ResponseEntity<?> deleteAll(Authentication authentication) {
+        OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
+        String email = oauth2User.getAttribute("email");
+        if (!userService.isAdmin(email)) {
+            AccessControlResponse accessControl = AccessControlResponse.denied(
+                    HttpStatus.UNAUTHORIZED,
+                    "Authentication required",
+                    "Only admin can access this content"
+            );
+            log.warn("Unauthorized deletion attempt by user: {}", email);
+            return accessControl.toResponseEntity();
+        }
+        messageService.cleanDatabasePostgres();
+        return ResponseEntity.ok().build();
+    }
+
     @GetMapping("/{messageId}/related")
     @ApiOperation(value = "Get related messages by shared tags",
             notes = "Retrieves all messages that share tags with the specified message, organized by category and subcategory")
@@ -249,23 +266,6 @@ public class AppController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));
         }
-    }
-
-    @DeleteMapping("/all")
-    public ResponseEntity<?> deleteAll(Authentication authentication) {
-        OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
-        String email = oauth2User.getAttribute("email");
-        if (!userService.isAdmin(email)) {
-            AccessControlResponse accessControl = AccessControlResponse.denied(
-                    HttpStatus.UNAUTHORIZED,
-                    "Authentication required",
-                    "Only admin can access this content"
-            );
-            log.warn("Unauthorized deletion attempt by user: {}", email);
-            return accessControl.toResponseEntity();
-        }
-        messageService.cleanDatabasePostgres();
-        return ResponseEntity.ok().build();
     }
 
     @PutMapping("/messages/{messageId}")

@@ -1,26 +1,85 @@
-<nav th:fragment="navbar" class="navbar navbar-expand-lg navbar-light bg-light"
-     xmlns:sec="http://www.w3.org/1999/xhtml">
+<nav th:fragment="navbar" class="navbar navbar-expand-lg sticky-top nav-whatsapp"
+     xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
   <div class="container-fluid">
-    <a class="navbar-brand" th:href="@{/}">Organizer Platform</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+    <!-- Logo and Brand -->
+    <a class="navbar-brand d-flex align-items-center" href="/">
+      <i class="bi bi-whatsapp fs-2 me-2"></i>
+      <span class="brand-text">WhatsApp Organizer</span>
+    </a>
+
+    <!-- Mobile Toggle Button -->
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain"
+            aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
     </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav me-auto">
+
+    <!-- Main Navigation Items -->
+    <div class="collapse navbar-collapse" id="navbarMain">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
-          <a class="nav-link" th:href="@{/}">דף הבית</a>
+          <a class="nav-link" th:classappend="${activeTab == 'dashboard'} ? 'active' : ''" href="/dashboard">
+            <i class="fas fa-home"></i> דף הבית
+          </a>
         </li>
-        <li class="nav-item" sec:authorize="isAuthenticated()">
-          <a class="nav-link" th:href="@{/dashboard}">לוח בקרה</a>
+        <li class="nav-item">
+          <a class="nav-link" th:classappend="${activeTab == 'groups'} ? 'active' : ''" href="/groups">
+            <i class="fas fa-users"></i> קבוצות
+          </a>
+        </li>
+        <li>
+          <a href="#" class="dropdown-item" onclick="handleLogout(event)">
+            <i class="fas fa-sign-out-alt"></i> התנתק
+          </a>
         </li>
       </ul>
-      <div class="d-flex">
-        <a class="btn btn-outline-primary" th:href="@{/dashboard}" sec:authorize="!isAuthenticated()">התחברות</a>
-        <form th:action="@{/logout}" method="post" sec:authorize="isAuthenticated()" class="d-inline">
-          <button type="submit" class="btn btn-outline-danger">התנתקות</button>
-        </form>
+
+      <!-- Authentication Section -->
+      <div class="nav-auth d-flex align-items-center">
+        <!-- User Not Logged In -->
+        <div sec:authorize="isAnonymous()" class="d-flex align-items-center">
+          <a href="/oauth2/authorization/google" class="btn btn-google me-2">
+            <i class="fab fa-google"></i> התחבר עם Google
+          </a>
+        </div>
+
+        <!-- User Logged In -->
+        <div sec:authorize="isAuthenticated()" class="dropdown">
+          <button class="btn btn-profile dropdown-toggle" type="button" id="userDropdown"
+                  data-bs-toggle="dropdown" aria-expanded="false">
+            <img th:if="${#authentication.principal.picture}"
+                 th:src="${#authentication.principal.picture}"
+                 class="rounded-circle me-2"
+                 alt="Profile Picture"
+                 width="32"
+                 height="32">
+            <span th:text="${#authentication.principal.email}">שם משתמש</span>
+          </button>
+
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+            <li>
+              <a class="dropdown-item" href="/profile">
+                <i class="fas fa-user-circle"></i> פרופיל
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="/settings">
+                <i class="fas fa-cog"></i> הגדרות
+              </a>
+            </li>
+            <li>
+              <hr class="dropdown-divider">
+            </li>
+            <li>
+              <a href="/oauth2/authorization/google/logout" class="dropdown-item">
+                <i class="fas fa-sign-out-alt"></i> התנתק
+              </a>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   </div>
 </nav>
+
+
 
