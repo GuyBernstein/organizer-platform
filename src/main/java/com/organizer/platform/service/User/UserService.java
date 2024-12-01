@@ -123,6 +123,12 @@ public class UserService {
         return repository.findByEmail(email);
     }
 
+    public boolean isUserAuthorized(String email) {
+        return findByEmail(email)
+                .map(AppUser::isAuthorized)
+                .orElse(false);
+    }
+
     public Optional<AppUser> findByWhatsappNumber(String whatsappNumber) {
         return repository.findByWhatsappNumber(whatsappNumber);
     }

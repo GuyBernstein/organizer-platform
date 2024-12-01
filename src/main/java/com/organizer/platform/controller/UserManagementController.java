@@ -122,11 +122,6 @@ public class UserManagementController {
 
         return userService.findById(userId)
                 .map(AppUser -> {
-                    if (AppUser.getRole() == UserRole.ADMIN) {
-                        logger.warn("Attempt to deauthorize admin AppUser: {}", userId);
-                        return ResponseEntity.badRequest()
-                                .body("Cannot deauthorize admin users");
-                    }
                     AppUser.setAuthorized(false);
                     AppUser.setRole(UserRole.UNAUTHORIZED);
                     AppUser updatedUser = userService.save(AppUser);
