@@ -39,10 +39,12 @@ public class AuthController {
     public String dashboard(@AuthenticationPrincipal OAuth2User principal, Model model) {
         String name = principal.getAttribute("name");
         String email = principal.getAttribute("email");
+        String picture = principal.getAttribute("picture");
 
         model.addAttribute("title", "לוח בקרה - Organizer Platform");
         model.addAttribute("name", name != null ? name : "אורח");
         model.addAttribute("email", email);
+        model.addAttribute("picture", picture);
         model.addAttribute("content", "pages/dashboard/index");
 
         // Ensure user exists in our system

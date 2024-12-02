@@ -39,16 +39,16 @@
 
         <!-- User Logged In -->
         <div sec:authorize="isAuthenticated()" class="dropdown">
-          <button class="btn btn-profile dropdown-toggle" type="button" id="userDropdown"
-                  data-bs-toggle="dropdown" aria-expanded="false">
-            <img th:if="${#authentication.principal.picture}"
-                 th:src="${#authentication.principal.picture}"
-                 class="rounded-circle me-2"
-                 alt="Profile Picture"
-                 width="32"
-                 height="32">
-            <span th:text="${#authentication.principal.email}">שם משתמש</span>
-          </button>
+		  <button class="btn btn-profile dropdown-toggle" type="button" id="userDropdown"
+				  data-bs-toggle="dropdown" aria-expanded="false">
+			<img th:if="${picture}"
+				 th:src="${picture}"
+				 class="rounded-circle me-2"
+				 alt="Profile Picture"
+				 width="32"
+				 height="32">
+			<span th:text="${email}">שם משתמש</span>
+		  </button>
 
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
             <li>

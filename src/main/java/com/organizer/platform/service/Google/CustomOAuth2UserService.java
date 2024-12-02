@@ -76,6 +76,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private AppUser createNewUser(OAuth2User oauth2User) {
         String email = oauth2User.getAttribute("email");
+        String name = oauth2User.getAttribute("name");
 
         return AppUser.UserBuilder.anUser()
                 .email(email)
