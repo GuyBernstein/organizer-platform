@@ -33,18 +33,18 @@
         <div class="row">
           <div class="col-6">
             <ul class="list-unstyled">
-              <li class="mb-2">
-                <a href="#" class="text-white-50 text-decoration-none transition-hover">
-                  <i class="bi bi-arrow-left-short"></i>
-                  אודות
-                </a>
-              </li>
-              <li class="mb-2">
-                <a href="#" class="text-white-50 text-decoration-none transition-hover">
-                  <i class="bi bi-arrow-left-short"></i>
-                  סטטיסטיקה
-                </a>
-              </li>
+			  <li class="mb-2">
+				<a data-bs-toggle="modal" data-bs-target="#aboutModal" class="text-white-50 text-decoration-none transition-hover" role="button">
+				  <i class="bi bi-arrow-left-short"></i>
+				  אודות
+				</a>
+			  </li>
+			  <li class="mb-2">
+				<a data-bs-toggle="modal" data-bs-target="#faqModal" class="text-white-50 text-decoration-none transition-hover" role="button">
+				  <i class="bi bi-arrow-left-short"></i>
+				  שאלות נפוצות
+				</a>
+			  </li>
             </ul>
           </div>
 
@@ -57,52 +57,142 @@
                 </a>
               </li>
               <li class="mb-2">
-                <a href="/faq" class="text-white-50 text-decoration-none transition-hover">
+                <a href="/statistics" class="text-white-50 text-decoration-none transition-hover">
                   <i class="bi bi-arrow-left-short"></i>
-                  שאלות נפוצות
-                </a>
+				  סטטיסטיקה
+				</a>
               </li>
             </ul>
           </div>
         </div>
       </div>
-
-      <!-- Contact Info -->
-      <div class="col-lg-4">
-        <h5 class="text-white mb-3">צור קשר</h5>
-        <ul class="list-unstyled">
-          <li class="mb-2 text-white-50">
-            <a href="/images/cv.pdf" class="text-white-50 text-decoration-none transition-hover">
-              <i class="bi bi-file-earmark-person-fill me-2"></i>
-              קורות חיים
-            </a>
-          </li>
-          <li class="mb-2">
-            <a href="mailto:info@whatsapp-organizer.com" class="text-white-50 text-decoration-none transition-hover">
-              <i class="bi bi-envelope-fill me-2"></i>
-              guyu669@gmail.com
-            </a>
-          </li>
-          <li class="mb-2">
-            <a href="tel:+972123456789" class="text-white-50 text-decoration-none transition-hover">
-              <i class="bi bi-telephone-fill me-2"></i>
-              0509603888
-            </a>
-          </li>
-        </ul>
-      </div>
-    </div>
-
-    <!-- Copyright Bar -->
-    <div class="row mt-4 pt-3 border-top border-secondary">
-      <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
-        <span class="text-white-50">© 2024 WhatsApp Organizer. כל הזכויות שמורות.</span>
-      </div>
-      <div class="col-md-6 text-center text-md-end">
-        <a href="#" class="text-white-50 text-decoration-none me-3 transition-hover">תנאי שימוש</a>
-        <a href="#" class="text-white-50 text-decoration-none transition-hover">מדיניות פרטיות</a>
-      </div>
-    </div>
+	  
+	  <!-- About Modal -->
+	  <div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-lg modal-dialog-centered">
+		  <div class="modal-content">
+			<div class="modal-header border-bottom-0">
+			  <h5 class="modal-title fw-bold" id="aboutModalLabel">אודות</h5>
+			  <button type="button" class="btn-close ms-0 me-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body p-4">
+			  <!-- Add your about content here -->
+			  <p class="mb-4">תוכן אודות כאן...</p>
+			</div>
+			<div class="modal-footer border-top-0">
+			  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">סגור</button>
+			</div>
+		  </div>
+		</div>
+	  </div>
+	  
+	  <!-- FAQ Modal -->
+	  <div class="modal fade" id="faqModal" tabindex="-1" aria-labelledby="faqModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+		  <div class="modal-content">
+			<div class="modal-header border-bottom-0">
+			  <h5 class="modal-title fw-bold" id="faqModalLabel">שאלות נפוצות</h5>
+			  <button type="button" class="btn-close ms-0 me-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body p-4">
+			  <!-- FAQ Accordion -->
+			  <div class="accordion" id="faqAccordion">
+				<div class="accordion-item border rounded mb-3">
+				  <h2 class="accordion-header">
+					<button class="accordion-button fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+					  שאלה 1
+					</button>
+				  </h2>
+				  <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+					<div class="accordion-body">
+					  תשובה 1
+					</div>
+				  </div>
+				</div>
+				<!-- You can add more accordion items here -->
+			  </div>
+			</div>
+			<div class="modal-footer border-top-0">
+			  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">סגור</button>
+			</div>
+		  </div>
+		</div>
+	  </div>
+	
+	<!-- Terms of Service Modal -->
+	<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+	  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+		<div class="modal-content">
+		  <div class="modal-header border-bottom-0">
+			<h5 class="modal-title fw-bold" id="termsModalLabel">תנאי שימוש</h5>
+			<button type="button" class="btn-close ms-0 me-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+		  </div>
+		  <div class="modal-body p-4">
+			<!-- Add your terms content here -->
+			<p>תוכן תנאי השימוש כאן...</p>
+		  </div>
+		  <div class="modal-footer border-top-0">
+			<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">סגור</button>
+		  </div>
+		</div>
+	  </div>
+	</div>
+	
+	<!-- Privacy Policy Modal -->
+	<div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
+	  <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+		<div class="modal-content">
+		  <div class="modal-header border-bottom-0">
+			<h5 class="modal-title fw-bold" id="privacyModalLabel">מדיניות פרטיות</h5>
+			<button type="button" class="btn-close ms-0 me-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+		  </div>
+		  <div class="modal-body p-4">
+			<!-- Add your privacy policy content here -->
+			<p>תוכן מדיניות הפרטיות כאן...</p>
+		  </div>
+		  <div class="modal-footer border-top-0">
+			<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">סגור</button>
+		  </div>
+		</div>
+	  </div>
+	</div>
+	  
+	  <!-- Contact Info -->
+	  <div class="col-lg-4">
+		<h5 class="text-white mb-3">צור קשר</h5>
+		<ul class="list-unstyled">
+		  <li class="mb-2 text-white-50">
+			<a href="/images/cv.pdf" class="text-white-50 text-decoration-none transition-hover">
+			  <i class="bi bi-file-earmark-person-fill me-2"></i>
+			  קורות חיים
+			</a>
+		  </li>
+		  <li class="mb-2">
+			<a href="mailto:info@whatsapp-organizer.com" class="text-white-50 text-decoration-none transition-hover">
+			  <i class="bi bi-envelope-fill me-2"></i>
+			  guyu669@gmail.com
+			</a>
+		  </li>
+		  <li class="mb-2">
+			<a href="tel:+972123456789" class="text-white-50 text-decoration-none transition-hover">
+			  <i class="bi bi-telephone-fill me-2"></i>
+			  0509603888
+			</a>
+		  </li>
+		</ul>
+	  </div>
+	</div>
+	
+	<!-- Copyright Bar -->
+	<div class="row mt-4 pt-3 border-top border-secondary">
+	  <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
+		<span class="text-white-50">© 2024 WhatsApp Organizer. כל הזכויות שמורות.</span>
+	  </div>
+	  <div class="col-md-6 text-center text-md-end">
+		<a role="button" data-bs-toggle="modal" data-bs-target="#termsModal" class="text-white-50 text-decoration-none me-3 transition-hover">תנאי שימוש</a>
+		<a role="button" data-bs-toggle="modal" data-bs-target="#privacyModal" class="text-white-50 text-decoration-none transition-hover">מדיניות פרטיות</a>
+	  </div>
+	</div>
   </div>
 </footer>
 </body>
