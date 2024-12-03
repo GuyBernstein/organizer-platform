@@ -43,9 +43,9 @@
 			התחבר עם Google
 		  </a>
 		</div>
-
-        <!-- User Logged In -->
-        <div sec:authorize="isAuthenticated()" class="dropdown">
+		
+		<!-- User Logged In (show for all authenticated users) -->
+		<div sec:authorize="isAuthenticated()" class="dropdown">
 		  <button class="btn btn-profile dropdown-toggle" type="button" id="userDropdown"
 				  data-bs-toggle="dropdown" aria-expanded="false">
 			<img th:if="${picture}"
@@ -54,7 +54,7 @@
 				 alt="Profile Picture"
 				 width="32"
 				 height="32">
-			<span th:text="${email}">שם משתמש</span>
+			<span th:text="${name}">שם משתמש</span>
 		  </button>
 
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">

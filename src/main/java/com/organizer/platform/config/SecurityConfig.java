@@ -37,7 +37,6 @@ public class SecurityConfig {
                         .requestMatchers(
                                 new AntPathRequestMatcher("/"),
                                 new AntPathRequestMatcher("/login"),
-                                new AntPathRequestMatcher("/error"),
                                 // Static resources
                                 new AntPathRequestMatcher("/static/**"),
                                 new AntPathRequestMatcher("/css/**"),
@@ -66,18 +65,7 @@ public class SecurityConfig {
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService))
                         .loginPage("/login")
-                        .successHandler((request, response, authentication) -> {
-                            OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
-                            String email = oauth2User.getAttribute("email");
-
-                            // Check if user is unauthorized in your database
-                            if (!userService.isUserAuthorized(email)) {
-                                response.sendRedirect("/login?unauthorized");
-                            } else {
-                                response.sendRedirect("/dashboard");
-                            }
-
-                        })
+                        .defaultSuccessUrl("/login", true)
                 )
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login?logout=true")

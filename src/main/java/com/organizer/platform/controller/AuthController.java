@@ -36,73 +36,48 @@ public class AuthController {
     }
 
     @GetMapping("/login")
-    public String login(@RequestParam(required = false) boolean unauthorized,
+    public String login(@AuthenticationPrincipal OAuth2User principal,
+                        @RequestParam(required = false) String unauthorized,
+                        @RequestParam(required = false) String logout,
                         Model model) {
-        if (unauthorized) {
-            model.addAttribute("unauthorized", true);
+        // If user is not authenticated, show login page
+        if (principal == null) {
+            if (unauthorized != null) {
+                model.addAttribute("unauthorized", true);
+            }
+            if (logout != null) {
+                model.addAttribute("logout", true);
+            }
+            model.addAttribute("title", "התחברות - Organizer Platform");
+            model.addAttribute("content", "pages/auth/login");
+            return "layout/base";
         }
-        model.addAttribute("title", "המתנה לאישור - Organizer Platform");
-        model.addAttribute("content", "pages/auth/login");
-        return "layout/base";
-    }
 
-    // This method will handle the OAuth2 callback
-    @GetMapping("/oauth2/callback/google")
-    public String handleGoogleCallback(@AuthenticationPrincipal OAuth2User principal) {
+        // If user is authenticated, check authorization
         String email = principal.getAttribute("email");
+        Optional<AppUser> appUser = userService.findByEmail(email);
 
-        if (email == null) {
-            return "redirect:/login?error";
+        if (appUser.isPresent() && appUser.get().isAuthorized()) {
+            // User is authorized, redirect to dashboard
+            return "redirect:/dashboard";
+        } else {
+            // User is authenticated but not authorized
+            setupUnauthorizedModel(model, principal, appUser.orElse(null));
+            return "layout/base";
         }
-
-        AppUser appUser = userService.findByEmail(email)
-                .orElseGet(() -> {
-                    // Create new user if they don't exist
-                    AppUser newUser = AppUser.UserBuilder.anUser()
-                            .email(email)
-                            .role(UserRole.UNAUTHORIZED)
-                            .authorized(false)
-                            .build();
-                    return userService.save(newUser);
-                    // New user created, redirect to unauthorized page
-                });
-
-        if (!appUser.isAuthorized()) {
-            return "redirect:/login?unauthorized=true";
-        }
-
-        return "redirect:/dashboard";
     }
 
     @GetMapping("/dashboard")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('ROLE_USER') || hasAuthority('ROLE_ADMIN')")
     public String dashboard(@AuthenticationPrincipal OAuth2User principal, Model model) {
         String email = principal.getAttribute("email");
-
-        if (email == null) {
-            return "redirect:/";
+        try {
+            AppUser appUser = userService.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            setupDashboardModel(model, principal, appUser);
+        } catch (RuntimeException e){
+            return "redirect:/login?error=true";
         }
-
-        // Ensure user exists in our system
-        Optional<AppUser> appUser = userService.findByEmail(email);
-        if (appUser.isEmpty()) {
-            // Create new user if they don't exist
-            AppUser newUser = AppUser.UserBuilder.anUser()
-                    .email(email)
-                    .role(UserRole.UNAUTHORIZED)
-                    .authorized(false)
-                    .build();
-            userService.save(newUser);
-            return "redirect:/login";
-        }
-
-        // Check if user is authorized
-        if (!appUser.get().isAuthorized()) {
-            return "redirect:/login";
-        }
-
-        // User exists and is authorized, proceed to dashboard
-        setupDashboardModel(model, principal, appUser.get());
         return "layout/base";
     }
 
@@ -129,6 +104,20 @@ public class AuthController {
         )));
 
         return response;
+    }
+
+    private void setupUnauthorizedModel(Model model, OAuth2User principal, AppUser appUser) {
+        String name = principal.getAttribute("name");
+        String picture = principal.getAttribute("picture");
+        String email = principal.getAttribute("email");
+
+        model.addAttribute("title", "המתנה לאישור - Organizer Platform");
+        model.addAttribute("name", name != null ? name : "אורח");
+        model.addAttribute("email", email);
+        model.addAttribute("picture", picture);
+        model.addAttribute("content", "pages/auth/login");
+        model.addAttribute("unauthorized", true);
+        model.addAttribute("isAuthorized", appUser != null && appUser.isAuthorized());
     }
 
     private void setupDashboardModel(Model model, OAuth2User principal, AppUser appUser) {
