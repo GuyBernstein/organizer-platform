@@ -1,6 +1,7 @@
 package com.organizer.platform.config;
 
 import com.organizer.platform.service.Google.CustomOAuth2UserService;
+import com.organizer.platform.service.User.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -8,6 +9,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
@@ -16,13 +18,15 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 public class SecurityConfig {
     private final ClientRegistrationRepository clientRegistrationRepository;
     private final CustomOAuth2UserService customOAuth2UserService;
+    private final UserService userService;
 
     @Autowired
     public SecurityConfig(
             ClientRegistrationRepository clientRegistrationRepository,
-            CustomOAuth2UserService customOAuth2UserService) {
+            CustomOAuth2UserService customOAuth2UserService, UserService userService) {
         this.clientRegistrationRepository = clientRegistrationRepository;
         this.customOAuth2UserService = customOAuth2UserService;
+        this.userService = userService;
     }
 
     @Bean
@@ -32,6 +36,8 @@ public class SecurityConfig {
                 .authorizeRequests(authz -> authz
                         .requestMatchers(
                                 new AntPathRequestMatcher("/"),
+                                new AntPathRequestMatcher("/login"),
+                                new AntPathRequestMatcher("/error"),
                                 // Static resources
                                 new AntPathRequestMatcher("/static/**"),
                                 new AntPathRequestMatcher("/css/**"),
@@ -59,12 +65,22 @@ public class SecurityConfig {
                         .clientRegistrationRepository(clientRegistrationRepository)
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService))
-                        .loginPage("/oauth2/authorization/google")
-                        .defaultSuccessUrl("/dashboard", true)
+                        .loginPage("/login")
+                        .successHandler((request, response, authentication) -> {
+                            OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
+                            String email = oauth2User.getAttribute("email");
+
+                            // Check if user is unauthorized in your database
+                            if (!userService.isUserAuthorized(email)) {
+                                response.sendRedirect("/login?unauthorized");
+                            } else {
+                                response.sendRedirect("/dashboard");
+                            }
+
+                        })
                 )
                 .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .logoutSuccessUrl("/")
+                        .logoutSuccessUrl("/login?logout=true")
                         .invalidateHttpSession(true)
                         .deleteCookies("JSESSIONID")
                         .clearAuthentication(true)

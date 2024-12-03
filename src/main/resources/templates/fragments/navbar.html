@@ -7,7 +7,7 @@
       <span class="brand-text">WhatsApp Organizer</span>
     </a>
 
-    <!-- Mobile Toggle Button -->
+    <!-- Toggle Button -->
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain"
             aria-controls="navbarMain" aria-expanded="false" aria-label="Toggle navigation">
       <span class="navbar-toggler-icon"></span>
@@ -29,8 +29,9 @@
       </ul>
 
       <!-- Authentication Section -->
-      <div class="nav-auth d-flex align-items-center">
-        <!-- User Not Logged In -->
+	  <div class="nav-auth d-flex align-items-center">
+		
+		<!-- User Not Logged In -->
 		<div sec:authorize="isAnonymous()" class="d-flex align-items-center">
 		  <a href="/oauth2/authorization/google" class="btn btn-google d-flex align-items-center">
 			<svg class="me-2" style="width: 18px; height: 18px;" viewBox="0 0 24 24">

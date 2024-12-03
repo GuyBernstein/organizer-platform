@@ -116,55 +116,6 @@
                     </div>
                 </div>
             </div>
-
-
-            <!-- Authentication Section -->
-            <div class="row justify-content-center mt-5">
-                <div class="col-12 col-sm-10 col-md-8 col-lg-6 col-xl-4">
-                    <!-- Non-authenticated users section -->
-                    <div sec:authorize="isAnonymous()" class="login-section">
-                        <div class="card shadow-sm rounded-4">
-                            <div class="card-body p-4">
-                                <!-- Alert for login errors -->
-                                <div class="alert alert-danger alert-dismissible fade show"
-                                     th:if="${param.error}"
-                                     role="alert">
-                                    <i class="fas fa-exclamation-circle me-2"></i>
-                                    פרטי ההתחברות שגויים או שההתחברות נכשלה
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                </div>
-
-                                <!-- Login button -->
-                                <div class="d-grid gap-3">
-                                    <a th:href="@{/oauth2/authorization/google}"
-                                       class="btn btn-light btn-lg position-relative shadow-sm d-flex align-items-center justify-content-center">
-                                        <img src="https://cdn.cdnlogo.com/logos/g/35/google-icon.svg"
-                                             alt="Google Logo"
-                                             class="me-3"
-                                             style="height: 24px;">
-                                        <span class="fw-medium">התחבר עם Google</span>
-                                    </a>
-
-                                    <!-- Security message -->
-                                    <div class="text-muted text-center small mt-3">
-                                        <i class="fas fa-shield-alt me-1"></i>
-                                        ההתחברות מאובטחת ובטוחה
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Authenticated users section -->
-                    <div sec:authorize="isAuthenticated()" class="dashboard-section">
-                        <a th:href="@{/dashboard}"
-                           class="btn btn-whatsapp btn-lg d-block w-100">
-                            <i class="fas fa-arrow-left me-2"></i>
-                            עבור ללוח הבקרה
-                        </a>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </body>
