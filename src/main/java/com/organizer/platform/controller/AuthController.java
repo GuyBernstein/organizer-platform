@@ -1,10 +1,8 @@
 package com.organizer.platform.controller;
 
 import com.organizer.platform.model.User.AppUser;
-import com.organizer.platform.model.User.UserRole;
 import com.organizer.platform.service.User.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
@@ -12,10 +10,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 import static com.organizer.platform.model.User.AppUser.UserBuilder.anUser;
@@ -32,82 +27,54 @@ public class AuthController {
     }
 
     @GetMapping
-    public String home(Model model) {
-        model.addAttribute("title", "דף הבית - Organizer Platform");
-        model.addAttribute("content", "pages/home");
-        return "layout/base";
+    public String home(@AuthenticationPrincipal OAuth2User principal, Model model) {
+        if (principal == null) {
+            return setupAnonymousPage(model, "דף הבית", "pages/home");
+        }
+        return handleAuthorizedAccess(principal, model, "דף הבית", "pages/home");
+    }
+
+    @GetMapping("/dashboard")
+    public String dashboard(@AuthenticationPrincipal OAuth2User principal, Model model) {
+        if (principal == null) {
+            model.addAttribute("unauthorized", true);
+            return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
+        }
+        return handleAuthorizedAccess(principal, model, "לוח בקרה", "pages/dashboard/index");
     }
 
     @GetMapping("/login")
     public String login(@AuthenticationPrincipal OAuth2User principal,
-                        @RequestParam(required = false) String unauthorized,
                         @RequestParam(required = false) String logout,
                         Model model) {
         // If user is not authenticated, show login page
         if (principal == null) {
-            if (unauthorized != null) {
-                model.addAttribute("unauthorized", true);
-            }
             if (logout != null) {
                 model.addAttribute("logout", true);
             }
-            model.addAttribute("title", "התחברות - Organizer Platform");
-            model.addAttribute("content", "pages/auth/login");
-            return "layout/base";
+            return setupAnonymousPage(model, "התחברות", "pages/auth/login");
         }
+        // show dashboard
+        return handleAuthorizedAccess(principal, model, "לוח בקרה", "pages/dashboard/index");
+    }
 
-        // If user is authenticated, check authorization
+    private String handleAuthorizedAccess(OAuth2User principal, Model model, String title, String contentPage) {
         String email = principal.getAttribute("email");
         Optional<AppUser> appUser = userService.findByEmail(email);
 
         if (appUser.isPresent() && appUser.get().isAuthorized()) {
-            // User is authorized, redirect to dashboard
-            setupDashboardModel(model, principal, appUser.orElse(anUser().authorized(false).build()));
+            setupAuthorizedModel(model, principal, appUser.get(), title, contentPage);
         } else {
-            // User is authenticated but not authorized
-            setupUnauthorizedModel(model, principal, appUser.orElse(anUser().authorized(false).build()));
+            setupUnauthorizedModel(model, principal,
+                    appUser.orElse(anUser().authorized(false).build()));
         }
         return "layout/base";
     }
 
-    @GetMapping("/dashboard")
-    @PreAuthorize("hasAuthority('ROLE_USER') || hasAuthority('ROLE_ADMIN')")
-    public String dashboard(@AuthenticationPrincipal OAuth2User principal, Model model) {
-        String email = principal.getAttribute("email");
-        try {
-            AppUser appUser = userService.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            setupDashboardModel(model, principal, appUser);
-        } catch (RuntimeException e){
-            setupUnauthorizedModel(model, principal,  anUser().authorized(false).build());
-            return "redirect:/login?error=true";
-        }
+    private String setupAnonymousPage(Model model, String title, String contentPage) {
+        model.addAttribute("title", title + " - Organizer Platform");
+        model.addAttribute("content", contentPage);
         return "layout/base";
-    }
-
-    @GetMapping("/auth-status")
-    @ResponseBody
-    public Map<String, Object> authStatus(@AuthenticationPrincipal OAuth2User principal) {
-        Map<String, Object> response = new HashMap<>();
-
-        if (principal == null) {
-            response.put("status", "Not authenticated");
-            return response;
-        }
-
-        String email = principal.getAttribute("email");
-        response.put("oauth2_details", principal.getAttributes());
-
-        Optional<AppUser> appUser = userService.findByEmail(email);
-        response.put("user_exists", appUser.isPresent());
-        appUser.ifPresent(user -> response.put("app_user_details", Map.of(
-                "id", user.getId(),
-                "email", user.getEmail(),
-                "role", user.getRole(),
-                "authorized", user.isAuthorized()
-        )));
-
-        return response;
     }
 
     private void setupUnauthorizedModel(Model model, OAuth2User principal, AppUser appUser) {
@@ -124,15 +91,17 @@ public class AuthController {
         model.addAttribute("isAuthorized", appUser != null && appUser.isAuthorized());
     }
 
-    private void setupDashboardModel(Model model, OAuth2User principal, AppUser appUser) {
+    private void setupAuthorizedModel(Model model, OAuth2User principal, AppUser appUser,
+                                      String title, String contentPage) {
         String name = principal.getAttribute("name");
         String picture = principal.getAttribute("picture");
 
-        model.addAttribute("title", "לוח בקרה - Organizer Platform");
+        model.addAttribute("title", title + " - Organizer Platform");
         model.addAttribute("name", name != null ? name : "אורח");
         model.addAttribute("email", appUser.getEmail());
         model.addAttribute("picture", picture);
-        model.addAttribute("content", "pages/dashboard/index");
+        model.addAttribute("content", contentPage);
         model.addAttribute("isAuthorized", appUser.isAuthorized());
     }
+
 }
