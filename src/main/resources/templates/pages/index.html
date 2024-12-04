@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	  lang="he"
+	  dir="rtl">
+<body>
+<div th:fragment="content">
+  <!-- User is authenticated and authorized -->
+  <div class="row">
+	<div class="col-12">
+	  <div class="card shadow-sm">
+		<div class="card-body">
+		  <h2 class="card-title">ברוך הבא, <span th:text="${name}">משתמש</span>!</h2>
+		  <p><strong>דוא״ל:</strong> <span th:text="${email}">email@example.com</span></p>
+		</div>
+	  </div>
+	</div>
+  </div>
+  
+  <div class="row mt-4">
+	<div class="col-md-4 col-12 mb-4">
+	  <div class="card shadow-sm h-100">
+		<div class="card-body">
+		  <h5 class="card-title">פעולות מהירות</h5>
+		  <div class="d-grid gap-2">
+			<button class="btn btn-outline-primary">פעולה 1</button>
+			<button class="btn btn-outline-primary">פעולה 2</button>
+		  </div>
+		</div>
+	  </div>
+	</div>
+	
+	<div class="col-md-8 col-12">
+	  <div class="card shadow-sm h-100">
+		<div class="card-body">
+		  <h5 class="card-title">פעילות אחרונה</h5>
+		  <div class="table-responsive">
+			<table class="table">
+			  <thead>
+			  <tr>
+				<th>תאריך</th>
+				<th>פעולה</th>
+				<th>סטטוס</th>
+			  </tr>
+			  </thead>
+			  <tbody>
+			  <!-- Add activity rows here -->
+			  </tbody>
+			</table>
+		  </div>
+		</div>
+	  </div>
+	</div>
+  </div>
+</div>
+</body>
+</html>

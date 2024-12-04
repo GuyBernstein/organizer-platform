@@ -37,10 +37,17 @@ public class AuthController {
     @GetMapping("/dashboard")
     public String dashboard(@AuthenticationPrincipal OAuth2User principal, Model model) {
         if (principal == null) {
-            model.addAttribute("unauthorized", true);
             return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
         }
-        return handleAuthorizedAccess(principal, model, "לוח בקרה", "pages/dashboard/index");
+        return handleAuthorizedAccess(principal, model, "לוח בקרה", "pages/index");
+    }
+
+    @GetMapping("/categories")
+    public String categories(@AuthenticationPrincipal OAuth2User principal, Model model) {
+        if (principal == null) {
+            return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
+        }
+        return handleAuthorizedAccess(principal, model, "לוח בקרה", "pages/index");
     }
 
     @GetMapping("/login")
@@ -55,7 +62,7 @@ public class AuthController {
             return setupAnonymousPage(model, "התחברות", "pages/auth/login");
         }
         // show dashboard
-        return handleAuthorizedAccess(principal, model, "לוח בקרה", "pages/dashboard/index");
+        return handleAuthorizedAccess(principal, model, "לוח בקרה", "pages/index");
     }
 
     private String handleAuthorizedAccess(OAuth2User principal, Model model, String title, String contentPage) {
