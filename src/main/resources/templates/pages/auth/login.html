@@ -2,35 +2,46 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="he" dir="rtl">
 <body>
 <div th:fragment="content">
-  <div class="min-vh-100 d-flex align-items-center justify-content-center bg-warning p-4">
-	<div class="card shadow-whatsapp hover-grow" style="max-width: 450px;">
-	  <div class="card-body p-4 p-md-5">
-		<div class="text-center mb-4">
+  <div class="min-vh-100 d-flex align-items-center justify-content-center bg-warning p-2 p-sm-4">
+	<!-- Reduced padding on mobile -->
+	<div class="card shadow-whatsapp hover-grow w-100" style="max-width: 450px;">
+	  <!-- Added w-100 for full width on mobile -->
+	  <div class="card-body p-3 p-md-5">
+		<!-- Adjusted padding for mobile -->
+		<div class="text-center mb-3 mb-md-4">
+		  <!-- Reduced margin on mobile -->
+		  
 		  <!-- Unauthorized User View -->
 		  <div th:if="${unauthorized}" class="text-center">
-			<div class="text-warning mb-4">
-			  <i class="fas fa-clock" style="font-size: 3rem;"></i>
+			<div class="text-warning mb-3 mb-md-4">
+			  <i class="fas fa-clock" style="font-size: 2.5rem;"></i>
 			</div>
 			
-			<h2 class="h3 text-whatsapp mb-4">ממתין לאישור</h2>
+			<h2 class="h4 h3-md text-whatsapp mb-3 mb-md-4">ממתין לאישור</h2>
 			
-			<div class="bg-whatsapp-light p-4 rounded-3 mb-4">
+			<div class="bg-whatsapp-light p-3 p-md-4 rounded-3 mb-3 mb-md-4">
 			  <div class="mb-3" th:if="${picture}">
-				<img th:src="${picture}" alt="Profile Picture" class="rounded-circle" width="64" height="64">
+				<img th:src="${picture}" alt="Profile Picture"
+					 class="rounded-circle img-fluid"
+					 width="64" height="64"
+					 loading="lazy">
 			  </div>
 			  <p class="h5 mb-2" th:text="${name}">שם המשתמש</p>
-			  <p class="text-muted" th:text="${email}">אימייל</p>
+			  <p class="text-muted small" th:text="${email}">אימייל</p>
 			  
 			  <div class="text-whatsapp-dark">
-				<p class="mb-3">חשבונך נמצא בתהליך אישור.</p>
-				<p class="mb-0">
+				<p class="mb-3 small">חשבונך נמצא בתהליך אישור.</p>
+				<p class="mb-0 small">
 				  <i class="fas fa-info-circle me-2"></i>
 				  לקבלת גישה למערכת, אנא צור קשר עם מנהל המערכת:
 				</p>
 				<p class="mb-0 mt-2">
-				  <a href="mailto:guyu669@gmail.com" class="text-whatsapp">guyu669@gmail.com</a>
+				  <a href="mailto:guyu669@gmail.com"
+					 class="text-whatsapp d-block text-break">
+					guyu669@gmail.com
+				  </a>
 				</p>
-				<p class="mt-3 mb-0">
+				<p class="mt-3 mb-0 small">
 				  <i class="fab fa-whatsapp me-2"></i>
 				  נא לציין את מספר הטלפון שלך שיכול לקבל הודעות WhatsApp
 				</p>
@@ -40,14 +51,15 @@
 		  
 		  <!-- Login View -->
 		  <div th:unless="${unauthorized}" class="text-center">
-			<div class="text-whatsapp mb-4">
-			  <i class="fas fa-user-circle" style="font-size: 3rem;"></i>
+			<div class="text-whatsapp mb-3 mb-md-4">
+			  <i class="fas fa-user-circle" style="font-size: 2.5rem;"></i>
 			</div>
 			
-			<h2 class="h3 text-whatsapp mb-4">התחברות למערכת</h2>
+			<h2 class="h4 h3-md text-whatsapp mb-3 mb-md-4">התחברות למערכת</h2>
 			
-			<div class="d-flex justify-content-center mb-4">
-			  <a href="/oauth2/authorization/google" class="btn btn-whatsapp-outline d-flex align-items-center">
+			<div class="d-flex justify-content-center mb-3 mb-md-4">
+			  <a href="/oauth2/authorization/google"
+				 class="btn btn-whatsapp-outline d-flex align-items-center w-100 justify-content-center">
 				<svg class="me-2" style="width: 18px; height: 18px;" viewBox="0 0 24 24">
 				  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
 				  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -64,7 +76,7 @@
 		<div th:if="${param.logout}" class="alert bg-whatsapp-light">
 		  <div class="d-flex align-items-center text-whatsapp-dark">
 			<i class="fas fa-check-circle me-2"></i>
-			<p class="mb-0">התנתקת בהצלחה מהמערכת.</p>
+			<p class="mb-0 small">התנתקת בהצלחה מהמערכת.</p>
 		  </div>
 		</div>
 	  </div>
