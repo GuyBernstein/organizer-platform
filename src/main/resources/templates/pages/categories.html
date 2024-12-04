@@ -3,64 +3,166 @@
 <body>
 <div th:fragment="content">
   <div class="container-fluid">
-	<div class="row">
-	  <div class="col-12">
-		<h2 class="mb-4">קטגוריות</h2>
-		
-		<!-- Categories Accordion -->
-		<div class="accordion" id="categoriesAccordion">
-		  <!-- Iterate over categories -->
-		  <div th:each="category : ${categories}" class="accordion-item">
-			<h2 class="accordion-header" th:id="'heading-' + ${category.key}">
-			  <button class="accordion-button" type="button" data-bs-toggle="collapse"
-					  th:data-bs-target="'#collapse-' + ${category.key}" aria-expanded="true"
-					  th:aria-controls="'collapse-' + ${category.key}">
-				<span th:text="${category.key}">Category Name</span>
-				<span class="badge bg-primary ms-2"
-					  th:text="${#maps.size(category.value)}">0</span>
-			  </button>
-			</h2>
+	<h2 class="mb-4">קטגוריות</h2>
+	
+	<!-- Categories Grid -->
+	<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+	  <!-- Category Cards -->
+	  <div th:each="category : ${categories}" class="col">
+		<div class="card h-100 shadow-sm">
+		  <div class="card-body">
+			<h5 class="card-title d-flex justify-content-between align-items-center mb-3">
+			  <span th:text="${category.key}">Category Name</span>
+			  <span class="badge bg-primary rounded-pill"
+					th:text="${#maps.size(category.value)}">0</span>
+			</h5>
 			
 			<!-- Subcategories -->
-			<div th:id="'collapse-' + ${category.key}" class="accordion-collapse collapse show"
-				 th:aria-labelledby="'heading-' + ${category.key}"
-				 data-bs-parent="#categoriesAccordion">
-			  <div class="accordion-body">
-				<!-- Nested accordion for subcategories -->
-				<div class="accordion" th:id="'subCategoriesAccordion-' + ${category.key}">
-				  <div th:each="subcategory : ${category.value}" class="accordion-item">
-					<h3 class="accordion-header"
-						th:id="'subheading-' + ${category.key} + '-' + ${subcategory.key}">
-					  <button class="accordion-button collapsed" type="button"
-							  data-bs-toggle="collapse"
-							  th:data-bs-target="'#subcollapse-' + ${category.key} + '-' + ${subcategory.key}"
-							  aria-expanded="false"
-							  th:aria-controls="'subcollapse-' + ${category.key} + '-' + ${subcategory.key}">
-						<span th:text="${subcategory.key}">Subcategory Name</span>
-						<span class="badge bg-secondary ms-2"
-							  th:text="${#lists.size(subcategory.value)}">0</span>
+			<div class="list-group list-group-flush">
+			  <div th:each="subcategory : ${category.value}" class="list-group-item border-0 px-0">
+				<div class="d-flex justify-content-between align-items-center mb-2">
+				  <h6 class="mb-0" th:text="${subcategory.key}">Subcategory Name</h6>
+				  <span class="badge bg-secondary rounded-pill"
+						th:text="${#lists.size(subcategory.value)}">0</span>
+				</div>
+				
+				<!-- Virtual Scrolling Container for Messages -->
+				<div class="messages-container" style="max-height: 200px; overflow-y: auto;">
+				  <div class="d-flex flex-wrap gap-2">
+					<div th:each="message, messageStat : ${subcategory.value}"
+						 class="message-item"
+						 th:if="${messageStat.index < 50}">
+					  <button class="btn btn-sm btn-outline-primary d-flex align-items-center gap-2"
+							  data-bs-toggle="modal"
+							  th:data-bs-target="'#message-modal-' + ${message.id}">
+                        <span class="message-preview"
+							  th:text="${#strings.abbreviate(message.messageContent, 20)}">
+                          Message...
+                        </span>
 					  </button>
-					</h3>
-					
-					<!-- Messages list -->
-					<div th:id="'subcollapse-' + ${category.key} + '-' + ${subcategory.key}"
-						 class="accordion-collapse collapse"
-						 th:aria-labelledby="'subheading-' + ${category.key} + '-' + ${subcategory.key}">
-					  <div class="accordion-body">
-						<div class="list-group">
-						  <div th:each="message : ${subcategory.value}"
-							   class="list-group-item">
-							<div class="d-flex w-100 justify-content-between">
-							  <h5 class="mb-1" th:text="${message.messageContent}">Message Content</h5>
-							  <small th:text="${message.createdAt}">
-								Date
-							  </small>
-							</div>
-						  </div>
-						</div>
-					  </div>
+					</div>
+					<div th:if="${#lists.size(subcategory.value) > 50}"
+						 class="text-muted small">
+					  <button class="btn btn-sm btn-link"
+							  th:onclick="'loadMoreMessages(\'' + ${category.key} + '\', \'' + ${subcategory.key} + '\')'">
+						טען עוד...
+					  </button>
 					</div>
 				  </div>
+				</div>
+			  </div>
+			</div>
+		  </div>
+		</div>
+	  </div>
+	</div>
+	
+	<!-- Individual Message Modals -->
+	<div th:each="category : ${categories}">
+	  <div th:each="subcategory : ${category.value}">
+		<div th:each="message : ${subcategory.value}" class="modal fade"
+			 th:id="'message-modal-' + ${message.id}" tabindex="-1"
+			 th:aria-labelledby="'messageLabel-' + ${message.id}" aria-hidden="true">
+		  <div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+			  <div class="modal-header bg-light p-2 border-0">
+				<div class="container-fluid p-0">
+				  <div class="row g-2">
+					<div class="col-3">
+					  <button type="button"
+							  class="btn btn-outline-secondary w-100 p-2 rounded-3 copy-button"
+							  data-bs-toggle="tooltip"
+							  data-bs-placement="top"
+							  th:data-content="${message.messageContent}"
+							  title="העתק">
+						<i class="bi bi-clipboard fs-5 d-block mb-1"></i>
+						<span class="d-block small">העתק תוכן</span>
+					  </button>
+					</div>
+					<!-- Edit Button -->
+					<div class="col-3">
+					  <button type="button"
+							  class="btn btn-outline-primary w-100 p-2 rounded-3"
+							  data-bs-toggle="tooltip"
+							  data-bs-placement="top"
+							  title="ערוך">
+						<i class="bi bi-pencil-square fs-5 d-block mb-1"></i>
+						<span class="d-block small">ערוך</span>
+					  </button>
+					</div>
+					<!-- Smart Edit Button -->
+					<div class="col-3">
+					  <button type="button"
+							  class="btn btn-outline-info w-100 p-2 rounded-3"
+							  data-bs-toggle="tooltip"
+							  data-bs-placement="top"
+							  title="עריכה חכמה">
+						<i class="bi bi-stars fs-5 d-block mb-1"></i>
+						<span class="d-block small">עריכה חכמה</span>
+					  </button>
+					</div>
+					<!-- Delete Button -->
+					<div class="col-3">
+					  <button type="button"
+							  class="btn btn-outline-danger w-100 p-2 rounded-3"
+							  data-bs-toggle="tooltip"
+							  data-bs-placement="top"
+							  title="מחק">
+						<i class="bi bi-trash fs-5 d-block mb-1"></i>
+						<span class="d-block small">מחק</span>
+					  </button>
+					</div>
+				  </div>
+				</div>
+				
+				<button type="button"
+						class="btn-close position-absolute top-0 end-0 mt-2 me-2"
+						data-bs-dismiss="modal"
+						aria-label="Close">
+				</button>
+			  </div>
+			  
+			  <div class="modal-body">
+				<!-- Message Details -->
+				<div class="message-details mb-4">
+				  <div class="row mb-3">
+					<div class="col-6">
+					  <strong>סוג:</strong>
+					  <span class="badge bg-dark ms-2" th:text="${message.type}">Type</span>
+					</div>
+					<div class="col-6">
+					  <strong>מטרה:</strong>
+					  <span class="badge bg-dark ms-2" th:text="${message.purpose}">Purpose</span>
+					</div>
+				  </div>
+				</div>
+				
+				<!-- Message Content -->
+				<div class="message-content mb-4">
+				  <strong>תוכן:</strong>
+				  <p class="shadow-whatsapp" th:text="${message.messageContent}">Message Content</p>
+				</div>
+				
+				<!-- Tags and Next Steps -->
+				<div class="tags-section">
+				  <div th:if="${message.tags}" class="mb-3">
+					<strong>תגיות:</strong>
+					<div class="d-flex gap-2 flex-wrap mt-1">
+                      <span th:each="tag : ${message.tags}"
+							class="badge bg-info" th:text="${tag}">Tag</span>
+					</div>
+				  </div>
+				  <div th:if="${message.nextSteps}" class="mb-3">
+					<strong>צעדים הבאים:</strong>
+					<div class="d-flex gap-2 flex-wrap mt-1">
+                      <span th:each="step : ${message.nextSteps}"
+							class="badge bg-success" th:text="${step}">Step</span>
+					</div>
+				  </div>
+				</div>
+				
+				<div class="text-muted mt-3">
+				  <small th:text="${message.createdAt}">Date</small>
 				</div>
 			  </div>
 			</div>
