@@ -17,6 +17,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+
+import static com.organizer.platform.model.User.AppUser.UserBuilder.anUser;
+
 @Controller
 @RequestMapping("/")
 public class AuthController {
@@ -59,12 +62,12 @@ public class AuthController {
 
         if (appUser.isPresent() && appUser.get().isAuthorized()) {
             // User is authorized, redirect to dashboard
-            return "redirect:/dashboard";
+            setupDashboardModel(model, principal, appUser.orElse(anUser().authorized(false).build()));
         } else {
             // User is authenticated but not authorized
-            setupUnauthorizedModel(model, principal, appUser.orElse(null));
-            return "layout/base";
+            setupUnauthorizedModel(model, principal, appUser.orElse(anUser().authorized(false).build()));
         }
+        return "layout/base";
     }
 
     @GetMapping("/dashboard")
@@ -76,6 +79,7 @@ public class AuthController {
                     .orElseThrow(() -> new RuntimeException("User not found"));
             setupDashboardModel(model, principal, appUser);
         } catch (RuntimeException e){
+            setupUnauthorizedModel(model, principal,  anUser().authorized(false).build());
             return "redirect:/login?error=true";
         }
         return "layout/base";
