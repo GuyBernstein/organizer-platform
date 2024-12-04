@@ -1,7 +1,9 @@
 package com.organizer.platform.controller;
 
 import com.organizer.platform.model.User.AppUser;
+import com.organizer.platform.model.organizedDTO.MessageDTO;
 import com.organizer.platform.service.User.UserService;
+import com.organizer.platform.service.WhatsApp.WhatsAppMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -11,6 +13,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.organizer.platform.model.User.AppUser.UserBuilder.anUser;
@@ -20,10 +24,11 @@ import static com.organizer.platform.model.User.AppUser.UserBuilder.anUser;
 public class AuthController {
 
     private final UserService userService;
-
+    private final WhatsAppMessageService messageService;
     @Autowired
-    public AuthController(UserService userService) {
+    public AuthController(UserService userService, WhatsAppMessageService messageService) {
         this.userService = userService;
+        this.messageService = messageService;
     }
 
     @GetMapping
@@ -109,6 +114,13 @@ public class AuthController {
         model.addAttribute("picture", picture);
         model.addAttribute("content", contentPage);
         model.addAttribute("isAuthorized", appUser.isAuthorized());
+
+        if(contentPage.equals("pages/categories")) {
+            // Add the organized messages to the model
+            Map<String, Map<String, List<MessageDTO>>> organizedMessages =
+                    messageService.findMessageContentsByFromNumberGroupedByCategoryAndGroupedBySubCategory(appUser.getWhatsappNumber());
+            model.addAttribute("categories", organizedMessages);
+        }
     }
 
 }

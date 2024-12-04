@@ -18,15 +18,13 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 public class SecurityConfig {
     private final ClientRegistrationRepository clientRegistrationRepository;
     private final CustomOAuth2UserService customOAuth2UserService;
-    private final UserService userService;
 
     @Autowired
     public SecurityConfig(
             ClientRegistrationRepository clientRegistrationRepository,
-            CustomOAuth2UserService customOAuth2UserService, UserService userService) {
+            CustomOAuth2UserService customOAuth2UserService) {
         this.clientRegistrationRepository = clientRegistrationRepository;
         this.customOAuth2UserService = customOAuth2UserService;
-        this.userService = userService;
     }
 
     @Bean

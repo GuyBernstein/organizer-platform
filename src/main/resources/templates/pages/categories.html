@@ -1,9 +1,74 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-	  lang="he"
-	  dir="rtl">
+<html xmlns:th="http://www.thymeleaf.org" lang="he" dir="rtl">
 <body>
 <div th:fragment="content">
+  <div class="container-fluid">
+	<div class="row">
+	  <div class="col-12">
+		<h2 class="mb-4">קטגוריות</h2>
+		
+		<!-- Categories Accordion -->
+		<div class="accordion" id="categoriesAccordion">
+		  <!-- Iterate over categories -->
+		  <div th:each="category : ${categories}" class="accordion-item">
+			<h2 class="accordion-header" th:id="'heading-' + ${category.key}">
+			  <button class="accordion-button" type="button" data-bs-toggle="collapse"
+					  th:data-bs-target="'#collapse-' + ${category.key}" aria-expanded="true"
+					  th:aria-controls="'collapse-' + ${category.key}">
+				<span th:text="${category.key}">Category Name</span>
+				<span class="badge bg-primary ms-2"
+					  th:text="${#maps.size(category.value)}">0</span>
+			  </button>
+			</h2>
+			
+			<!-- Subcategories -->
+			<div th:id="'collapse-' + ${category.key}" class="accordion-collapse collapse show"
+				 th:aria-labelledby="'heading-' + ${category.key}"
+				 data-bs-parent="#categoriesAccordion">
+			  <div class="accordion-body">
+				<!-- Nested accordion for subcategories -->
+				<div class="accordion" th:id="'subCategoriesAccordion-' + ${category.key}">
+				  <div th:each="subcategory : ${category.value}" class="accordion-item">
+					<h3 class="accordion-header"
+						th:id="'subheading-' + ${category.key} + '-' + ${subcategory.key}">
+					  <button class="accordion-button collapsed" type="button"
+							  data-bs-toggle="collapse"
+							  th:data-bs-target="'#subcollapse-' + ${category.key} + '-' + ${subcategory.key}"
+							  aria-expanded="false"
+							  th:aria-controls="'subcollapse-' + ${category.key} + '-' + ${subcategory.key}">
+						<span th:text="${subcategory.key}">Subcategory Name</span>
+						<span class="badge bg-secondary ms-2"
+							  th:text="${#lists.size(subcategory.value)}">0</span>
+					  </button>
+					</h3>
+					
+					<!-- Messages list -->
+					<div th:id="'subcollapse-' + ${category.key} + '-' + ${subcategory.key}"
+						 class="accordion-collapse collapse"
+						 th:aria-labelledby="'subheading-' + ${category.key} + '-' + ${subcategory.key}">
+					  <div class="accordion-body">
+						<div class="list-group">
+						  <div th:each="message : ${subcategory.value}"
+							   class="list-group-item">
+							<div class="d-flex w-100 justify-content-between">
+							  <h5 class="mb-1" th:text="${message.messageContent}">Message Content</h5>
+							  <small th:text="${message.createdAt}">
+								Date
+							  </small>
+							</div>
+						  </div>
+						</div>
+					  </div>
+					</div>
+				  </div>
+				</div>
+			  </div>
+			</div>
+		  </div>
+		</div>
+	  </div>
+	</div>
+  </div>
 </div>
 </body>
 </html>

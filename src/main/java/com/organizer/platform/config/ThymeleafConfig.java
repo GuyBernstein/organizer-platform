@@ -16,7 +16,7 @@ public class ThymeleafConfig {
         templateResolver.setSuffix(".html");
         templateResolver.setTemplateMode(TemplateMode.HTML);
         templateResolver.setCharacterEncoding("UTF-8");
-        templateResolver.setCacheable(false); // During development
+        templateResolver.setCacheable(true);
         templateResolver.setCheckExistence(true);
         return templateResolver;
     }
