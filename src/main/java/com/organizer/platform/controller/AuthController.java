@@ -47,7 +47,7 @@ public class AuthController {
         if (principal == null) {
             return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
         }
-        return handleAuthorizedAccess(principal, model, "לוח בקרה", "pages/index");
+        return handleAuthorizedAccess(principal, model, "קטגוריות", "pages/categories");
     }
 
     @GetMapping("/login")
