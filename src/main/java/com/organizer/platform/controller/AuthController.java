@@ -123,7 +123,7 @@ public class AuthController {
         try {
             var message = messageService.findMessageById(messageId);
             if(message.isEmpty()) {
-                redirectAttributes.addFlashAttribute("errorMessage", "אירעה שגיאה במחיקת ההודעה");
+                redirectAttributes.addFlashAttribute("errorMessage", "אירעה שגיאה בעדכון ההודעה");
                 return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages");
             }
 
@@ -149,6 +149,53 @@ public class AuthController {
             messageService.partialUpdateMessage(message.get(), messageDTO);
 
             redirectAttributes.addFlashAttribute("successMessage", "ההודעה עודכנה");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "אירעה שגיאה בעדכון ההודעה");
+        }
+
+        return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages");
+    }
+
+    @PostMapping("/messages/smartUpdate")
+    public String smartEditTextMessage(
+            @RequestParam Long messageId,
+            @RequestParam String messageContent,
+            @AuthenticationPrincipal OAuth2User principal,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+
+        if (principal == null) {
+            return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
+        }
+
+        try {
+            var message = messageService.findMessageById(messageId);
+            if(message.isEmpty()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "אירעה שגיאה בעדכון ההודעה");
+                return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages");
+            }
+
+            // scrape url content, if any
+            ContentProcessorService processor = new ContentProcessorService(scraperService);
+            ProcessingResult result = processor.processContent(messageContent);
+
+            // remove relations in the database from both sides
+            messageService.deleteTags(message.get());
+            messageService.deleteNextSteps(message.get());
+
+            // set only the message content
+            message.get().setMessageContent(result.getOriginalContent());
+            // and purpose for possible url in content
+            message.get().setPurpose(result.getScrapedContent());
+
+            // Serialize the WhatsAppMessage to JSON string
+            String serializedMessage = objectMapper.writeValueAsString(message.get());
+
+            // Send the serialized JSON string to the queue for a reorganization of the message
+            jmsTemplate.convertAndSend("exampleQueue", serializedMessage);
+
+
+            redirectAttributes.addFlashAttribute("successMessage", "ההודעה נמצאת בעדכון");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "אירעה שגיאה בעדכון ההודעה");
         }

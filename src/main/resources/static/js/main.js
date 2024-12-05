@@ -83,23 +83,37 @@ const observer = new IntersectionObserver((entries) => {
 document.querySelectorAll('.messages-container').forEach(container => {
   observer.observe(container)
 })
-// toggle between view and edit mode in the modal
-function toggleEditMode(button) {
+// toggle between view, edit and smart edit mode in the modal
+function toggleMode(button, mode) {
   const modal = button.closest('.modal');
   const viewMode = modal.querySelector('.view-mode');
   const editMode = modal.querySelector('.edit-mode');
+  const smartEditMode = modal.querySelector('.smart-edit-mode');
   const editButton = modal.querySelector('.edit-text');
+  const smartEditButton = modal.querySelector('.smart-edit-text');
 
-  if (viewMode.classList.contains('d-none')) {
-    // Switch to View Mode
-    viewMode.classList.remove('d-none');
-    editMode.classList.add('d-none');
-    editButton.textContent = 'ערוך';
-  } else {
-    // Switch to Edit Mode
-    viewMode.classList.add('d-none');
-    editMode.classList.remove('d-none');
-    editButton.textContent = 'תצוגה';
+  // Hide all modes first
+  viewMode.classList.add('d-none');
+  editMode.classList.add('d-none');
+  smartEditMode.classList.add('d-none');
+
+  // Reset button texts
+  editButton.textContent = 'ערוך';
+  smartEditButton.textContent = 'עריכה חכמה';
+
+  // Show selected mode
+  switch(mode) {
+    case 'view':
+      viewMode.classList.remove('d-none');
+      break;
+    case 'edit':
+      editMode.classList.remove('d-none');
+      editButton.textContent = 'תצוגה';
+      break;
+    case 'smart':
+      smartEditMode.classList.remove('d-none');
+      smartEditButton.textContent = 'תצוגה';
+      break;
   }
 }
 

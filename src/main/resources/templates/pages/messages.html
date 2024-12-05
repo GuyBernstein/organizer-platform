@@ -135,11 +135,11 @@
 						<span class="d-block small">העתק תוכן</span>
 					  </button>
 					</div>
-					<!-- Toggle Edit Button -->
+					<!-- Regular Edit Button -->
 					<div class="col-3">
 					  <button type="button"
 							  class="btn btn-outline-primary w-100 p-2 rounded-3"
-							  onclick="toggleEditMode(this)"
+							  onclick="toggleMode(this, 'edit')"
 							  data-bs-toggle="tooltip"
 							  data-bs-placement="top"
 							  title="ערוך">
@@ -151,11 +151,12 @@
 					<div class="col-3">
 					  <button type="button"
 							  class="btn btn-outline-info w-100 p-2 rounded-3"
+							  onclick="toggleMode(this, 'smart')"
 							  data-bs-toggle="tooltip"
 							  data-bs-placement="top"
 							  title="עריכה חכמה">
 						<i class="bi bi-stars fs-5 d-block mb-1"></i>
-						<span class="d-block small">עריכה חכמה</span>
+						<span class="d-block small smart-edit-text">עריכה חכמה</span>
 					  </button>
 					</div>
 					<!-- Delete Button -->
@@ -226,9 +227,10 @@
 				  </div>
 				</div>
 				
-				<!-- Edit Mode Content -->
+				<!-- Regular Edit Mode -->
 				<form class="edit-mode d-none" th:action="@{/messages/update}" method="post">
 				  <input type="hidden" name="messageId" th:value="${message.id}" />
+				  <input type="hidden" name="editMode" value="regular" />
 				  
 				  <!-- Type and Purpose -->
 				  <div class="row mb-3">
@@ -268,6 +270,25 @@
 				  <!-- Save/Cancel Buttons -->
 				  <div class="d-flex gap-2 justify-content-end">
 					<button type="button" class="btn btn-secondary" onclick="toggleEditMode(this)">ביטול</button>
+					<button type="submit" class="btn btn-primary">שמור</button>
+				  </div>
+				</form>
+				
+				<!-- Smart Edit Mode -->
+				<form class="smart-edit-mode d-none" th:action="@{/messages/smartUpdate}" method="post">
+				  <input type="hidden" name="messageId" th:value="${message.id}" />
+				  <input type="hidden" name="editMode" value="smart" />
+
+				  <!-- Only Message Content is Editable -->
+				  <div class="mb-3">
+					<label class="form-label">תוכן:</label>
+					<textarea class="form-control" name="messageContent"
+							  rows="4" required th:text="${message.messageContent}"></textarea>
+				  </div>
+				  
+				  <!-- Save/Cancel Buttons -->
+				  <div class="d-flex gap-2 justify-content-end">
+					<button type="button" class="btn btn-secondary" onclick="toggleMode(this, 'view')">ביטול</button>
 					<button type="submit" class="btn btn-primary">שמור</button>
 				  </div>
 				</form>
