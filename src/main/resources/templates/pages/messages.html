@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="he" dir="rtl">
 <body>
 <div th:fragment="content">
-  <div class="container-fluid">
+  <div class="container-fluid px-4 py-3 border-bottom bg-light">
 	
 	<!-- Flash Messages -->
 	<div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
@@ -15,7 +15,46 @@
 	  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 	</div>
 	
-	<h2 class="mb-4">קטגוריות</h2>
+	<!-- Main Heading Section -->
+	<div class="row align-items-center justify-content-center mb-4">
+	  <!-- Left Side Buttons -->
+	  <div class="col-md-3 text-end">
+		<div class="d-flex gap-2 justify-content-end">
+		  <button class="btn btn-outline-primary d-flex flex-column align-items-center p-2" title="הוסף מסמך">
+			<i class="bi bi-file-earmark-text fs-5 mb-1"></i>
+			<span class="small">הוסף מסמך</span>
+		  </button>
+		  <button class="btn btn-outline-primary d-flex flex-column align-items-center p-2" title="הוסף תמונה">
+			<i class="bi bi-image fs-5 mb-1"></i>
+			<span class="small">הוסף תמונה</span>
+		  </button>
+		  <button class="btn btn-outline-primary d-flex flex-column align-items-center p-2" title="הוסף הודעת טקסט">
+			<i class="bi bi-chat-text fs-5 mb-1"></i>
+			<span class="small">הוסף טקסט</span>
+		  </button>
+		</div>
+	  </div>
+	  
+	  <!-- Centered Heading (Middle) -->
+	  <div class="col-md-6 text-center">
+		<h2 class="display-6 mb-2">ניהול הודעות</h2>
+		<div class="d-flex justify-content-center gap-3 text-muted small">
+		  <div class="d-flex align-items-center">
+			<i class="bi bi-folder me-2"></i>
+			<span th:text="${#maps.size(categories)}">0</span>
+			<span class="ms-1">קטגוריות</span>
+		  </div>
+		  <div class="d-flex align-items-center">
+			<i class="bi bi-chat-dots me-2"></i>
+			<span th:text="${totalMessages}">0</span>
+			<span class="ms-1">הודעות</span>
+		  </div>
+		</div>
+	  </div>
+	  
+	  <!-- Right Side (Empty for symmetry) -->
+	  <div class="col-md-3"></div>
+	</div>
 	
 	<!-- Categories Grid -->
 	<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">

@@ -140,6 +140,12 @@ public class AuthController {
             Map<String, Map<String, List<MessageDTO>>> organizedMessages =
                     messageService.findMessageContentsByFromNumberGroupedByCategoryAndGroupedBySubCategory(appUser.getWhatsappNumber());
             model.addAttribute("categories", organizedMessages);
+            long totalMessages = organizedMessages.values()    // Get all inner maps
+                    .stream()
+                    .flatMap(innerMap -> innerMap.values().stream())  // Get all lists
+                    .mapToLong(List::size)              // Get all messages count
+                    .sum();
+            model.addAttribute("totalMessages", totalMessages);
         }
     }
 
