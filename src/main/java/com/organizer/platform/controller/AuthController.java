@@ -21,9 +21,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import javax.persistence.EntityNotFoundException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.organizer.platform.model.User.AppUser.UserBuilder.anUser;
 import static com.organizer.platform.model.organizedDTO.WhatsAppMessage.WhatsAppMessageBuilder.aWhatsAppMessage;
@@ -99,6 +99,58 @@ public class AuthController {
             redirectAttributes.addFlashAttribute("successMessage", "ההודעה נמחקה בהצלחה");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "אירעה שגיאה במחיקת ההודעה");
+        }
+
+        return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages");
+    }
+
+    @PostMapping("/messages/update")
+    public String editTextMessage(
+            @RequestParam Long messageId,
+            @RequestParam String type,
+            @RequestParam String purpose,
+            @RequestParam String messageContent,
+            @RequestParam String tags,
+            @RequestParam String nextSteps,
+            @AuthenticationPrincipal OAuth2User principal,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+
+        if (principal == null) {
+            return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
+        }
+
+        try {
+            var message = messageService.findMessageById(messageId);
+            if(message.isEmpty()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "אירעה שגיאה במחיקת ההודעה");
+                return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages");
+            }
+
+            Set<String> commaSeparatedTags = Arrays.stream(tags.split(","))
+                    .map(String::trim)
+                    .collect(Collectors.toSet());
+
+            Set<String> commaSeparatedNextSteps = Arrays.stream(nextSteps.split(","))
+                    .map(String::trim)
+                    .collect(Collectors.toSet());
+
+            MessageDTO messageDTO = MessageDTO.builder()
+                    .id(messageId)
+                    .messageContent(messageContent)
+                    .type(type)
+                    .purpose(purpose)
+                    .category(message.get().getCategory())
+                    .subCategory(message.get().getSubCategory())
+                    .tags(commaSeparatedTags)
+                    .nextSteps(commaSeparatedNextSteps)
+                    .build();
+
+            messageService.partialUpdateMessage(message.get(), messageDTO);
+
+            redirectAttributes.addFlashAttribute("successMessage", "ההודעה עודכנה");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "אירעה שגיאה בעדכון ההודעה");
         }
 
         return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages");

@@ -83,4 +83,23 @@ const observer = new IntersectionObserver((entries) => {
 document.querySelectorAll('.messages-container').forEach(container => {
   observer.observe(container)
 })
+// toggle between view and edit mode in the modal
+function toggleEditMode(button) {
+  const modal = button.closest('.modal');
+  const viewMode = modal.querySelector('.view-mode');
+  const editMode = modal.querySelector('.edit-mode');
+  const editButton = modal.querySelector('.edit-text');
+
+  if (viewMode.classList.contains('d-none')) {
+    // Switch to View Mode
+    viewMode.classList.remove('d-none');
+    editMode.classList.add('d-none');
+    editButton.textContent = 'ערוך';
+  } else {
+    // Switch to Edit Mode
+    viewMode.classList.add('d-none');
+    editMode.classList.remove('d-none');
+    editButton.textContent = 'תצוגה';
+  }
+}
 

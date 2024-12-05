@@ -36,35 +36,6 @@
 			<i class="bi bi-chat-text fs-5 mb-1"></i>
 			<span class="small">הוסף טקסט</span>
 		  </button>
-		  
-		  <!-- Add Text Message Modal -->
-		  <div class="modal fade" id="addTextMessageModal" tabindex="-1" aria-labelledby="addTextMessageModalLabel" aria-hidden="true">
-			<div class="modal-dialog modal-dialog-centered">
-			  <div class="modal-content">
-				<div class="modal-header">
-				  <h5 class="modal-title" id="addTextMessageModalLabel">הוסף הודעת טקסט חדשה</h5>
-				  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-				</div>
-				<form th:action="@{/messages/text}" method="post" class="m-0">
-				  <div class="modal-body">
-					<input type="hidden" name="phoneNumber" th:value="${phone}" />
-					<div class="mb-3">
-					  <label for="messageContent" class="form-label">תוכן ההודעה</label>
-					  <textarea class="form-control"
-								id="messageContent"
-								name="content"
-								rows="4"
-								required></textarea>
-					</div>
-				  </div>
-				  <div class="modal-footer">
-					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
-					<button type="submit" class="btn btn-primary">שמור הודעה</button>
-				  </div>
-				</form>
-			  </div>
-			</div>
-		  </div>
 		</div>
 	  </div>
 	  
@@ -164,15 +135,16 @@
 						<span class="d-block small">העתק תוכן</span>
 					  </button>
 					</div>
-					<!-- Edit Button -->
+					<!-- Toggle Edit Button -->
 					<div class="col-3">
 					  <button type="button"
 							  class="btn btn-outline-primary w-100 p-2 rounded-3"
+							  onclick="toggleEditMode(this)"
 							  data-bs-toggle="tooltip"
 							  data-bs-placement="top"
 							  title="ערוך">
 						<i class="bi bi-pencil-square fs-5 d-block mb-1"></i>
-						<span class="d-block small">ערוך</span>
+						<span class="d-block small edit-text">ערוך</span>
 					  </button>
 					</div>
 					<!-- Smart Edit Button -->
@@ -211,44 +183,94 @@
 				</button>
 			  </div>
 			  
+			  <!-- Modal Body with View/Edit Forms -->
 			  <div class="modal-body">
-				<!-- Message Details -->
-				<div class="message-details mb-4">
+				<!-- View Mode Content -->
+				<div class="view-mode">
+				  <!-- Message Details -->
+				  <div class="message-details mb-4">
+					<div class="row mb-3">
+					  <div class="col-6">
+						<strong>סוג:</strong>
+						<span class="badge bg-dark ms-2" th:text="${message.type}">Type</span>
+					  </div>
+					  <div class="col-6">
+						<strong>מטרה:</strong>
+						<span class="badge bg-dark ms-2" th:text="${message.purpose}">Purpose</span>
+					  </div>
+					</div>
+				  </div>
+				  
+				  <!-- Message Content -->
+				  <div class="message-content mb-4">
+					<strong>תוכן:</strong>
+					<p class="shadow-whatsapp" th:text="${message.messageContent}">Message Content</p>
+				  </div>
+				  
+				  <!-- Tags and Next Steps -->
+				  <div class="tags-section">
+					<div th:if="${message.tags}" class="mb-3">
+					  <strong>תגיות:</strong>
+					  <div class="d-flex gap-2 flex-wrap mt-1">
+                    <span th:each="tag : ${message.tags}"
+						  class="badge bg-info" th:text="${tag}">Tag</span>
+					  </div>
+					</div>
+					<div th:if="${message.nextSteps}" class="mb-3">
+					  <strong>צעדים הבאים:</strong>
+					  <div class="d-flex gap-2 flex-wrap mt-1">
+                    <span th:each="step : ${message.nextSteps}"
+						  class="badge bg-success" th:text="${step}">Step</span>
+					  </div>
+					</div>
+				  </div>
+				</div>
+				
+				<!-- Edit Mode Content -->
+				<form class="edit-mode d-none" th:action="@{/messages/update}" method="post">
+				  <input type="hidden" name="messageId" th:value="${message.id}" />
+				  
+				  <!-- Type and Purpose -->
 				  <div class="row mb-3">
 					<div class="col-6">
-					  <strong>סוג:</strong>
-					  <span class="badge bg-dark ms-2" th:text="${message.type}">Type</span>
+					  <label class="form-label">סוג:</label>
+					  <input type="text" class="form-control" name="type"
+							 th:value="${message.type}" required>
 					</div>
 					<div class="col-6">
-					  <strong>מטרה:</strong>
-					  <span class="badge bg-dark ms-2" th:text="${message.purpose}">Purpose</span>
+					  <label class="form-label">מטרה:</label>
+					  <input type="text" class="form-control" name="purpose"
+							 th:value="${message.purpose}" required>
 					</div>
 				  </div>
-				</div>
-				
-				<!-- Message Content -->
-				<div class="message-content mb-4">
-				  <strong>תוכן:</strong>
-				  <p class="shadow-whatsapp" th:text="${message.messageContent}">Message Content</p>
-				</div>
-				
-				<!-- Tags and Next Steps -->
-				<div class="tags-section">
-				  <div th:if="${message.tags}" class="mb-3">
-					<strong>תגיות:</strong>
-					<div class="d-flex gap-2 flex-wrap mt-1">
-                      <span th:each="tag : ${message.tags}"
-							class="badge bg-info" th:text="${tag}">Tag</span>
-					</div>
+				  
+				  <!-- Message Content -->
+				  <div class="mb-3">
+					<label class="form-label">תוכן:</label>
+					<textarea class="form-control" name="messageContent"
+							  rows="4" required th:text="${message.messageContent}"></textarea>
 				  </div>
-				  <div th:if="${message.nextSteps}" class="mb-3">
-					<strong>צעדים הבאים:</strong>
-					<div class="d-flex gap-2 flex-wrap mt-1">
-                      <span th:each="step : ${message.nextSteps}"
-							class="badge bg-success" th:text="${step}">Step</span>
-					</div>
+				  
+				  <!-- Tags -->
+				  <div class="mb-3">
+					<label class="form-label">תגיות (הפרד בפסיקים):</label>
+					<input type="text" class="form-control" name="tags"
+						   th:value="${#strings.listJoin(message.tags, ', ')}">
 				  </div>
-				</div>
+				  
+				  <!-- Next Steps -->
+				  <div class="mb-3">
+					<label class="form-label">צעדים הבאים (הפרד בפסיקים):</label>
+					<input type="text" class="form-control" name="nextSteps"
+						   th:value="${#strings.listJoin(message.nextSteps, ', ')}">
+				  </div>
+				  
+				  <!-- Save/Cancel Buttons -->
+				  <div class="d-flex gap-2 justify-content-end">
+					<button type="button" class="btn btn-secondary" onclick="toggleEditMode(this)">ביטול</button>
+					<button type="submit" class="btn btn-primary">שמור</button>
+				  </div>
+				</form>
 				
 				<div class="text-muted mt-3">
 				  <small th:text="${message.createdAt}">Date</small>
@@ -256,6 +278,35 @@
 			  </div>
 			</div>
 		  </div>
+		</div>
+	  </div>
+	</div>
+	
+	<!-- Add Text Message Modal -->
+	<div class="modal fade" id="addTextMessageModal" tabindex="-1" aria-labelledby="addTextMessageModalLabel" aria-hidden="true">
+	  <div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+		  <div class="modal-header">
+			<h5 class="modal-title" id="addTextMessageModalLabel">הוסף הודעת טקסט חדשה</h5>
+			<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+		  </div>
+		  <form th:action="@{/messages/text}" method="post" class="m-0">
+			<div class="modal-body">
+			  <input type="hidden" name="phoneNumber" th:value="${phone}" />
+			  <div class="mb-3">
+				<label for="messageContent" class="form-label">תוכן ההודעה</label>
+				<textarea class="form-control"
+						  id="messageContent"
+						  name="content"
+						  rows="4"
+						  required></textarea>
+			  </div>
+			</div>
+			<div class="modal-footer">
+			  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+			  <button type="submit" class="btn btn-primary">שמור הודעה</button>
+			</div>
+		  </form>
 		</div>
 	  </div>
 	</div>
