@@ -10,8 +10,10 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 import java.util.Map;
@@ -20,9 +22,8 @@ import java.util.Optional;
 import static com.organizer.platform.model.User.AppUser.UserBuilder.anUser;
 
 @Controller
-@RequestMapping("/")
+@RequestMapping({"/"})
 public class AuthController {
-
     private final UserService userService;
     private final WhatsAppMessageService messageService;
     @Autowired
@@ -47,12 +48,12 @@ public class AuthController {
         return handleAuthorizedAccess(principal, model, "לוח בקרה", "pages/index");
     }
 
-    @GetMapping("/categories")
-    public String categories(@AuthenticationPrincipal OAuth2User principal, Model model) {
+    @GetMapping("/messages")
+    public String messages(@AuthenticationPrincipal OAuth2User principal, Model model) {
         if (principal == null) {
             return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
         }
-        return handleAuthorizedAccess(principal, model, "קטגוריות", "pages/categories");
+        return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages");
     }
 
     @GetMapping("/login")
@@ -68,6 +69,25 @@ public class AuthController {
         }
         // show dashboard
         return handleAuthorizedAccess(principal, model, "לוח בקרה", "pages/index");
+    }
+
+    @PostMapping("/messages/delete")
+    public String deleteMessage(@RequestParam Long messageId,
+                                @AuthenticationPrincipal OAuth2User principal,
+                                Model model,
+                                RedirectAttributes redirectAttributes) {
+        if (principal == null) {
+            return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
+        }
+
+        try {
+            messageService.deleteMessage(messageId);
+            redirectAttributes.addFlashAttribute("successMessage", "ההודעה נמחקה בהצלחה");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "אירעה שגיאה במחיקת ההודעה");
+        }
+
+        return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages");
     }
 
     private String handleAuthorizedAccess(OAuth2User principal, Model model, String title, String contentPage) {
@@ -115,7 +135,7 @@ public class AuthController {
         model.addAttribute("content", contentPage);
         model.addAttribute("isAuthorized", appUser.isAuthorized());
 
-        if(contentPage.equals("pages/categories")) {
+        if(contentPage.equals("pages/messages")) {
             // Add the organized messages to the model
             Map<String, Map<String, List<MessageDTO>>> organizedMessages =
                     messageService.findMessageContentsByFromNumberGroupedByCategoryAndGroupedBySubCategory(appUser.getWhatsappNumber());

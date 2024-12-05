@@ -156,10 +156,6 @@ public class WhatsAppMessageService {
         return messageRepository.save(whatsAppMessage);
     }
 
-    public void delete(WhatsAppMessage whatsAppMessage) {
-        messageRepository.delete(whatsAppMessage);
-    }
-
     @Transactional
     public void cleanDatabasePostgres() {
         // Disable trigger temporarily
@@ -245,5 +241,15 @@ public class WhatsAppMessageService {
                 tagRepository.delete(tag);
         }));
         message.getTags().clear(); // disconnect the relation from the other side
+    }
+
+    @Transactional
+    public void deleteMessage(Long messageId) {
+        var whatsAppMessage = findMessageById(messageId);
+        if(whatsAppMessage.isEmpty())
+            return;
+        deleteNextSteps(whatsAppMessage.get());
+        deleteTags(whatsAppMessage.get());
+        messageRepository.deleteById(messageId);
     }
 }

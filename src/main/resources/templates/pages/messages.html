@@ -3,6 +3,18 @@
 <body>
 <div th:fragment="content">
   <div class="container-fluid">
+	
+	<!-- Flash Messages -->
+	<div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+	  <span th:text="${successMessage}"></span>
+	  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+	</div>
+	
+	<div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+	  <span th:text="${errorMessage}"></span>
+	  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+	</div>
+	
 	<h2 class="mb-4">קטגוריות</h2>
 	
 	<!-- Categories Grid -->
@@ -103,14 +115,18 @@
 					</div>
 					<!-- Delete Button -->
 					<div class="col-3">
-					  <button type="button"
-							  class="btn btn-outline-danger w-100 p-2 rounded-3"
-							  data-bs-toggle="tooltip"
-							  data-bs-placement="top"
-							  title="מחק">
-						<i class="bi bi-trash fs-5 d-block mb-1"></i>
-						<span class="d-block small">מחק</span>
-					  </button>
+					  <form th:action="@{/messages/delete}" method="post" class="m-0">
+						<input type="hidden" name="messageId" th:value="${message.id}" />
+						<button type="submit"
+								class="btn btn-outline-danger w-100 p-2 rounded-3"
+								data-bs-toggle="tooltip"
+								data-bs-placement="top"
+								title="מחק"
+								onclick="return confirm('האם אתה בטוח שברצונך למחוק הודעה זו?');">
+						  <i class="bi bi-trash fs-5 d-block mb-1"></i>
+						  <span class="d-block small">מחק</span>
+						</button>
+					  </form>
 					</div>
 				  </div>
 				</div>
