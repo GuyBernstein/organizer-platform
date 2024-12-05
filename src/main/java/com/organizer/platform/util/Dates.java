@@ -11,7 +11,7 @@ import java.util.Objects;
 import java.util.TimeZone;
 
 public class Dates {
-    public static SimpleDateFormat shortDate = new SimpleDateFormat("YYYY-MM-dd");
+    public static SimpleDateFormat shortDate = new SimpleDateFormat("yyyy-MM-dd");
     public static TimeZone TIME_ZONE = TimeZone.getTimeZone("Asia/Jerusalem");
 
     public Dates() {
@@ -59,8 +59,7 @@ public class Dates {
         c.set(Calendar.MINUTE, localDate.getMinute());
         c.set(Calendar.SECOND, localDate.getSecond());
         c.set(Calendar.MILLISECOND, 0);
-        LocalDateTime res = LocalDateTime.fromCalendarFields(c);
-        return res;
+        return LocalDateTime.fromCalendarFields(c);
     }
 
     public static Date nowUTC() {

@@ -26,7 +26,7 @@ public class WhatsAppMessage implements Serializable {
     @Column(nullable = false, updatable = false)
     private Date createdAt = Dates.nowUTC();
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Jerusalem")
     @JsonProperty("createdAt")
     public LocalDateTime calcCreatedAt() {
         return Dates.atLocalTime(createdAt);

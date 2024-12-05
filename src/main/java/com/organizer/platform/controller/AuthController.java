@@ -1,10 +1,16 @@
 package com.organizer.platform.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.organizer.platform.model.ScraperDTO.ProcessingResult;
 import com.organizer.platform.model.User.AppUser;
 import com.organizer.platform.model.organizedDTO.MessageDTO;
+import com.organizer.platform.model.organizedDTO.WhatsAppMessage;
+import com.organizer.platform.service.Scraper.ContentProcessorService;
+import com.organizer.platform.service.Scraper.WebContentScraperService;
 import com.organizer.platform.service.User.UserService;
 import com.organizer.platform.service.WhatsApp.WhatsAppMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jms.core.JmsTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
@@ -20,16 +26,24 @@ import java.util.Map;
 import java.util.Optional;
 
 import static com.organizer.platform.model.User.AppUser.UserBuilder.anUser;
+import static com.organizer.platform.model.organizedDTO.WhatsAppMessage.WhatsAppMessageBuilder.aWhatsAppMessage;
 
 @Controller
 @RequestMapping({"/"})
 public class AuthController {
     private final UserService userService;
     private final WhatsAppMessageService messageService;
+    private final WebContentScraperService scraperService;
+    private final ObjectMapper objectMapper;
+    private final JmsTemplate jmsTemplate;
+
     @Autowired
-    public AuthController(UserService userService, WhatsAppMessageService messageService) {
+    public AuthController(UserService userService, WhatsAppMessageService messageService, WebContentScraperService scraperService, ObjectMapper objectMapper, JmsTemplate jmsTemplate) {
         this.userService = userService;
         this.messageService = messageService;
+        this.scraperService = scraperService;
+        this.objectMapper = objectMapper;
+        this.jmsTemplate = jmsTemplate;
     }
 
     @GetMapping
@@ -85,6 +99,43 @@ public class AuthController {
             redirectAttributes.addFlashAttribute("successMessage", "ההודעה נמחקה בהצלחה");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "אירעה שגיאה במחיקת ההודעה");
+        }
+
+        return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages");
+    }
+
+    @PostMapping("/messages/text")
+    public String createTextMessage(
+            @RequestParam String content,
+            @RequestParam String phoneNumber,
+            @AuthenticationPrincipal OAuth2User principal,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+
+        if (principal == null) {
+            return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
+        }
+
+        try {
+            // Create and process the message
+            ContentProcessorService processor = new ContentProcessorService(scraperService);
+            ProcessingResult result = processor.processContent(content);
+
+            WhatsAppMessage message = aWhatsAppMessage()
+                    .fromNumber(phoneNumber)
+                    .messageContent(result.getOriginalContent())
+                    .messageType("text")
+                    .processed(false)
+                    .purpose(result.getScrapedContent())
+                    .build();
+
+            // Serialize and send to queue
+            String serializedMessage = objectMapper.writeValueAsString(message);
+            jmsTemplate.convertAndSend("exampleQueue", serializedMessage);
+
+            redirectAttributes.addFlashAttribute("successMessage", "ההודעה נשלחה לעיבוד בהצלחה");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "אירעה שגיאה ביצירת ההודעה");
         }
 
         return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages");
@@ -146,6 +197,7 @@ public class AuthController {
                     .mapToLong(List::size)              // Get all messages count
                     .sum();
             model.addAttribute("totalMessages", totalMessages);
+            model.addAttribute("phone", appUser.getWhatsappNumber());
         }
     }
 

@@ -19,7 +19,7 @@ import java.util.Set;
 public class MessageDTO {
     private Long id;
     private Date createdAt;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Jerusalem")
     @JsonProperty("createdAt")
     public LocalDateTime calcCreatedAt() {
         return Dates.atLocalTime(createdAt);

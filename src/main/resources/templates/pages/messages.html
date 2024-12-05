@@ -28,10 +28,43 @@
 			<i class="bi bi-image fs-5 mb-1"></i>
 			<span class="small">הוסף תמונה</span>
 		  </button>
-		  <button class="btn btn-outline-primary d-flex flex-column align-items-center p-2" title="הוסף הודעת טקסט">
+		  <!-- Add Text Message Button with Modal -->
+		  <button class="btn btn-outline-primary d-flex flex-column align-items-center p-2"
+				  data-bs-toggle="modal"
+				  data-bs-target="#addTextMessageModal"
+				  title="הוסף הודעת טקסט">
 			<i class="bi bi-chat-text fs-5 mb-1"></i>
 			<span class="small">הוסף טקסט</span>
 		  </button>
+		  
+		  <!-- Add Text Message Modal -->
+		  <div class="modal fade" id="addTextMessageModal" tabindex="-1" aria-labelledby="addTextMessageModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered">
+			  <div class="modal-content">
+				<div class="modal-header">
+				  <h5 class="modal-title" id="addTextMessageModalLabel">הוסף הודעת טקסט חדשה</h5>
+				  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<form th:action="@{/messages/text}" method="post" class="m-0">
+				  <div class="modal-body">
+					<input type="hidden" name="phoneNumber" th:value="${phone}" />
+					<div class="mb-3">
+					  <label for="messageContent" class="form-label">תוכן ההודעה</label>
+					  <textarea class="form-control"
+								id="messageContent"
+								name="content"
+								rows="4"
+								required></textarea>
+					</div>
+				  </div>
+				  <div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+					<button type="submit" class="btn btn-primary">שמור הודעה</button>
+				  </div>
+				</form>
+			  </div>
+			</div>
+		  </div>
 		</div>
 	  </div>
 	  
@@ -120,6 +153,7 @@
 				<div class="container-fluid p-0">
 				  <div class="row g-2">
 					<div class="col-3">
+					  <!-- Copy Button -->
 					  <button type="button"
 							  class="btn btn-outline-secondary w-100 p-2 rounded-3 copy-button"
 							  data-bs-toggle="tooltip"
