@@ -20,14 +20,24 @@
 	  <!-- Left Side Buttons -->
 	  <div class="col-md-3 text-end">
 		<div class="d-flex gap-2 justify-content-end">
-		  <button class="btn btn-outline-primary d-flex flex-column align-items-center p-2" title="הוסף מסמך">
+		  <<!-- Document button -->
+		  <button class="btn btn-outline-primary d-flex flex-column align-items-center p-2"
+				  data-bs-toggle="modal"
+				  data-bs-target="#addDocumentModal"
+				  title="הוסף מסמך">
 			<i class="bi bi-file-earmark-text fs-5 mb-1"></i>
 			<span class="small">הוסף מסמך</span>
 		  </button>
-		  <button class="btn btn-outline-primary d-flex flex-column align-items-center p-2" title="הוסף תמונה">
+		  
+		  <!-- Image button -->
+		  <button class="btn btn-outline-primary d-flex flex-column align-items-center p-2"
+				  data-bs-toggle="modal"
+				  data-bs-target="#addImageModal"
+				  title="הוסף תמונה">
 			<i class="bi bi-image fs-5 mb-1"></i>
 			<span class="small">הוסף תמונה</span>
 		  </button>
+		  
 		  <!-- Add Text Message Button with Modal -->
 		  <button class="btn btn-outline-primary d-flex flex-column align-items-center p-2"
 				  data-bs-toggle="modal"
@@ -299,6 +309,122 @@
 			  </div>
 			</div>
 		  </div>
+		</div>
+	  </div>
+	</div>
+	
+	<!-- Document Upload Modal -->
+	<div class="modal fade" id="addDocumentModal" tabindex="-1" aria-labelledby="addDocumentModalLabel" aria-hidden="true">
+	  <div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+		  <div class="modal-header">
+			<h5 class="modal-title" id="addDocumentModalLabel">הוסף מסמך חדש</h5>
+			<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+		  </div>
+		  <form th:action="@{/messages/media}"
+				method="post"
+				enctype="multipart/form-data"
+				class="m-0">
+			<div class="modal-body">
+			  <input type="hidden" name="phoneNumber" th:value="${phone}" />
+			  <input type="hidden" name="type" value="document" />
+			  
+			  <div class="mb-3">
+				<div class="d-flex flex-column align-items-center justify-content-center p-5 bg-light rounded-3 border-2 border-dashed position-relative"
+					 id="documentDropZone"
+					 th:data-upload-zone="true">
+				  <!-- Upload Icon and Text -->
+				  <div class="text-center mb-3">
+					<i class="bi bi-file-earmark-text display-4 text-secondary mb-3"></i>
+					<h5 class="mb-2 text-secondary">גרור קבצים לכאן</h5>
+					<p class="text-muted mb-3">או</p>
+				  </div>
+				  
+				  <div class="input-group">
+					<input type="file"
+						   class="form-control"
+						   id="documentInput"
+						   name="file"
+						   accept=".pdf,.doc,.docx,.txt"
+						   required
+						   th:data-bs-file-input="true">
+				  </div>
+				  
+				  <!-- File Preview -->
+				  <div id="documentPreview" class="mt-3 w-100 d-none">
+					<div class="alert alert-info d-flex align-items-center">
+					  <i class="bi bi-file-earmark me-2"></i>
+					  <span id="documentFileName"></span>
+					  <button type="button" class="btn-close ms-auto" onclick="clearFileInput('documentInput')"></button>
+					</div>
+				  </div>
+				</div>
+			  </div>
+			</div>
+			<div class="modal-footer">
+			  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+			  <button type="submit" class="btn btn-primary">שמור מסמך</button>
+			</div>
+		  </form>
+		</div>
+	  </div>
+	</div>
+	
+	<!-- Image Upload Modal -->
+	<div class="modal fade" id="addImageModal" tabindex="-1" aria-labelledby="addImageModalLabel" aria-hidden="true">
+	  <div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+		  <div class="modal-header">
+			<h5 class="modal-title" id="addImageModalLabel">הוסף תמונה חדשה</h5>
+			<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+		  </div>
+		  <form th:action="@{/messages/media}"
+				method="post"
+				enctype="multipart/form-data"
+				class="m-0">
+			<div class="modal-body">
+			  <input type="hidden" name="phoneNumber" th:value="${phone}" />
+			  <input type="hidden" name="type" value="image" />
+			  
+			  <div class="mb-3">
+				<div class="d-flex flex-column align-items-center justify-content-center p-5 bg-light rounded-3 border-2 border-dashed position-relative"
+					 id="imageDropZone"
+					 th:data-upload-zone="true">
+				  <!-- Upload Icon and Text -->
+				  <div class="text-center mb-3">
+					<i class="bi bi-image display-4 text-secondary mb-3"></i>
+					<h5 class="mb-2 text-secondary">גרור תמונות לכאן</h5>
+					<p class="text-muted mb-3">או</p>
+				  </div>
+				  
+				  <!-- File Input Group -->
+				  <div class="input-group">
+					<input type="file"
+						   class="form-control"
+						   id="imageInput"
+						   name="file"
+						   accept="image/*"
+						   required
+						   th:data-bs-file-input="true">
+				  </div>
+				  
+				  <!-- Image Preview -->
+				  <div id="imagePreview" class="mt-3 w-100 d-none">
+					<div class="alert alert-info d-flex align-items-center">
+					  <i class="bi bi-image me-2"></i>
+					  <span id="imageFileName"></span>
+					  <button type="button" class="btn-close ms-auto" onclick="clearFileInput('imageInput')"></button>
+					</div>
+					<img id="imagePreviewElement" class="img-fluid rounded mt-2 d-none" alt="תצוגה מקדימה">
+				  </div>
+				</div>
+			  </div>
+			</div>
+			<div class="modal-footer">
+			  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+			  <button type="submit" class="btn btn-primary">שמור תמונה</button>
+			</div>
+		  </form>
 		</div>
 	  </div>
 	</div>
