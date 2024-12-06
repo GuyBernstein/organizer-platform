@@ -73,6 +73,7 @@
 		  <div class="card-body">
 			<!-- Search Form -->
 			<form th:action="@{/messages/search}" method="GET" class="mb-3">
+			  <input type="hidden" name="phoneNumber" th:value="${phone}" />
 			  <div class="input-group">
 				<input type="text"
 					   name="content"

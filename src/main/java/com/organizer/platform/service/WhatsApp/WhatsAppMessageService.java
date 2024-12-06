@@ -84,6 +84,22 @@ public class WhatsAppMessageService {
         return result;
     }
 
+    public Map<String, Map<String, List<MessageDTO>>> getSearchedMessages(
+            String content,
+            Map<String, Map<String, List<MessageDTO>>> organizedMessages) {
+
+        return messageRepository
+                .findWhatsAppMessageByMessageContentContainingIgnoreCase(content)
+                .stream()
+                .map(this::convertToMessageDTO)
+                .collect(Collectors.collectingAndThen(
+                        Collectors.toList(),
+                        messages -> messages.isEmpty()
+                                ? Collections.emptyMap()
+                                : filterOrganizedMessages(organizedMessages, messages)
+                ));
+    }
+
     public Set<WhatsAppMessage> getMessagesByTags(Set<String> tagNames) {
         return tagRepository.findMessagesByTagNamesOptimized(tagNames);
     }

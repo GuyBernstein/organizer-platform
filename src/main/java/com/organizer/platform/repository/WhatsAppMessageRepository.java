@@ -13,4 +13,6 @@ public interface WhatsAppMessageRepository extends JpaRepository<WhatsAppMessage
     List<WhatsAppMessage> findByFromNumber(String fromNumber);
     @Query("SELECT DISTINCT m FROM WhatsAppMessage m JOIN m.tags t WHERE t IN :tags AND m.id != :messageId")
     List<WhatsAppMessage> findRelatedMessagesByTags(@Param("tags") Set<Tag> tags, @Param("messageId") Long messageId);
+    List<WhatsAppMessage> findWhatsAppMessageByMessageContentContainingIgnoreCase(String text);
+
 }

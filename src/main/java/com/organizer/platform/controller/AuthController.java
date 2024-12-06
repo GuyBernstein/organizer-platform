@@ -313,7 +313,6 @@ public class AuthController {
         }
         // If no tags selected, selectedTags will be null
         if (tagNames == null || tagNames.isEmpty()) {
-            System.out.println("null");
             return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", false);
         }
 
@@ -341,6 +340,37 @@ public class AuthController {
 
         return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", true);
     }
+
+    @GetMapping("/messages/search")
+    public String searchMessages(@RequestParam String content,
+                                 @RequestParam String phoneNumber,
+                                 @AuthenticationPrincipal OAuth2User principal,
+                                 Model model) {
+        if (principal == null) {
+            return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
+        }
+        // If no tags selected, selectedTags will be null
+        if (content == null || content.isEmpty()) {
+            return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", false);
+        }
+
+        // get the messages organized by that phone number
+        Map<String, Map<String, List<MessageDTO>>> organizedMessages =
+                messageService.findMessageContentsByFromNumberGroupedByCategoryAndGroupedBySubCategory(phoneNumber);
+
+        long totalMessages = organizedMessages.values()
+                .stream()
+                .flatMap(innerMap -> innerMap.values().stream())
+                .mapToLong(List::size)
+                .sum();
+
+        // reset the model attributes for filtration
+        model.addAttribute("categories", messageService.getSearchedMessages(content, organizedMessages));
+        model.addAttribute("totalMessages", totalMessages);
+
+        return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", true);
+    }
+
 
     private String handleAuthorizedAccess(OAuth2User principal, Model model, String title, String contentPage, boolean isFiltered) {
         String email = principal.getAttribute("email");
