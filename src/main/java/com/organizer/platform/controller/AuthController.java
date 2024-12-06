@@ -5,6 +5,7 @@ import com.organizer.platform.model.ScraperDTO.ProcessingResult;
 import com.organizer.platform.model.User.AppUser;
 import com.organizer.platform.model.organizedDTO.MessageDTO;
 import com.organizer.platform.model.organizedDTO.WhatsAppMessage;
+import com.organizer.platform.service.Google.CloudStorageService;
 import com.organizer.platform.service.Scraper.ContentProcessorService;
 import com.organizer.platform.service.Scraper.WebContentScraperService;
 import com.organizer.platform.service.User.UserService;
@@ -19,12 +20,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import javax.persistence.EntityNotFoundException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.organizer.platform.controller.AppController.storedMediaName;
 import static com.organizer.platform.model.User.AppUser.UserBuilder.anUser;
 import static com.organizer.platform.model.organizedDTO.WhatsAppMessage.WhatsAppMessageBuilder.aWhatsAppMessage;
 
@@ -36,16 +38,20 @@ public class AuthController {
     private final WebContentScraperService scraperService;
     private final ObjectMapper objectMapper;
     private final JmsTemplate jmsTemplate;
+    private final CloudStorageService cloudStorageService;
 
     @Autowired
-    public AuthController(UserService userService, WhatsAppMessageService messageService, WebContentScraperService scraperService, ObjectMapper objectMapper, JmsTemplate jmsTemplate) {
+    public AuthController(UserService userService, WhatsAppMessageService messageService,
+                          WebContentScraperService scraperService, ObjectMapper objectMapper,
+                          JmsTemplate jmsTemplate, CloudStorageService cloudStorageService) {
         this.userService = userService;
         this.messageService = messageService;
         this.scraperService = scraperService;
         this.objectMapper = objectMapper;
         this.jmsTemplate = jmsTemplate;
+        this.cloudStorageService = cloudStorageService;
     }
-
+//
     @GetMapping
     public String home(@AuthenticationPrincipal OAuth2User principal, Model model) {
         if (principal == null) {
@@ -227,6 +233,63 @@ public class AuthController {
                     .processed(false)
                     .purpose(result.getScrapedContent())
                     .build();
+
+            // Serialize and send to queue
+            String serializedMessage = objectMapper.writeValueAsString(message);
+            jmsTemplate.convertAndSend("exampleQueue", serializedMessage);
+
+            redirectAttributes.addFlashAttribute("successMessage", "ההודעה נשלחה לעיבוד בהצלחה");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "אירעה שגיאה ביצירת ההודעה");
+        }
+
+        return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages");
+    }
+
+    @PostMapping("/messages/media")
+    public String createMediaMessage(
+            @RequestParam MultipartFile file,
+            @RequestParam String phoneNumber,
+            @AuthenticationPrincipal OAuth2User principal,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+
+        if (principal == null) {
+            return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
+        }
+
+        try {
+            String storedFileName;
+            String metadata;
+
+            String contentType = file.getContentType();
+            if (contentType != null && contentType.startsWith("image/")) {
+                // Handle image file
+                storedFileName = cloudStorageService.uploadImage(phoneNumber,
+                        file.getBytes(),
+                        file.getContentType(),
+                        file.getOriginalFilename()
+                );
+                metadata = storedMediaName("images/", file, storedFileName);
+            } else {
+                // Handle document file
+                storedFileName = cloudStorageService.uploadDocument(phoneNumber,
+                        file.getBytes(),
+                        file.getContentType(),
+                        file.getOriginalFilename()
+                );
+                metadata = storedMediaName("documents/", file, storedFileName);
+            }
+
+
+            // message creation
+            WhatsAppMessage message = aWhatsAppMessage()
+                    .fromNumber(phoneNumber)
+                    .messageContent(metadata)
+                    .messageType("image")
+                    .processed(false)
+                    .build();
+
 
             // Serialize and send to queue
             String serializedMessage = objectMapper.writeValueAsString(message);

@@ -572,7 +572,7 @@ public class AppController {
         }
     }
 
-    private static String storedMediaName(String mediaPrefix, MultipartFile document, String storedFileName) {
+    public static String storedMediaName(String mediaPrefix, MultipartFile document, String storedFileName) {
         // Create document metadata and GCS filename
         String cleanFileName = storedFileName.startsWith(mediaPrefix)
                 ? storedFileName.substring(mediaPrefix.length())

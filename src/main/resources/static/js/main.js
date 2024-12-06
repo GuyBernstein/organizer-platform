@@ -41,6 +41,21 @@ document.addEventListener('DOMContentLoaded', function() {
       });
     });
   });
+
+  // Initialize all upload zones
+  document.querySelectorAll('[data-upload-zone]').forEach(zone => {
+    initializeDropZone(zone);
+  });
+
+  // Initialize file inputs and customize text
+  document.querySelectorAll('[data-bs-file-input]').forEach(input => {
+    input.addEventListener('change', function(e) {
+      handleFileSelect(e);
+    });
+
+    // Customize the default text
+    customizeFileInputText(input);
+  });
 });
 
 // Keep track of loaded messages per subcategory
@@ -114,6 +129,105 @@ function toggleMode(button, mode) {
       smartEditMode.classList.remove('d-none');
       smartEditButton.textContent = 'תצוגה';
       break;
+  }
+
+  function customizeFileInputText(input) {
+    const lang = {
+      imageInput: {
+        default: 'בחירת תמונה',
+        noFile: 'לא נבחרה תמונה'
+      },
+      documentInput: {
+        default: 'בחירת קובץ',
+        noFile: 'לא נבחר קובץ'
+      }
+    };
+
+    // Set initial text
+    const isImageInput = input.id === 'imageInput';
+    input.parentElement.querySelector('.form-control').placeholder =
+      isImageInput ? lang.imageInput.noFile : lang.documentInput.noFile;
+  }
+
+// Rest of the JavaScript remains the same
+  function initializeDropZone(zone) {
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      zone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+      zone.addEventListener(eventName, () => {
+        zone.classList.add('border-primary');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+      zone.addEventListener(eventName, () => {
+        zone.classList.remove('border-primary');
+      });
+    });
+
+    zone.addEventListener('drop', handleDrop);
+  }
+
+  function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    const inputId = this.querySelector('input[type="file"]').id;
+    const input = document.getElementById(inputId);
+
+    input.files = files;
+    handleFileSelect({ target: input });
+  }
+
+  function handleFileSelect(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const inputId = e.target.id;
+    const previewId = inputId.replace('Input', 'Preview');
+    const fileNameId = inputId.replace('Input', 'FileName');
+    const preview = document.getElementById(previewId);
+    const fileNameElement = document.getElementById(fileNameId);
+
+    // Show preview container
+    preview.classList.remove('d-none');
+
+    // Update filename
+    fileNameElement.textContent = file.name;
+
+    // Handle image preview if it's an image
+    if (file.type.startsWith('image/')) {
+      const imagePreviewElement = document.getElementById('imagePreviewElement');
+      if (imagePreviewElement) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          imagePreviewElement.src = e.target.result;
+          imagePreviewElement.classList.remove('d-none');
+        }
+        reader.readAsDataURL(file);
+      }
+    }
+  }
+
+  function clearFileInput(inputId) {
+    const input = document.getElementById(inputId);
+    const previewId = inputId.replace('Input', 'Preview');
+    const preview = document.getElementById(previewId);
+
+    input.value = '';
+    preview.classList.add('d-none');
+
+    if (inputId === 'imageInput') {
+      const imagePreviewElement = document.getElementById('imagePreviewElement');
+      imagePreviewElement.classList.add('d-none');
+      imagePreviewElement.src = '';
+    }
   }
 }
 
