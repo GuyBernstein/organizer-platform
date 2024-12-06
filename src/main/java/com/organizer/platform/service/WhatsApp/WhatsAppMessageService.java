@@ -57,6 +57,37 @@ public class WhatsAppMessageService {
                 ));
     }
 
+    public Map<String, Map<String, List<MessageDTO>>> filterOrganizedMessages(
+            Map<String, Map<String, List<MessageDTO>>> organizedMessages,
+            List<MessageDTO> filteredMessages) {
+
+        Map<String, Map<String, List<MessageDTO>>> result = new HashMap<>();
+
+        for (var categoryEntry : organizedMessages.entrySet()) {
+            Map<String, List<MessageDTO>> subCategoryMap = new HashMap<>();
+
+            for (var subCategoryEntry : categoryEntry.getValue().entrySet()) {
+                List<MessageDTO> filteredList = subCategoryEntry.getValue().stream()
+                        .filter(filteredMessages::contains)
+                        .collect(Collectors.toList());
+
+                if (!filteredList.isEmpty()) {
+                    subCategoryMap.put(subCategoryEntry.getKey(), filteredList);
+                }
+            }
+
+            if (!subCategoryMap.isEmpty()) {
+                result.put(categoryEntry.getKey(), subCategoryMap);
+            }
+        }
+
+        return result;
+    }
+
+    public Set<WhatsAppMessage> getMessagesByTags(Set<String> tagNames) {
+        return tagRepository.findMessagesByTagNamesOptimized(tagNames);
+    }
+
     // Method to find related messages with a minimum number of shared tags
     public Map<String, Map<String, List<MessageDTO>>> findRelatedMessagesWithMinimumSharedTags(WhatsAppMessage originalMessage, int minimumSharedTags) {
 
@@ -84,7 +115,7 @@ public class WhatsAppMessageService {
                 .collect(Collectors.toList());
     }
 
-    private MessageDTO convertToMessageDTO(WhatsAppMessage message) {
+    public MessageDTO convertToMessageDTO(WhatsAppMessage message) {
         return MessageDTO.builder()
                 .id(message.getId())
                 .createdAt(message.getCreatedAt())
@@ -251,5 +282,12 @@ public class WhatsAppMessageService {
         deleteNextSteps(whatsAppMessage.get());
         deleteTags(whatsAppMessage.get());
         messageRepository.deleteById(messageId);
+    }
+
+    public Set<String> getAllTags(){
+        List<Tag> tags = tagRepository.findAll();
+        return tags.stream()
+                .map(Tag::getName)
+                .collect(Collectors.toSet());
     }
 }

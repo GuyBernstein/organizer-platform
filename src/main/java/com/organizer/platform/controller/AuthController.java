@@ -57,7 +57,7 @@ public class AuthController {
         if (principal == null) {
             return setupAnonymousPage(model, "דף הבית", "pages/home");
         }
-        return handleAuthorizedAccess(principal, model, "דף הבית", "pages/home");
+        return handleAuthorizedAccess(principal, model, "דף הבית", "pages/home", false);
     }
 
     @GetMapping("/dashboard")
@@ -65,7 +65,7 @@ public class AuthController {
         if (principal == null) {
             return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
         }
-        return handleAuthorizedAccess(principal, model, "לוח בקרה", "pages/index");
+        return handleAuthorizedAccess(principal, model, "לוח בקרה", "pages/index", false);
     }
 
     @GetMapping("/messages")
@@ -73,7 +73,7 @@ public class AuthController {
         if (principal == null) {
             return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
         }
-        return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages");
+        return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", false);
     }
 
     @GetMapping("/login")
@@ -88,7 +88,7 @@ public class AuthController {
             return setupAnonymousPage(model, "התחברות", "pages/auth/login");
         }
         // show dashboard
-        return handleAuthorizedAccess(principal, model, "לוח בקרה", "pages/index");
+        return handleAuthorizedAccess(principal, model, "לוח בקרה", "pages/index", false);
     }
 
     @PostMapping("/messages/delete")
@@ -107,7 +107,7 @@ public class AuthController {
             redirectAttributes.addFlashAttribute("errorMessage", "אירעה שגיאה במחיקת ההודעה");
         }
 
-        return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages");
+        return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", false);
     }
 
     @PostMapping("/messages/update")
@@ -130,7 +130,7 @@ public class AuthController {
             var message = messageService.findMessageById(messageId);
             if(message.isEmpty()) {
                 redirectAttributes.addFlashAttribute("errorMessage", "אירעה שגיאה בעדכון ההודעה");
-                return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages");
+                return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", false);
             }
 
             Set<String> commaSeparatedTags = Arrays.stream(tags.split(","))
@@ -159,7 +159,7 @@ public class AuthController {
             redirectAttributes.addFlashAttribute("errorMessage", "אירעה שגיאה בעדכון ההודעה");
         }
 
-        return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages");
+        return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", false);
     }
 
     @PostMapping("/messages/smartUpdate")
@@ -178,7 +178,7 @@ public class AuthController {
             var message = messageService.findMessageById(messageId);
             if(message.isEmpty()) {
                 redirectAttributes.addFlashAttribute("errorMessage", "אירעה שגיאה בעדכון ההודעה");
-                return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages");
+                return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", false);
             }
 
             // scrape url content, if any
@@ -206,7 +206,7 @@ public class AuthController {
             redirectAttributes.addFlashAttribute("errorMessage", "אירעה שגיאה בעדכון ההודעה");
         }
 
-        return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages");
+        return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", false);
     }
 
     @PostMapping("/messages/text")
@@ -243,7 +243,7 @@ public class AuthController {
             redirectAttributes.addFlashAttribute("errorMessage", "אירעה שגיאה ביצירת ההודעה");
         }
 
-        return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages");
+        return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", false);
     }
 
     @PostMapping("/messages/media")
@@ -300,15 +300,54 @@ public class AuthController {
             redirectAttributes.addFlashAttribute("errorMessage", "אירעה שגיאה ביצירת ההודעה");
         }
 
-        return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages");
+        return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", false);
     }
 
-    private String handleAuthorizedAccess(OAuth2User principal, Model model, String title, String contentPage) {
+    @GetMapping("/messages/filter")
+    public String filterMessagesByTags(@RequestParam(name = "selectedTags", required = false) Set<String> tagNames,
+                                       @RequestParam String phoneNumber,
+                                       @AuthenticationPrincipal OAuth2User principal,
+                                       Model model) {
+        if (principal == null) {
+            return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
+        }
+        // If no tags selected, selectedTags will be null
+        if (tagNames == null || tagNames.isEmpty()) {
+            System.out.println("null");
+            return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", false);
+        }
+
+        // get all the messages from the tag set
+        Set<WhatsAppMessage> messages = messageService.getMessagesByTags(tagNames);
+        List<MessageDTO> filteredMessages = messages.stream()
+                .map(messageService::convertToMessageDTO)
+                .collect(Collectors.toList());
+
+        // get the messages organized by that phone number
+        Map<String, Map<String, List<MessageDTO>>> organizedMessages =
+                messageService.findMessageContentsByFromNumberGroupedByCategoryAndGroupedBySubCategory(phoneNumber);
+
+        long totalMessages = organizedMessages.values()
+                .stream()
+                .flatMap(innerMap -> innerMap.values().stream())
+                .mapToLong(List::size)
+                .sum();
+
+        // Add the selected tags back to the model, so they stay checked
+        model.addAttribute("selectedTags", tagNames);
+        // reset the model attributes for filtration
+        model.addAttribute("categories", messageService.filterOrganizedMessages(organizedMessages,filteredMessages));
+        model.addAttribute("totalMessages", totalMessages);
+
+        return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", true);
+    }
+
+    private String handleAuthorizedAccess(OAuth2User principal, Model model, String title, String contentPage, boolean isFiltered) {
         String email = principal.getAttribute("email");
         Optional<AppUser> appUser = userService.findByEmail(email);
 
         if (appUser.isPresent() && appUser.get().isAuthorized()) {
-            setupAuthorizedModel(model, principal, appUser.get(), title, contentPage);
+            setupAuthorizedModel(model, principal, appUser.get(), title, contentPage, isFiltered);
         } else {
             setupUnauthorizedModel(model, principal,
                     appUser.orElse(anUser().authorized(false).build()));
@@ -337,7 +376,16 @@ public class AuthController {
     }
 
     private void setupAuthorizedModel(Model model, OAuth2User principal, AppUser appUser,
-                                      String title, String contentPage) {
+                                      String title, String contentPage, boolean isFiltered) {
+        setupCommonAttributes(model, principal, appUser, title, contentPage);
+
+        if (contentPage.equals("pages/messages")) {
+            setupMessagesPage(model, appUser, isFiltered);
+        }
+    }
+
+    private void setupCommonAttributes(Model model, OAuth2User principal, AppUser appUser,
+                                       String title, String contentPage) {
         String name = principal.getAttribute("name");
         String picture = principal.getAttribute("picture");
 
@@ -347,20 +395,26 @@ public class AuthController {
         model.addAttribute("picture", picture);
         model.addAttribute("content", contentPage);
         model.addAttribute("isAuthorized", appUser.isAuthorized());
+    }
 
-        if(contentPage.equals("pages/messages")) {
-            // Add the organized messages to the model
+    private void setupMessagesPage(Model model, AppUser appUser, boolean isFiltered) {
+
+
+        if(!isFiltered) {
             Map<String, Map<String, List<MessageDTO>>> organizedMessages =
                     messageService.findMessageContentsByFromNumberGroupedByCategoryAndGroupedBySubCategory(appUser.getWhatsappNumber());
-            model.addAttribute("categories", organizedMessages);
-            long totalMessages = organizedMessages.values()    // Get all inner maps
+            model.addAttribute("categories", organizedMessages); // resets the filter option
+
+            long totalMessages = organizedMessages.values()
                     .stream()
-                    .flatMap(innerMap -> innerMap.values().stream())  // Get all lists
-                    .mapToLong(List::size)              // Get all messages count
+                    .flatMap(innerMap -> innerMap.values().stream())
+                    .mapToLong(List::size)
                     .sum();
+
             model.addAttribute("totalMessages", totalMessages);
-            model.addAttribute("phone", appUser.getWhatsappNumber());
         }
+        model.addAttribute("phone", appUser.getWhatsappNumber());
+        model.addAttribute("totalTags", messageService.getAllTags());
     }
 
 }
