@@ -3,60 +3,55 @@ document.addEventListener('DOMContentLoaded', function() {
   alerts.forEach(function(alert) {
     if (!alert.classList.contains('alert-permanent')) {
       setTimeout(function() {
-        alert.classList.add('fade');
+        alert.classList.add('fade')
         setTimeout(function() {
-          alert.remove();
-        }, 150);
-      }, 5000);
+          alert.remove()
+        }, 150)
+      }, 5000)
     }
-  });
+  })
 
   // Initialize tooltips
   const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-  const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+  tooltipTriggerList.map(function(tooltipTriggerEl) {
     return new bootstrap.Tooltip(tooltipTriggerEl)
   })
-
-  // Initialize copy buttons
+// Initialize copy buttons
   document.querySelectorAll('.copy-button').forEach(button => {
     button.addEventListener('click', function() {
-      const content = this.getAttribute('data-content');
+      const content = this.getAttribute('data-content')
       navigator.clipboard.writeText(content).then(() => {
         // Create or update tooltip
-        const tooltip = bootstrap.Tooltip.getInstance(this);
-        const originalTitle = this.getAttribute('data-bs-original-title');
+        const tooltip = bootstrap.Tooltip.getInstance(this)
+        const originalTitle = this.getAttribute('data-bs-original-title')
 
         // Update tooltip content
-        tooltip.setContent({ '.tooltip-inner': 'הועתק!' });
+        tooltip.setContent({ '.tooltip-inner': 'הועתק!' })
 
         // Show the updated tooltip
-        tooltip.show();
+        tooltip.show()
 
         // Reset tooltip after delay
         setTimeout(() => {
-          tooltip.setContent({ '.tooltip-inner': originalTitle });
-        }, 1500);
+          tooltip.setContent({ '.tooltip-inner': originalTitle })
+        }, 1500)
       }).catch(err => {
-        console.error('Failed to copy text: ', err);
-      });
-    });
-  });
+        console.error('Failed to copy text: ', err)
+      })
+    })
+  })
 
   // Initialize all upload zones
   document.querySelectorAll('[data-upload-zone]').forEach(zone => {
-    initializeDropZone(zone);
-  });
+    initializeDropZone(zone)
+  })
 
-  // Initialize file inputs and customize text
-  document.querySelectorAll('[data-bs-file-input]').forEach(input => {
-    input.addEventListener('change', function(e) {
-      handleFileSelect(e);
-    });
-
-    // Customize the default text
-    customizeFileInputText(input);
-  });
-});
+  // Initialize file inputs
+  document.querySelectorAll('input[type="file"]').forEach(input => {
+    input.addEventListener('change', handleFileSelect)
+    customizeFileInputText(input)
+  })
+})
 
 // Keep track of loaded messages per subcategory
 const loadedMessages = {}
@@ -98,136 +93,150 @@ const observer = new IntersectionObserver((entries) => {
 document.querySelectorAll('.messages-container').forEach(container => {
   observer.observe(container)
 })
+
 // toggle between view, edit and smart edit mode in the modal
 function toggleMode(button, mode) {
-  const modal = button.closest('.modal');
-  const viewMode = modal.querySelector('.view-mode');
-  const editMode = modal.querySelector('.edit-mode');
-  const smartEditMode = modal.querySelector('.smart-edit-mode');
-  const editButton = modal.querySelector('.edit-text');
-  const smartEditButton = modal.querySelector('.smart-edit-text');
+  const modal = button.closest('.modal')
+  const viewMode = modal.querySelector('.view-mode')
+  const editMode = modal.querySelector('.edit-mode')
+  const smartEditMode = modal.querySelector('.smart-edit-mode')
+  const editButton = modal.querySelector('.edit-text')
+  const smartEditButton = modal.querySelector('.smart-edit-text')
 
   // Hide all modes first
-  viewMode.classList.add('d-none');
-  editMode.classList.add('d-none');
-  smartEditMode.classList.add('d-none');
+  viewMode.classList.add('d-none')
+  editMode.classList.add('d-none')
+  smartEditMode.classList.add('d-none')
 
   // Reset button texts
-  editButton.textContent = 'ערוך';
-  smartEditButton.textContent = 'עריכה חכמה';
+  editButton.textContent = 'ערוך'
+  smartEditButton.textContent = 'עריכה חכמה'
 
   // Show selected mode
-  switch(mode) {
+  switch (mode) {
     case 'view':
-      viewMode.classList.remove('d-none');
-      break;
+      viewMode.classList.remove('d-none')
+      break
     case 'edit':
-      editMode.classList.remove('d-none');
-      editButton.textContent = 'תצוגה';
-      break;
+      editMode.classList.remove('d-none')
+      editButton.textContent = 'תצוגה'
+      break
     case 'smart':
-      smartEditMode.classList.remove('d-none');
-      smartEditButton.textContent = 'תצוגה';
-      break;
-  }
-
-  function customizeFileInputText(input) {
-    const lang = {
-      imageInput: {
-        default: 'בחירת תמונה',
-        noFile: 'לא נבחרה תמונה'
-      },
-      documentInput: {
-        default: 'בחירת קובץ',
-        noFile: 'לא נבחר קובץ'
-      }
-    };
-
-    // Set initial text
-    const isImageInput = input.id === 'imageInput';
-    input.parentElement.querySelector('.form-control').placeholder =
-      isImageInput ? lang.imageInput.noFile : lang.documentInput.noFile;
-  }
-
-// Rest of the JavaScript remains the same
-  function initializeDropZone(zone) {
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-      zone.addEventListener(eventName, preventDefaults, false);
-    });
-
-    ['dragenter', 'dragover'].forEach(eventName => {
-      zone.addEventListener(eventName, () => {
-        zone.classList.add('border-primary');
-      });
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-      zone.addEventListener(eventName, () => {
-        zone.classList.remove('border-primary');
-      });
-    });
-
-    zone.addEventListener('drop', handleDrop);
-  }
-
-  function preventDefaults(e) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-
-  function handleDrop(e) {
-    const dt = e.dataTransfer;
-    const files = dt.files;
-    const inputId = this.querySelector('input[type="file"]').id;
-    const input = document.getElementById(inputId);
-
-    input.files = files;
-    handleFileSelect({ target: input });
-  }
-
-  function handleFileSelect(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const inputId = e.target.id;
-    const previewId = inputId.replace('Input', 'Preview');
-    const fileNameId = inputId.replace('Input', 'FileName');
-    const preview = document.getElementById(previewId);
-    const fileNameElement = document.getElementById(fileNameId);
-
-    // Show preview container
-    preview.classList.remove('d-none');
-
-    // Update filename
-    fileNameElement.textContent = file.name;
-
-    // Handle image preview if it's an image
-    if (file.type.startsWith('image/')) {
-      const imagePreviewElement = document.getElementById('imagePreviewElement');
-      if (imagePreviewElement) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-          imagePreviewElement.src = e.target.result;
-          imagePreviewElement.classList.remove('d-none');
-        }
-        reader.readAsDataURL(file);
-      }
-    }
-  }
-
-  function clearFileInput(inputId) {
-    const input = document.getElementById(inputId);
-    const previewId = inputId.replace('Input', 'Preview');
-    const preview = document.getElementById(previewId);
-
-    input.value = '';
-    preview.classList.add('d-none');
-
-    if (inputId === 'imageInput') {
-      const imagePreviewElement = document.getElementById('imagePreviewElement');
-      imagePreviewElement.classList.add('d-none');
-      imagePreviewElement.src = '';
-    }
+      smartEditMode.classList.remove('d-none')
+      smartEditButton.textContent = 'תצוגה'
+      break
   }
 }
+
+function initializeDropZone(zone) {
+  const input = zone.querySelector('input[type="file"]')
+  if (!input) return;
+
+  // Prevent defaults for all drag events
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    zone.addEventListener(eventName, preventDefaults, false)
+  });
+
+  // Add highlighting when dragging over
+  ['dragenter', 'dragover'].forEach(eventName => {
+    zone.addEventListener(eventName, () => {
+      zone.classList.add('border-primary')
+      zone.classList.add('border')
+    })
+  });
+
+  // Remove highlighting when leaving or dropping
+  ['dragleave', 'drop'].forEach(eventName => {
+    zone.addEventListener(eventName, () => {
+      zone.classList.remove('border-primary')
+      zone.classList.remove('border')
+    })
+  })
+
+  // Handle the actual drop
+  zone.addEventListener('drop', (e) => {
+    const dt = e.dataTransfer
+    const files = dt.files
+
+    // Update the input's files
+    const dataTransfer = new DataTransfer()
+    Array.from(files).forEach(file => dataTransfer.items.add(file))
+    input.files = dataTransfer.files
+
+    // Trigger the file select handler
+    handleFileSelect({ target: input })
+  })
+}
+
+function handleFileSelect(e) {
+  const input = e.target
+  const file = input.files[0]
+  if (!file) return
+
+  const dropZone = input.closest('[data-upload-zone]')
+  const isImageInput = input.accept.includes('image')
+
+  // Find preview elements within the specific drop zone
+  const preview = dropZone.querySelector('.file-preview')
+  const imagePreview = dropZone.querySelector('.image-preview')
+  const fileName = dropZone.querySelector('.file-name')
+
+  // Update filename if element exists
+  if (fileName) {
+    fileName.textContent = file.name
+  }
+
+  // Handle image preview for image files
+  if (isImageInput && file.type.startsWith('image/') && imagePreview) {
+    const reader = new FileReader()
+    reader.onload = function(e) {
+      imagePreview.src = e.target.result
+      imagePreview.classList.remove('d-none')
+    }
+    reader.readAsDataURL(file)
+  }
+
+  // Show preview container if it exists
+  if (preview) {
+    preview.classList.remove('d-none')
+  }
+}
+
+function preventDefaults(e) {
+  e.preventDefault()
+  e.stopPropagation()
+}
+
+function customizeFileInputText(input) {
+  const label = input.closest('[data-upload-zone]').querySelector('label')
+  if (!label) return
+
+  const isImageInput = input.accept.includes('image')
+  label.textContent = isImageInput ? 'בחירת תמונה' : 'בחירת קובץ'
+}
+
+function clearFileInput(inputId) {
+  const input = document.getElementById(inputId)
+  if (!input) return
+
+  const dropZone = input.closest('[data-upload-zone]')
+  if (!dropZone) return
+
+  // Clear the input
+  input.value = ''
+
+  // Reset preview elements
+  const preview = dropZone.querySelector('.file-preview')
+  const imagePreview = dropZone.querySelector('.image-preview')
+  const fileName = dropZone.querySelector('.file-name')
+
+  if (preview) preview.classList.add('d-none')
+  if (imagePreview) {
+    imagePreview.classList.add('d-none')
+    imagePreview.src = ''
+  }
+  if (fileName) fileName.textContent = ''
+}
+
+
 
