@@ -104,6 +104,21 @@ public class WhatsAppMessageService {
         return tagRepository.findMessagesByTagNamesOptimized(tagNames);
     }
 
+    public Map<String, Map<String, List<MessageDTO>>> getFilteredMessages(Set<String> tagNames, String phoneNumber) {
+        // get all the messages from the tag String set
+        Set<WhatsAppMessage> messages = getMessagesByTags(tagNames);
+        List<MessageDTO> filteredMessages = messages.stream()
+                .map(this::convertToMessageDTO)
+                .collect(Collectors.toList());
+
+        // get the messages organized by that phone number
+        Map<String, Map<String, List<MessageDTO>>> organizedMessages =
+                findMessageContentsByFromNumberGroupedByCategoryAndGroupedBySubCategory(phoneNumber);
+
+        organizedMessages = filterOrganizedMessages(organizedMessages,filteredMessages);
+        return organizedMessages;
+    }
+
     // Method to find related messages with a minimum number of shared tags
     public Map<String, Map<String, List<MessageDTO>>> findRelatedMessagesWithMinimumSharedTags(WhatsAppMessage originalMessage, int minimumSharedTags) {
 

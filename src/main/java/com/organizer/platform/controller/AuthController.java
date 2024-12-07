@@ -261,6 +261,7 @@ public class AuthController {
         try {
             String storedFileName;
             String metadata;
+            String messageType;
 
             String contentType = file.getContentType();
             if (contentType != null && contentType.startsWith("image/")) {
@@ -271,6 +272,7 @@ public class AuthController {
                         file.getOriginalFilename()
                 );
                 metadata = storedMediaName("images/", file, storedFileName);
+                messageType = "image";
             } else {
                 // Handle document file
                 storedFileName = cloudStorageService.uploadDocument(phoneNumber,
@@ -279,6 +281,7 @@ public class AuthController {
                         file.getOriginalFilename()
                 );
                 metadata = storedMediaName("documents/", file, storedFileName);
+                messageType = "document";
             }
 
 
@@ -286,7 +289,7 @@ public class AuthController {
             WhatsAppMessage message = aWhatsAppMessage()
                     .fromNumber(phoneNumber)
                     .messageContent(metadata)
-                    .messageType("image")
+                    .messageType(messageType)
                     .processed(false)
                     .build();
 
@@ -316,15 +319,7 @@ public class AuthController {
             return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", false);
         }
 
-        // get all the messages from the tag set
-        Set<WhatsAppMessage> messages = messageService.getMessagesByTags(tagNames);
-        List<MessageDTO> filteredMessages = messages.stream()
-                .map(messageService::convertToMessageDTO)
-                .collect(Collectors.toList());
-
-        // get the messages organized by that phone number
-        Map<String, Map<String, List<MessageDTO>>> organizedMessages =
-                messageService.findMessageContentsByFromNumberGroupedByCategoryAndGroupedBySubCategory(phoneNumber);
+        Map<String, Map<String, List<MessageDTO>>> organizedMessages = messageService.getFilteredMessages(tagNames, phoneNumber);
 
         long totalMessages = organizedMessages.values()
                 .stream()
@@ -332,10 +327,8 @@ public class AuthController {
                 .mapToLong(List::size)
                 .sum();
 
-        // Add the selected tags back to the model, so they stay checked
-        model.addAttribute("selectedTags", tagNames);
         // reset the model attributes for filtration
-        model.addAttribute("categories", messageService.filterOrganizedMessages(organizedMessages,filteredMessages));
+        model.addAttribute("categories", organizedMessages);
         model.addAttribute("totalMessages", totalMessages);
 
         return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", true);
@@ -364,8 +357,9 @@ public class AuthController {
                 .mapToLong(List::size)
                 .sum();
 
+        organizedMessages = messageService.getSearchedMessages(content, organizedMessages);
         // reset the model attributes for filtration
-        model.addAttribute("categories", messageService.getSearchedMessages(content, organizedMessages));
+        model.addAttribute("categories", organizedMessages);
         model.addAttribute("totalMessages", totalMessages);
 
         return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", true);
