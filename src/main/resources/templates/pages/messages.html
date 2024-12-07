@@ -19,56 +19,64 @@
 	<div class="row g-3">
 	  <!-- Header Section -->
 	  <div class="col-12">
-		<div class="d-flex flex-column flex-md-row align-items-center justify-content-between mb-3">
-		  <!-- Action Buttons -->
-		  <div class="order-2 order-md-1">
-			<div class="btn-group">
-			  <button class="btn btn-outline-primary"
-					  data-bs-toggle="modal"
-					  data-bs-target="#addDocumentModal"
-					  title="הוסף מסמך">
-				<i class="bi bi-file-earmark-text"></i>
-				<span class="d-none d-sm-inline ms-1">הוסף מסמך</span>
-			  </button>
-			  
-			  <button class="btn btn-outline-primary"
-					  data-bs-toggle="modal"
-					  data-bs-target="#addImageModal"
-					  title="הוסף תמונה">
-				<i class="bi bi-image"></i>
-				<span class="d-none d-sm-inline ms-1">הוסף תמונה</span>
-			  </button>
-			  
-			  <button class="btn btn-outline-primary"
-					  data-bs-toggle="modal"
-					  data-bs-target="#addTextMessageModal"
-					  title="הוסף הודעת טקסט">
-				<i class="bi bi-chat-text"></i>
-				<span class="d-none d-sm-inline ms-1">הוסף טקסט</span>
-			  </button>
+		<div class="text-center mb-4">
+		  <h1 class="display-5 fw-bold mb-3">ניהול הודעות</h1>
+		  <div class="d-flex justify-content-center gap-4 text-muted">
+			<div class="d-flex align-items-center">
+			  <i class="bi bi-folder fs-5 me-2"></i>
+			  <span class="fs-5" th:text="${#maps.size(categories)}">0</span>
+			  <span class="fs-5 ms-2">קטגוריות</span>
 			</div>
-		  </div>
-		  <!-- Title and Stats -->
-		  <div class="order-1 order-md-2 mb-3 mb-md-0">
-			<h2 class="h4 mb-2 text-center">ניהול הודעות</h2>
-			<div class="d-flex justify-content-center gap-3 text-muted small">
-			  <div class="d-flex align-items-center">
-				<i class="bi bi-folder me-1"></i>
-				<span th:text="${#maps.size(categories)}">0</span>
-				<span class="ms-1">קטגוריות</span>
-			  </div>
-			  <div class="d-flex align-items-center">
-				<i class="bi bi-chat-dots me-1"></i>
-				<span th:text="${totalMessages}">0</span>
-				<span class="ms-1">הודעות</span>
-			  </div>
+			<div class="d-flex align-items-center">
+			  <i class="bi bi-chat-dots fs-5 me-2"></i>
+			  <span class="fs-5" th:text="${totalMessages}">0</span>
+			  <span class="fs-5 ms-2">הודעות</span>
 			</div>
 		  </div>
 		</div>
+		
+		<!-- Action Buttons -->
+		<div class="d-flex justify-content-between align-items-center mb-4">
+		  <div class="btn-group">
+			<button class="btn btn-outline-primary"
+					data-bs-toggle="modal"
+					data-bs-target="#addDocumentModal"
+					title="הוסף מסמך">
+			  <i class="bi bi-file-earmark-text"></i>
+			  <span class="d-none d-sm-inline ms-1">הוסף מסמך</span>
+			</button>
+			
+			<button class="btn btn-outline-primary"
+					data-bs-toggle="modal"
+					data-bs-target="#addImageModal"
+					title="הוסף תמונה">
+			  <i class="bi bi-image"></i>
+			  <span class="d-none d-sm-inline ms-1">הוסף תמונה</span>
+			</button>
+			
+			<button class="btn btn-outline-primary"
+					data-bs-toggle="modal"
+					data-bs-target="#addTextMessageModal"
+					title="הוסף הודעת טקסט">
+			  <i class="bi bi-chat-text"></i>
+			  <span class="d-none d-sm-inline ms-1">הוסף טקסט</span>
+			</button>
+		  </div>
+		  
+		  <!-- Search Toggle Button -->
+		  <button class="btn btn-outline-secondary"
+				  type="button"
+				  data-bs-toggle="collapse"
+				  data-bs-target="#searchFilterSection"
+				  aria-expanded="false">
+			<i class="bi bi-search me-1"></i>
+			חיפוש וסינון
+		  </button>
+		</div>
 	  </div>
 	  
-	  <!-- Search and Filter Section -->
-	  <div class="col-12">
+	  <!-- Collapsible Search and Filter Section -->
+	  <div class="col-12 collapse" id="searchFilterSection">
 		<div class="card">
 		  <div class="card-body">
 			<!-- Search Form -->
