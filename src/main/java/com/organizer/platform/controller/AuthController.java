@@ -479,25 +479,24 @@ public class AuthController {
                 .count();
 
         model.addAttribute("subCategoriesCount", totalSubCategories);
+        long totalNextSteps = messages
+                .stream()
+                .map(WhatsAppMessage::getNextSteps)
+                .mapToLong(Set::size)
+                .sum();
+
+        model.addAttribute("nextStepsCount", totalNextSteps);
+
         List<MessageTypeCount> messageTypes = messageService.getMessageTypesByPhoneNumber(appUser.getWhatsappNumber());
         model.addAttribute("messageTypes", messageTypes);
+
     }
 
     private void setupMessagesPage(Model model, AppUser appUser, boolean isFiltered) {
-
-
         if(!isFiltered) {
             Map<String, Map<String, List<MessageDTO>>> organizedMessages =
                     messageService.findMessageContentsByFromNumberGroupedByCategoryAndGroupedBySubCategory(appUser.getWhatsappNumber());
             model.addAttribute("categories", organizedMessages); // resets the filter option
-
-            long totalMessages = organizedMessages.values()
-                    .stream()
-                    .flatMap(innerMap -> innerMap.values().stream())
-                    .mapToLong(List::size)
-                    .sum();
-
-            model.addAttribute("totalMessages", totalMessages);
         }
     }
 

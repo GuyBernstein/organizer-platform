@@ -81,49 +81,30 @@
 			  </div>
 			</div>
 		  </div>
-		</div>
-	  </div>
-	  
-	  <!-- Charts Row -->
-	  <div class="col-12">
-		<div class="row g-4">
-		  <!-- Message Types Chart -->
-		  <div class="col-md-6">
+		  
+		  <!-- Next Steps Card -->
+		  <div class="col-md-3 col-sm-6">
 			<div class="card shadow-whatsapp h-100">
 			  <div class="card-body">
-				<h5 class="card-title">סוגי הודעות</h5>
-				<div class="d-flex justify-content-around align-items-center flex-wrap mt-4">
-				  <div th:each="type : ${messageTypes}" class="text-center mb-3 feature-icon p-3" style="min-height: auto;">
-					<div class="mb-2">
-					  <i class="bi" th:class="${type.icon}" style="font-size: 2rem; color: var(--whatsapp-teal)"></i>
-					</div>
-					<div class="h4 mb-0" th:text="${type.count}">0</div>
-					<div class="text-muted" th:text="${type.name}">סוג</div>
-				  </div>
-				</div>
+				<h5 class="card-title">משימות המשך</h5>
+				<i class="bi bi-arrow-right-circle" style="font-size: 2rem; color: var(--whatsapp-green)"></i>
+				<h3 class="mt-2" th:text="${nextStepsCount}">0</h3>
+				<h6 class="text-muted">צעדים הבאים</h6>
 			  </div>
 			</div>
 		  </div>
 		  
-		  <!-- Next Steps Progress -->
-		  <div class="col-md-6">
-			<div class="card shadow-sm h-100">
+		  <!-- Message mime Types -->
+		  <div class="col-md-3 col-sm-6">
+			<div class="card shadow-whatsapp h-100">
 			  <div class="card-body">
-				<h5 class="card-title">סטטוס משימות המשך</h5>
-				<div class="mt-4">
-				  <div th:each="step : ${nextSteps}" class="mb-3">
-					<div class="d-flex justify-content-between mb-1">
-					  <span th:text="${step.name}">שם המשימה</span>
-					  <span th:text="${step.percentage + '%'}">0%</span>
-					</div>
-					<div class="progress" style="height: 10px;">
-					  <div class="progress-bar bg-success" role="progressbar"
-						   th:style="'width: ' + ${step.percentage} + '%'"
-						   th:aria-valuenow="${step.percentage}"
-						   aria-valuemin="0" aria-valuemax="100">
-					  </div>
-					</div>
+				<h5 class="card-title">סוגי ההודעות</h5>
+				<div th:each="type : ${messageTypes}" class="text-center mb-3 feature-icon p-3" style="min-height: auto;">
+				  <div class="mb-2">
+					<i class="bi" th:class="${type.icon}" style="font-size: 2rem; color: var(--whatsapp-teal)"></i>
 				  </div>
+				  <div class="h4 mb-0" th:text="${type.count}">0</div>
+				  <div class="text-muted" th:text="${type.name}">סוג</div>
 				</div>
 			  </div>
 			</div>
@@ -133,39 +114,13 @@
 	  
 	  <!-- Categories Distribution -->
 	  <div class="col-12">
-		<div class="card shadow-sm">
+		<div class="card shadow-whatsapp h-100">
 		  <div class="card-body">
 			<h5 class="card-title">התפלגות קטגוריות</h5>
 			<div class="position-relative" style="height: 300px;">
 			  <canvas id="categoriesChart"></canvas>
 			</div>
-			<script th:inline="javascript">
-			  document.addEventListener('DOMContentLoaded', function() {
-				const ctx = document.getElementById('categoriesChart').getContext('2d')
-				const categories = /*[[${categoriesData}]]*/ {}
-				
-				new Chart(ctx, {
-				  type: 'bar',
-				  data: {
-					labels: categories.map(c => c.name),
-					datasets: [{
-					  label: 'מספר הודעות',
-					  data: categories.map(c => c.count),
-					  backgroundColor: '#36A2EB'
-					}]
-				  },
-				  options: {
-					responsive: true,
-					maintainAspectRatio: false,
-					scales: {
-					  y: {
-						beginAtZero: true
-					  }
-					}
-				  }
-				})
-			  })
-			</script>
+			
 		  </div>
 		</div>
 	  </div>
