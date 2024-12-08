@@ -169,3 +169,16 @@ h1, h2, h3, h4, h5, h6 {
     border-color: var(--whatsapp-teal);
     box-shadow: 0 0 0 0.25rem rgba(37, 211, 102, 0.25);
 }
+.stat-card {
+    border-radius: 15px;
+    min-height: 140px;
+}
+.message-type-card {
+    border-radius: 15px;
+    background: linear-gradient(145deg, #ffffff, #f8f9fa);
+}
+.chart-container {
+    position: relative;
+    height: 400px;
+    margin: 20px 0;
+}

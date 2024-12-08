@@ -8,24 +8,22 @@
   <div class="container-fluid py-4">
 	<div class="row">
 	  <div class="col-12">
-		<div class="card shadow-whatsapp text-center h-100">
+		<div class="card shadow-whatsapp">
 		  <div class="card-body">
-			<div class="d-flex align-items-center">
+			<div class="d-flex align-items-center justify-content-start">
 			  <img th:if="${picture}"
 				   th:src="${picture}"
 				   class="rounded-circle me-3"
 				   alt="Profile Picture"
 				   width="64"
 				   height="64">
-			  <div>
-				<h2 class="card-title mb-1">ברוך הבא, <span th:text="${name}">משתמש</span>!</h2>
+			  
+			  <div class="text-start">
+				<h2 class="mb-1">ברוך הבא, <span th:text="${name}">משתמש</span>!</h2>
 				<p class="text-muted mb-0"><strong>דוא״ל:</strong> <span th:text="${email}">email@example.com</span></p>
 				<p class="text-muted mb-0">
 				  <strong>טלפון:</strong>
-				  <span th:if="${phone}"
-						th:text="${'0' + #strings.substring(phone, 3)}">
-                                        05XXXXXXXX
-                                    </span>
+				  <span th:if="${phone}" th:text="${'0' + #strings.substring(phone, 3)}">05XXXXXXXX</span>
 				</p>
 			  </div>
 			</div>
@@ -35,16 +33,16 @@
 	</div>
   </div>
   
-  <!-- Statistics and Charts Section -->
+  <!-- Main Dashboard Grid -->
   <div class="container-fluid">
 	<div class="row g-4">
-	  <!-- Statistics Cards -->
-	  <div class="col-12">
+	  <!-- Left Column: Statistics Cards -->
+	  <div class="col-lg-8">
 		<div class="row g-4">
-		  <!-- Total Messages Card -->
-		  <div class="col-md-3 col-sm-6">
+		  <!-- Key Metrics -->
+		  <div class="col-md-6 col-xl-3">
 			<div class="card shadow-whatsapp text-center h-100">
-			  <div class="card-body">
+			  <div class="card-body text-center">
 				<i class="bi bi-chat-dots" style="font-size: 2rem; color: var(--whatsapp-teal)"></i>
 				<h3 class="mt-2" th:text="${totalMessages}">0</h3>
 				<h6 class="text-muted">סה״כ הודעות</h6>
@@ -52,9 +50,9 @@
 			</div>
 		  </div>
 		  <!-- Categories Card -->
-		  <div class="col-md-3 col-sm-6">
-			<div class="card shadow-whatsapp text-center h-100">
-			  <div class="card-body">
+		  <div class="col-md-6 col-xl-3">
+			<div class="card shadow-whatsapp stat-card">
+			  <div class="card-body text-center">
 				<i class="bi bi-folder" style="font-size: 2rem; color: var(--whatsapp-green)"></i>
 				<h3 class="mt-2" th:text="${categoriesCount}">0</h3>
 				<h6 class="text-muted">קטגוריות</h6>
@@ -62,9 +60,9 @@
 			</div>
 		  </div>
 		  <!-- Sub-Categories Card -->
-		  <div class="col-md-3 col-sm-6">
-			<div class="card shadow-whatsapp text-center h-100">
-			  <div class="card-body">
+		  <div class="col-md-6 col-xl-3">
+			<div class="card shadow-whatsapp stat-card">
+			  <div class="card-body text-center">
 				<i class="bi bi-diagram-2" style="font-size: 2rem; color: var(--whatsapp-dark)"></i>
 				<h3 class="mt-2" th:text="${subCategoriesCount}">0</h3>
 				<h6 class="text-muted">תת-קטגוריות</h6>
@@ -72,9 +70,9 @@
 			</div>
 		  </div>
 		  <!-- Tags Card -->
-		  <div class="col-md-3 col-sm-6">
-			<div class="card shadow-whatsapp text-center h-100">
-			  <div class="card-body">
+		  <div class="col-md-6 col-xl-3">
+			<div class="card shadow-whatsapp stat-card">
+			  <div class="card-body text-center">
 				<i class="bi bi-tags" style="font-size: 2rem; color: var(--whatsapp-teal)"></i>
 				<h3 class="mt-2" th:text="${totalTags.size()}">0</h3>
 				<h6 class="text-muted">תגיות</h6>
@@ -82,75 +80,75 @@
 			</div>
 		  </div>
 		  
-		  <!-- Next Steps Card -->
-		  <div class="col-md-3 col-sm-6">
-			<div class="card shadow-whatsapp h-100">
+		  <div class="col-12">
+			<div class="card shadow-whatsapp">
 			  <div class="card-body">
-				<h5 class="card-title">משימות המשך</h5>
-				<i class="bi bi-arrow-right-circle" style="font-size: 2rem; color: var(--whatsapp-green)"></i>
-				<h3 class="mt-2" th:text="${nextStepsCount}">0</h3>
-				<h6 class="text-muted">צעדים הבאים</h6>
-			  </div>
-			</div>
-		  </div>
-		  
-		  <!-- Message mime Types -->
-		  <div class="col-md-3 col-sm-6">
-			<div class="card shadow-whatsapp h-100">
-			  <div class="card-body">
-				<h5 class="card-title">סוגי ההודעות</h5>
-				<div th:each="type : ${messageTypes}" class="text-center mb-3 feature-icon p-3" style="min-height: auto;">
-				  <div class="mb-2">
-					<i class="bi" th:class="${type.icon}" style="font-size: 2rem; color: var(--whatsapp-teal)"></i>
-				  </div>
-				  <div class="h4 mb-0" th:text="${type.count}">0</div>
-				  <div class="text-muted" th:text="${type.name}">סוג</div>
+				<h5 class="card-title mb-4">התפלגות קטגוריות</h5>
+				<div class="chart-container">
+				  <canvas id="categoriesChart"></canvas>
 				</div>
 			  </div>
 			</div>
 		  </div>
 		</div>
 	  </div>
-	  
-	  <!-- Categories Distribution -->
-	  <div class="col-12">
-		<div class="card shadow-whatsapp h-100">
+	  <!-- Right Column: Message Types and Next Steps -->
+	  <div class="col-lg-4">
+		<!-- Message Types Card -->
+		<div class="card shadow-whatsapp mb-4">
 		  <div class="card-body">
-			<h5 class="card-title">התפלגות קטגוריות</h5>
-			<div class="position-relative" style="height: 300px;">
-			  <canvas id="categoriesChart"></canvas>
+			<h5 class="card-title mb-4">סוגי ההודעות</h5>
+			<div class="row g-3">
+			  <div th:each="type : ${messageTypes}" class="col-12">
+				<div class="message-type-card p-3">
+				  <div class="d-flex align-items-center">
+					<div class="me-3">
+					  <i class="bi" th:class="${type.icon}" style="font-size: 2rem; color: var(--whatsapp-teal)"></i>
+					</div>
+					<div>
+					  <div class="h4 mb-0" th:text="${type.count}">0</div>
+					  <div class="text-muted" th:text="${type.name}">סוג</div>
+					</div>
+				  </div>
+				</div>
+			  </div>
 			</div>
-			
+		  </div>
+		</div>
+		
+		<!-- Next Steps Card -->
+		<div class="card shadow-whatsapp">
+		  <div class="card-body">
+			<h5 class="card-title mb-3">משימות המשך</h5>
+			<div class="text-center">
+			  <i class="bi bi-arrow-right-circle mb-3" style="font-size: 2rem; color: var(--whatsapp-green)"></i>
+			  <h3 th:text="${nextStepsCount}">0</h3>
+			  <h6 class="text-muted">צעדים הבאים</h6>
+			</div>
 		  </div>
 		</div>
 	  </div>
 	</div>
   </div>
   
-  <!-- WhatsApp Section -->
+  <!-- WhatsApp Connection Section -->
   <div class="container-fluid mt-4">
-	<div class="row">
-	  <div class="col-12">
-		<div class="card shadow-sm">
-		  <div class="card-body text-center">
-			<i class="bi bi-whatsapp text-success" style="font-size: 2.5rem;"></i>
-			<h5 class="card-title mt-3">התחבר לוואטסאפ</h5>
-			<p class="card-text">סרוק את הקוד QR או לחץ על הכפתור למטה כדי להתחיל</p>
-			<div class="mb-4">
-			  <!-- QR code using the phone parameter -->
-			  <img th:src="@{'https://api.qrserver.com/v1/create-qr-code/?size=200x200&amp;data=https://wa.me/15551504537'}"
-				   alt="WhatsApp QR Code"
-				   class="img-fluid"
-				   style="max-width: 200px;">
-			</div>
-			<!-- WhatsApp link using the phone parameter -->
-			<a th:href="@{'https://wa.me/15551504537'}"
-			   target="_blank"
-			   class="btn btn-success">
-			  <i class="bi bi-whatsapp me-2"></i>פתח בוואטסאפ
-			</a>
-		  </div>
+	<div class="card shadow-whatsapp">
+	  <div class="card-body text-center py-4">
+		<i class="bi bi-whatsapp text-success mb-3" style="font-size: 2.5rem;"></i>
+		<h5 class="card-title">התחבר לוואטסאפ</h5>
+		<p class="card-text">סרוק את הקוד QR או לחץ על הכפתור למטה כדי להתחיל</p>
+		<div class="mb-4">
+		  <img th:src="@{'https://api.qrserver.com/v1/create-qr-code/?size=200x200&amp;data=https://wa.me/15551504537'}"
+			   alt="WhatsApp QR Code"
+			   class="img-fluid"
+			   style="max-width: 200px;">
 		</div>
+		<a th:href="@{'https://wa.me/15551504537'}"
+		   target="_blank"
+		   class="btn btn-success btn-lg">
+		  <i class="bi bi-whatsapp me-2"></i>פתח בוואטסאפ
+		</a>
 	  </div>
 	</div>
   </div>
