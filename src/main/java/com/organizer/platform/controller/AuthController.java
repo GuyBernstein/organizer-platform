@@ -323,18 +323,8 @@ public class AuthController {
             return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", false);
         }
 
-        Map<String, Map<String, List<MessageDTO>>> organizedMessages = messageService.getFilteredMessages(tagNames, phoneNumber);
-
-        long totalMessages = organizedMessages.values()
-                .stream()
-                .flatMap(innerMap -> innerMap.values().stream())
-                .mapToLong(List::size)
-                .sum();
-
         // reset the model attributes for filtration
-        model.addAttribute("categories", organizedMessages);
-        model.addAttribute("totalMessages", totalMessages);
-
+        model.addAttribute("categories", messageService.getFilteredMessages(tagNames, phoneNumber));
         return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", true);
     }
 
@@ -355,16 +345,8 @@ public class AuthController {
         Map<String, Map<String, List<MessageDTO>>> organizedMessages =
                 messageService.findMessageContentsByFromNumberGroupedByCategoryAndGroupedBySubCategory(phoneNumber);
 
-        long totalMessages = organizedMessages.values()
-                .stream()
-                .flatMap(innerMap -> innerMap.values().stream())
-                .mapToLong(List::size)
-                .sum();
-
-        organizedMessages = messageService.getSearchedMessages(content, organizedMessages);
         // reset the model attributes for filtration
-        model.addAttribute("categories", organizedMessages);
-        model.addAttribute("totalMessages", totalMessages);
+        model.addAttribute("categories", messageService.getSearchedMessages(content, organizedMessages));
 
         return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", true);
     }
@@ -489,6 +471,8 @@ public class AuthController {
 
         List<MessageTypeCount> messageTypes = messageService.getMessageTypesByPhoneNumber(appUser.getWhatsappNumber());
         model.addAttribute("messageTypes", messageTypes);
+
+
 
     }
 

@@ -51,6 +51,75 @@ document.addEventListener('DOMContentLoaded', function() {
     input.addEventListener('change', handleFileSelect)
     customizeFileInputText(input)
   })
+
+
+  // Get the canvas element
+  const ctx = document.getElementById('categoriesChart').getContext('2d');
+
+  // Get data from Thymeleaf
+  const categoriesData = /*[[${categoriesDistribution}]]*/ [];
+
+  // Prepare the data for Chart.js
+  const labels = categoriesData.map(item => item.name);
+  const data = categoriesData.map(item => item.count);
+  const backgroundColors = [
+    '#128C7E',  // WhatsApp teal
+    '#25D366',  // WhatsApp green
+    '#075E54',  // WhatsApp dark
+    '#34B7F1',  // WhatsApp light blue
+    // Add more colors if needed
+  ];
+
+  // Create the chart
+  new Chart(ctx, {
+    type: 'bar',  // You can change this to 'pie', 'doughnut', etc.
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'מספר הודעות לפי קטגוריה',
+        data: data,
+        backgroundColor: backgroundColors,
+        borderColor: 'rgba(255, 255, 255, 0.8)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+          rtl: true,
+          labels: {
+            font: {
+              size: 14
+            }
+          }
+        },
+        title: {
+          display: false
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          position: 'right',  // For RTL support
+          ticks: {
+            font: {
+              size: 12
+            }
+          }
+        },
+        x: {
+          ticks: {
+            font: {
+              size: 12
+            }
+          }
+        }
+      }
+    }
+  });
 })
 
 // Keep track of loaded messages per subcategory
