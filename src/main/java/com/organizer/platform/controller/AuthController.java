@@ -479,7 +479,23 @@ public class AuthController {
                 messageService.findMessageContentsByFromNumberGroupedByCategoryAndGroupedBySubCategory(appUser.getWhatsappNumber());
 
         List<CategoryHierarchy> hierarchy = buildCategoryHierarchy(organizedMessages);
+//        // Debug: Print hierarchy structure
+//        hierarchy.forEach(category -> {
+//            System.out.println("Category: " + category.getName() + " (Value: " + category.getValue() + ")");
+//            if (category.getChildren() != null) {
+//                category.getChildren().forEach(subcategory -> System.out.println("  └─ Subcategory: " + subcategory.getName() +
+//                        " (Value: " + subcategory.getValue() + ")"));
+//            }
+//        });
 
+        // Convert to JSON string for frontend debugging
+//        ObjectMapper mapper = new ObjectMapper();
+//        try {
+//            String hierarchyJson = mapper.writeValueAsString(hierarchy);
+//            System.out.println("JSON structure: " + hierarchyJson);
+//        } catch (JsonProcessingException e) {
+//            e.printStackTrace();
+//        }
         model.addAttribute("categoriesHierarchy", hierarchy);
     }
 

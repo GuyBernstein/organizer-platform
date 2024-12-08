@@ -16,7 +16,8 @@ document.addEventListener('DOMContentLoaded', function() {
   tooltipTriggerList.map(function(tooltipTriggerEl) {
     return new bootstrap.Tooltip(tooltipTriggerEl)
   })
-// Initialize copy buttons
+
+  // Initialize copy buttons
   document.querySelectorAll('.copy-button').forEach(button => {
     button.addEventListener('click', function() {
       const content = this.getAttribute('data-content')
@@ -53,48 +54,8 @@ document.addEventListener('DOMContentLoaded', function() {
   })
 
   const hierarchyData = /*[[${categoriesHierarchy}]]*/ [];
+  console.log(hierarchyData);
   initializeCategoriesChart(hierarchyData);
-})
-
-// Keep track of loaded messages per subcategory
-const loadedMessages = {}
-
-function loadMoreMessages(categoryKey, subcategoryKey) {
-  const key = `${categoryKey}-${subcategoryKey}`
-  const offset = (loadedMessages[key] || 0) + 50
-
-  // Make AJAX call to load more messages
-  fetch(`/api/messages?category=${categoryKey}&subcategory=${subcategoryKey}&offset=${offset}&limit=50`)
-    .then(response => response.json())
-    .then(data => {
-      loadedMessages[key] = offset
-      // Append new messages to the container
-      const container = document.querySelector(`[data-category="${categoryKey}"][data-subcategory="${subcategoryKey}"] .messages-container`)
-      // Append new message buttons...
-    })
-}
-
-// intersection observer for infinite scrolling
-const observerOptions = {
-  root: null,
-  rootMargin: '20px',
-  threshold: 0.1
-}
-
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      const container = entry.target
-      const categoryKey = container.dataset.category
-      const subcategoryKey = container.dataset.subcategory
-      loadMoreMessages(categoryKey, subcategoryKey)
-    }
-  })
-}, observerOptions)
-
-// Observe all message containers
-document.querySelectorAll('.messages-container').forEach(container => {
-  observer.observe(container)
 })
 
 // toggle between view, edit and smart edit mode in the modal

@@ -132,32 +132,24 @@
 						th:text="${#lists.size(subcategory.value)}">0</span>
 				</div>
 				
-				<!-- Virtual Scrolling Container for Messages -->
-				<div class="messages-container" style="max-height: 200px; overflow-y: auto;">
+				<!-- Container for Messages -->
+				<div class="messages-container">
 				  <div class="d-flex flex-wrap gap-2">
-					<div th:each="message, messageStat : ${subcategory.value}"
-						 class="message-item"
-						 th:if="${messageStat.index < 50}">
+					<div th:each="message : ${subcategory.value}"
+						 class="message-item">
 					  <button class="btn btn-sm btn-outline-primary d-flex align-items-center gap-2"
 							  data-bs-toggle="modal"
 							  th:data-bs-target="'#message-modal-' + ${message.id}">
-						<span class="message-preview"
-							  th:switch="${message.mime}">
-						  <span th:case="'image'">תמונה</span>
-						  <span th:case="'document'">מסמך</span>
-						  <span th:case="'audio'">הקלטה</span>
-						  <span th:case="*"
-								th:text="${#strings.abbreviate(message.messageContent, 20)}">
-							Message...
-						  </span>
-						</span>
-					  </button>
-					</div>
-					<div th:if="${#lists.size(subcategory.value) > 50}"
-						 class="text-muted small">
-					  <button class="btn btn-sm btn-link"
-							  th:onclick="'loadMoreMessages(\'' + ${category.key} + '\', \'' + ${subcategory.key} + '\')'">
-						טען עוד...
+							  <span class="message-preview"
+									th:switch="${message.mime}">
+								<span th:case="'image'">תמונה</span>
+								<span th:case="'document'">מסמך</span>
+								<span th:case="'audio'">הקלטה</span>
+								<span th:case="*"
+									  th:text="${#strings.abbreviate(message.messageContent, 20)}">
+								  Message...
+								</span>
+							  </span>
 					  </button>
 					</div>
 				  </div>
