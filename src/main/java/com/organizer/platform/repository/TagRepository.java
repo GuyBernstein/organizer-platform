@@ -14,4 +14,7 @@ public interface TagRepository extends JpaRepository<Tag, Long> {
 
     @Query("SELECT DISTINCT m FROM WhatsAppMessage m JOIN FETCH m.tags t WHERE t.name IN :tagNames")
     Set<WhatsAppMessage> findMessagesByTagNamesOptimized(@Param("tagNames") Set<String> tagNames);
+
+    @Query("SELECT DISTINCT t.name FROM Tag t JOIN t.messages m WHERE m.fromNumber = :phoneNumber")
+    Set<String> findTagNamesByPhoneNumber(@Param("phoneNumber") String phoneNumber);
 }

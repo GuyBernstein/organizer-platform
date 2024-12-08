@@ -479,7 +479,7 @@ public class AuthController {
 
             model.addAttribute("totalMessages", totalMessages);
         }
-        model.addAttribute("totalTags", messageService.getAllTags());
+        model.addAttribute("totalTags", messageService.getAllTagsByPhoneNumber(appUser.getWhatsappNumber()));
     }
 
 }

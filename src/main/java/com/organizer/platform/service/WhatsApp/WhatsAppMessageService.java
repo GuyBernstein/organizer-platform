@@ -316,10 +316,7 @@ public class WhatsAppMessageService {
         messageRepository.deleteById(messageId);
     }
 
-    public Set<String> getAllTags(){
-        List<Tag> tags = tagRepository.findAll();
-        return tags.stream()
-                .map(Tag::getName)
-                .collect(Collectors.toSet());
+    public Set<String> getAllTagsByPhoneNumber(String phoneNumber) {
+        return tagRepository.findTagNamesByPhoneNumber(phoneNumber);
     }
 }
