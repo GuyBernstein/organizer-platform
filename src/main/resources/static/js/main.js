@@ -54,8 +54,9 @@ document.addEventListener('DOMContentLoaded', function() {
   })
 
   // Access the data through the global variable
-  const hierarchyData = window.categoriesHierarchyData || [];
-  initializeCategoriesChart(hierarchyData);
+  if (window.categoriesHierarchyData) {
+    initializeCategoriesChart(window.categoriesHierarchyData);
+  }
 })
 
 // toggle between view, edit and smart edit mode in the modal
@@ -205,73 +206,147 @@ function clearFileInput(inputId) {
 function initializeCategoriesChart(hierarchyData) {
   const ctx = document.getElementById('categoriesChart').getContext('2d');
 
-  // Extract data for chart
-  const labels = hierarchyData.map(category => category.name);
-  const mainData = hierarchyData.map(category => category.value);
-  const subCategories = hierarchyData.map(category =>
-    category.children.map(sub => ({
-      label: sub.name,
-      value: sub.value
-    }))
-  );
+  function transformToTreemapData(data) {
+    // Add padding to values to make boxes larger
+    const result = [];
+    const scaleFactor = 2.5; // Increase this to make boxes bigger
 
-  // Create datasets for subcategories
-  const datasets = [{
-    label: 'Categories',
-    data: mainData,
-    backgroundColor: [
-      'rgba(255, 99, 132, 0.8)',
-      'rgba(54, 162, 235, 0.8)',
-      'rgba(255, 206, 86, 0.8)',
-      'rgba(75, 192, 192, 0.8)',
-      'rgba(153, 102, 255, 0.8)'
+    data.forEach((category, index) => {
+      result.push({
+        name: category.name,
+        // Scale up the values to force larger boxes
+        value: category.value * scaleFactor,
+        group: category.name,
+        groupIndex: index,
+        // Store original value for display
+        displayValue: category.value
+      });
+
+      category.children.forEach(subCategory => {
+        result.push({
+          name: subCategory.name,
+          // Scale up the values to force larger boxes
+          value: subCategory.value * scaleFactor,
+          group: category.name,
+          parent: category.name,
+          groupIndex: index,
+          // Store original value for display
+          displayValue: subCategory.value
+        });
+      });
+    });
+    return result;
+  }
+
+  const treeData = transformToTreemapData(hierarchyData);
+
+  const colorSchemes = {
+    base: [
+      'rgba(69, 123, 157, 0.8)',
+      'rgba(124, 152, 133, 0.8)',
+      'rgba(146, 111, 91, 0.8)',
+      'rgba(133, 87, 108, 0.8)',
+      'rgba(106, 153, 153, 0.8)'
     ],
-    borderColor: [
-      'rgba(255, 99, 132, 1)',
-      'rgba(54, 162, 235, 1)',
-      'rgba(255, 206, 86, 1)',
-      'rgba(75, 192, 192, 1)',
-      'rgba(153, 102, 255, 1)'
-    ],
-    borderWidth: 1
-  }];
+    hover: [
+      'rgba(69, 123, 157, 1)',
+      'rgba(124, 152, 133, 1)',
+      'rgba(146, 111, 91, 1)',
+      'rgba(133, 87, 108, 1)',
+      'rgba(106, 153, 153, 1)'
+    ]
+  };
 
   new Chart(ctx, {
-    type: 'bar',
+    type: 'treemap',
     data: {
-      labels: labels,
-      datasets: datasets
+      datasets: [{
+        tree: treeData,
+        key: 'value',
+        groups: ['group'],
+        spacing: 1, // Reduced spacing to maximize content area
+        backgroundColor(context) {
+          if (!context.raw) return 'transparent';
+          const item = treeData[context.dataIndex];
+          if (!item) return colorSchemes.base[0];
+          const colorIndex = item.groupIndex % colorSchemes.base.length;
+          return item.parent ?
+            colorSchemes.base[colorIndex] + '88' :
+            colorSchemes.base[colorIndex];
+        },
+        borderWidth: 1,
+        borderColor(context) {
+          if (!context.raw) return 'transparent';
+          const item = treeData[context.dataIndex];
+          if (!item) return colorSchemes.hover[0];
+          const colorIndex = item.groupIndex % colorSchemes.hover.length;
+          return colorSchemes.hover[colorIndex];
+        },
+        labels: {
+          display: true,
+          align: 'center',
+          position: 'middle',
+          formatter: (context) => {
+            if (!context.raw) return '';
+            const item = treeData[context.dataIndex];
+            if (!item) return '';
+
+            // Adjusted threshold for visibility
+            if (context.raw.h < 40 || context.raw.w < 60) return '';
+
+            return [
+              item.name,
+              `${item.displayValue} הודעות`  // Use original value for display
+            ];
+          },
+          font: {
+            size: 24,
+            weight: 'bold'
+          },
+          color: 'black',
+          padding: 4
+        }
+      }]
     },
     options: {
       responsive: true,
-      maintainAspectRatio: true,
+      maintainAspectRatio: false, // Allow chart to determine its own height
       plugins: {
-        legend: {
-          position: 'top',
-        },
         title: {
           display: true,
-          text: 'Message Distribution by Category'
+          text: 'התפלגות הודעות לפי קטגוריה',
+          font: {
+            size: 36,
+            weight: 'bold'
+          },
+          padding: {
+            top: 10,
+            bottom: 20
+          }
+        },
+        legend: {
+          display: false
         },
         tooltip: {
+          rtl: true,
+          titleFont: {
+            size: 24
+          },
+          bodyFont: {
+            size: 20
+          },
+          padding: 8,
           callbacks: {
-            afterBody: function(context) {
-              const categoryIndex = context[0].dataIndex;
-              const subs = subCategories[categoryIndex];
-              if (subs.length === 0) return '';
-
-              return '\nSubcategories:\n' +
-                subs.map(sub => `${sub.label}: ${sub.value} messages`).join('\n');
+            title(items) {
+              if (!items[0] || !items[0].raw) return '';
+              const item = treeData[items[0].dataIndex];
+              return item ? item.name : '';
+            },
+            label(context) {
+              if (!context.raw) return '';
+              const item = treeData[context.dataIndex];
+              return `מספר הודעות: ${item.displayValue}`;
             }
-          }
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          title: {
-            display: true,
-            text: 'Number of Messages'
           }
         }
       }
