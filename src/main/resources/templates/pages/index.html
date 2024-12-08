@@ -206,10 +206,17 @@
 			<i class="bi bi-whatsapp text-success" style="font-size: 2.5rem;"></i>
 			<h5 class="card-title mt-3">התחבר לוואטסאפ</h5>
 			<p class="card-text">סרוק את הקוד QR או לחץ על הכפתור למטה כדי להתחיל</p>
-			<div class="mb-4" th:if="${qrCodeUrl}">
-			  <img th:src="${qrCodeUrl}" alt="WhatsApp QR Code" class="img-fluid" style="max-width: 200px;">
+			<div class="mb-4">
+			  <!-- QR code using the phone parameter -->
+			  <img th:src="@{'https://api.qrserver.com/v1/create-qr-code/?size=200x200&amp;data=https://wa.me/15551504537'}"
+				   alt="WhatsApp QR Code"
+				   class="img-fluid"
+				   style="max-width: 200px;">
 			</div>
-			<a th:href="${whatsappLink}" target="_blank" class="btn btn-success">
+			<!-- WhatsApp link using the phone parameter -->
+			<a th:href="@{'https://wa.me/15551504537'}"
+			   target="_blank"
+			   class="btn btn-success">
 			  <i class="bi bi-whatsapp me-2"></i>פתח בוואטסאפ
 			</a>
 		  </div>
