@@ -267,8 +267,56 @@
 				  
 				  <!-- Message Content -->
 				  <div class="message-content mb-4">
-					<strong>תוכן:</strong>
-					<p class="shadow-whatsapp" th:text="${message.messageContent}">Message Content</p>
+					<div th:if="${message.mime}" class="mb-3" th:switch="${message.mime.toLowerCase()}">
+					  <strong>תוכן:</strong>
+					  
+					  <th:block th:case="'text'">
+						<p class="shadow-whatsapp" th:text="${message.messageContent}">צפה בטקסט</p>
+					  </th:block>
+					  
+					  <th:block th:case="'image'">
+						<div>
+						  <form th:action="@{/messages/getMedia}" method="get" class="m-0 d-inline">
+							<input type="hidden" name="content" th:value="${message.messageContent}">
+							<input type="hidden" name="phone" th:value="${phone}">
+							<input type="hidden" name="type" th:value="${message.mime}">
+							<button type="submit" class="btn btn-primary" formtarget="_blank">
+							  <i class="bi bi-image me-1"></i> צפה בתמונה
+							</button>
+						  </form>
+						</div>
+					  </th:block>
+					  
+					  <th:block th:case="'document'">
+						<div>
+						  <form th:action="@{/messages/getMedia}" method="get" class="m-0 d-inline">
+							<input type="hidden" name="content" th:value="${message.messageContent}">
+							<input type="hidden" name="phone" th:value="${phone}">
+							<input type="hidden" name="type" th:value="${message.mime}">
+							<button type="submit" class="btn btn-primary" formtarget="_blank">
+							  <i class="bi bi-file-earmark me-1"></i> צפה בקובץ
+							</button>
+						  </form>
+						</div>
+					  </th:block>
+					  
+					  <th:block th:case="'audio'">
+						<div>
+						  <form th:action="@{/messages/getMedia}" method="get" class="m-0 d-inline">
+							<input type="hidden" name="content" th:value="${message.messageContent}">
+							<input type="hidden" name="phone" th:value="${phone}">
+							<input type="hidden" name="type" th:value="${message.mime}">
+							<button type="submit" class="btn btn-primary" formtarget="_blank">
+							  <i class="bi bi-volume-up me-1"></i> נגן שמע
+							</button>
+						  </form>
+						</div>
+					  </th:block>
+					  
+					  <th:block th:case="*">
+						<p>לא נתמך</p>
+					  </th:block>
+					</div>
 				  </div>
 				  
 				  <!-- Tags and Next Steps -->
@@ -276,8 +324,8 @@
 					<div th:if="${message.tags}" class="mb-3">
 					  <strong>תגיות:</strong>
 					  <div class="d-flex gap-2 flex-wrap mt-1">
-                    <span th:each="tag : ${message.tags}"
-						  class="badge bg-info" th:text="${tag}">Tag</span>
+						<span th:each="tag : ${message.tags}"
+							class="badge bg-info" th:text="${tag}">Tag</span>
 					  </div>
 					</div>
 					<div th:if="${message.nextSteps}" class="mb-3">

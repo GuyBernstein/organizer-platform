@@ -161,6 +161,7 @@ public class WhatsAppMessageService {
                 .nextSteps(message.getNextSteps().stream()
                         .map(NextStep::getName)
                         .collect(Collectors.toSet()))
+                .mime(message.getMessageType())
                 .build();
     }
 

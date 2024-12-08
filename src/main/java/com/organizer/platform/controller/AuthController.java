@@ -22,8 +22,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.view.RedirectView;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.organizer.platform.controller.AppController.storedMediaName;
@@ -363,6 +366,44 @@ public class AuthController {
         model.addAttribute("totalMessages", totalMessages);
 
         return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", true);
+    }
+
+    @GetMapping("/messages/getMedia")
+    public RedirectView getMediaMessages(@RequestParam String type,
+                                 @RequestParam String content,
+                                 @RequestParam String phone,
+                                 @AuthenticationPrincipal OAuth2User principal) {
+        if (principal == null) {
+            return new RedirectView("/login");
+        }
+        String mediaName = extractNameFromMetadata(content, phone + "/");
+        switch (type){
+            case "document":
+                return new RedirectView (cloudStorageService.generateDocumentSignedUrl(phone, mediaName));
+            case "image":
+                return new RedirectView (cloudStorageService.generateImageSignedUrl(phone,mediaName));
+            case "audio":
+                return new RedirectView (cloudStorageService.generateAudioSignedUrl(phone,mediaName));
+            default:
+                return new RedirectView("/login");
+
+        }
+    }
+
+    private String extractNameFromMetadata(String metadata, String prefix) {
+        // Example input: "MIME Type: image/png, Size: 2614 KB, GCS File: 972509603888/35fd8df1-78c4-40d1-ab48-1fba8648d82c.png"
+        if (metadata == null || metadata.isEmpty()) {
+            return null;
+        }
+
+        Pattern pattern = Pattern.compile(prefix + "(.+)");
+        Matcher matcher = pattern.matcher(metadata);
+
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+
+        return null;
     }
 
 

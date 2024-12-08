@@ -31,4 +31,5 @@ public class MessageDTO {
     private String purpose;
     private Set<String> tags;
     private Set<String> nextSteps;
+    private String mime;
 }
