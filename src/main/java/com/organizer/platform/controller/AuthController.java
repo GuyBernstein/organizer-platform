@@ -1,8 +1,10 @@
 package com.organizer.platform.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.organizer.platform.model.ScraperDTO.ProcessingResult;
 import com.organizer.platform.model.User.AppUser;
+import com.organizer.platform.model.organizedDTO.CategoryHierarchy;
 import com.organizer.platform.model.organizedDTO.MessageDTO;
 import com.organizer.platform.model.organizedDTO.MessageTypeCount;
 import com.organizer.platform.model.organizedDTO.WhatsAppMessage;
@@ -32,6 +34,7 @@ import java.util.stream.Collectors;
 
 import static com.organizer.platform.controller.AppController.storedMediaName;
 import static com.organizer.platform.model.User.AppUser.UserBuilder.anUser;
+import static com.organizer.platform.model.organizedDTO.CategoryHierarchy.buildCategoryHierarchy;
 import static com.organizer.platform.model.organizedDTO.WhatsAppMessage.WhatsAppMessageBuilder.aWhatsAppMessage;
 
 @Controller
@@ -472,9 +475,14 @@ public class AuthController {
         List<MessageTypeCount> messageTypes = messageService.getMessageTypesByPhoneNumber(appUser.getWhatsappNumber());
         model.addAttribute("messageTypes", messageTypes);
 
+        Map<String, Map<String, List<MessageDTO>>> organizedMessages =
+                messageService.findMessageContentsByFromNumberGroupedByCategoryAndGroupedBySubCategory(appUser.getWhatsappNumber());
 
+        List<CategoryHierarchy> hierarchy = buildCategoryHierarchy(organizedMessages);
 
+        model.addAttribute("categoriesHierarchy", hierarchy);
     }
+
 
     private void setupMessagesPage(Model model, AppUser appUser, boolean isFiltered) {
         if(!isFiltered) {

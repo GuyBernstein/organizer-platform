@@ -52,74 +52,8 @@ document.addEventListener('DOMContentLoaded', function() {
     customizeFileInputText(input)
   })
 
-
-  // Get the canvas element
-  const ctx = document.getElementById('categoriesChart').getContext('2d');
-
-  // Get data from Thymeleaf
-  const categoriesData = /*[[${categoriesDistribution}]]*/ [];
-
-  // Prepare the data for Chart.js
-  const labels = categoriesData.map(item => item.name);
-  const data = categoriesData.map(item => item.count);
-  const backgroundColors = [
-    '#128C7E',  // WhatsApp teal
-    '#25D366',  // WhatsApp green
-    '#075E54',  // WhatsApp dark
-    '#34B7F1',  // WhatsApp light blue
-    // Add more colors if needed
-  ];
-
-  // Create the chart
-  new Chart(ctx, {
-    type: 'bar',  // You can change this to 'pie', 'doughnut', etc.
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'מספר הודעות לפי קטגוריה',
-        data: data,
-        backgroundColor: backgroundColors,
-        borderColor: 'rgba(255, 255, 255, 0.8)',
-        borderWidth: 1
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'top',
-          rtl: true,
-          labels: {
-            font: {
-              size: 14
-            }
-          }
-        },
-        title: {
-          display: false
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          position: 'right',  // For RTL support
-          ticks: {
-            font: {
-              size: 12
-            }
-          }
-        },
-        x: {
-          ticks: {
-            font: {
-              size: 12
-            }
-          }
-        }
-      }
-    }
-  });
+  const hierarchyData = /*[[${categoriesHierarchy}]]*/ [];
+  initializeCategoriesChart(hierarchyData);
 })
 
 // Keep track of loaded messages per subcategory
@@ -307,5 +241,79 @@ function clearFileInput(inputId) {
   if (fileName) fileName.textContent = ''
 }
 
+function initializeCategoriesChart(hierarchyData) {
+  const ctx = document.getElementById('categoriesChart').getContext('2d');
 
+  // Extract data for chart
+  const labels = hierarchyData.map(category => category.name);
+  const mainData = hierarchyData.map(category => category.value);
+  const subCategories = hierarchyData.map(category =>
+    category.children.map(sub => ({
+      label: sub.name,
+      value: sub.value
+    }))
+  );
 
+  // Create datasets for subcategories
+  const datasets = [{
+    label: 'Categories',
+    data: mainData,
+    backgroundColor: [
+      'rgba(255, 99, 132, 0.8)',
+      'rgba(54, 162, 235, 0.8)',
+      'rgba(255, 206, 86, 0.8)',
+      'rgba(75, 192, 192, 0.8)',
+      'rgba(153, 102, 255, 0.8)'
+    ],
+    borderColor: [
+      'rgba(255, 99, 132, 1)',
+      'rgba(54, 162, 235, 1)',
+      'rgba(255, 206, 86, 1)',
+      'rgba(75, 192, 192, 1)',
+      'rgba(153, 102, 255, 1)'
+    ],
+    borderWidth: 1
+  }];
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          position: 'top',
+        },
+        title: {
+          display: true,
+          text: 'Message Distribution by Category'
+        },
+        tooltip: {
+          callbacks: {
+            afterBody: function(context) {
+              const categoryIndex = context[0].dataIndex;
+              const subs = subCategories[categoryIndex];
+              if (subs.length === 0) return '';
+
+              return '\nSubcategories:\n' +
+                subs.map(sub => `${sub.label}: ${sub.value} messages`).join('\n');
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Number of Messages'
+          }
+        }
+      }
+    }
+  });
+}
