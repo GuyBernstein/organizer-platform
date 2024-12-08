@@ -153,10 +153,16 @@
 					  <button class="btn btn-sm btn-outline-primary d-flex align-items-center gap-2"
 							  data-bs-toggle="modal"
 							  th:data-bs-target="'#message-modal-' + ${message.id}">
-                        <span class="message-preview"
-							  th:text="${#strings.abbreviate(message.messageContent, 20)}">
-                          Message...
-                        </span>
+						<span class="message-preview"
+							  th:switch="${message.mime}">
+						  <span th:case="'image'">תמונה</span>
+						  <span th:case="'document'">מסמך</span>
+						  <span th:case="'audio'">הקלטה</span>
+						  <span th:case="*"
+								th:text="${#strings.abbreviate(message.messageContent, 20)}">
+							Message...
+						  </span>
+						</span>
 					  </button>
 					</div>
 					<div th:if="${#lists.size(subcategory.value) > 50}"
@@ -239,12 +245,6 @@
 					</div>
 				  </div>
 				</div>
-				
-				<button type="button"
-						class="btn-close position-absolute top-0 end-0 mt-2 me-2"
-						data-bs-dismiss="modal"
-						aria-label="Close">
-				</button>
 			  </div>
 			  
 			  <!-- Modal Body with View/Edit Forms -->
@@ -325,7 +325,7 @@
 					  <strong>תגיות:</strong>
 					  <div class="d-flex gap-2 flex-wrap mt-1">
 						<span th:each="tag : ${message.tags}"
-							class="badge bg-info" th:text="${tag}">Tag</span>
+							  class="badge bg-info" th:text="${tag}">Tag</span>
 					  </div>
 					</div>
 					<div th:if="${message.nextSteps}" class="mb-3">
@@ -389,7 +389,7 @@
 				<form class="smart-edit-mode d-none" th:action="@{/messages/smartUpdate}" method="post">
 				  <input type="hidden" name="messageId" th:value="${message.id}" />
 				  <input type="hidden" name="editMode" value="smart" />
-
+				  
 				  <!-- Only Message Content is Editable -->
 				  <div class="mb-3">
 					<label class="form-label">תוכן:</label>
@@ -404,8 +404,16 @@
 				  </div>
 				</form>
 				
-				<div class="text-muted mt-3">
-				  <small th:text="${message.createdAt}">Date</small>
+				<div class="d-flex justify-content-between align-items-center mt-3">
+				  <div class="text-muted">
+					<small th:text="${message.createdAt}">Date</small>
+				  </div>
+				  
+				  <button type="button"
+						  class="btn btn-outline-secondary btn-sm"
+						  data-bs-dismiss="modal">
+					<span class="me-1">✕</span>סגור
+				  </button>
 				</div>
 			  </div>
 			</div>
@@ -415,7 +423,8 @@
 	</div>
 	
 	<!-- Document Upload Modal -->
-	<div class="modal fade" id="addDocumentModal" tabindex="-1" aria-labelledby="addDocumentModalLabel" aria-hidden="true">
+	<div class="modal fade" id="addDocumentModal" tabindex="-1" aria-labelledby="addDocumentModalLabel"
+		 aria-hidden="true">
 	  <div class="modal-dialog modal-dialog-centered">
 		<div class="modal-content">
 		  <div class="modal-header">
@@ -431,9 +440,10 @@
 			  <input type="hidden" name="type" value="document" />
 			  
 			  <div class="mb-3">
-				<div class="d-flex flex-column align-items-center justify-content-center p-5 bg-light rounded-3 border-2 border-dashed position-relative"
-					 id="documentDropZone"
-					 th:data-upload-zone="true">
+				<div
+					class="d-flex flex-column align-items-center justify-content-center p-5 bg-light rounded-3 border-2 border-dashed position-relative"
+					id="documentDropZone"
+					th:data-upload-zone="true">
 				  <!-- Upload Icon and Text -->
 				  <div class="text-center mb-3">
 					<i class="bi bi-file-earmark-text display-4 text-secondary mb-3"></i>
@@ -457,7 +467,8 @@
 					<div class="alert alert-info d-flex align-items-center">
 					  <i class="bi bi-file-earmark me-2"></i>
 					  <span id="documentFileName"></span>
-					  <button type="button" class="btn-close ms-auto" onclick="clearFileInput('documentInput')"></button>
+					  <button type="button" class="btn-close ms-auto"
+							  onclick="clearFileInput('documentInput')"></button>
 					</div>
 				  </div>
 				</div>
@@ -489,9 +500,10 @@
 			  <input type="hidden" name="type" value="image" />
 			  
 			  <div class="mb-3">
-				<div class="d-flex flex-column align-items-center justify-content-center p-5 bg-light rounded-3 border-2 border-dashed position-relative"
-					 id="imageDropZone"
-					 th:data-upload-zone="true">
+				<div
+					class="d-flex flex-column align-items-center justify-content-center p-5 bg-light rounded-3 border-2 border-dashed position-relative"
+					id="imageDropZone"
+					th:data-upload-zone="true">
 				  <!-- Upload Icon and Text -->
 				  <div class="text-center mb-3">
 					<i class="bi bi-image display-4 text-secondary mb-3"></i>
@@ -532,7 +544,8 @@
 	</div>
 	
 	<!-- Add Text Message Modal -->
-	<div class="modal fade" id="addTextMessageModal" tabindex="-1" aria-labelledby="addTextMessageModalLabel" aria-hidden="true">
+	<div class="modal fade" id="addTextMessageModal" tabindex="-1" aria-labelledby="addTextMessageModalLabel"
+		 aria-hidden="true">
 	  <div class="modal-dialog modal-dialog-centered">
 		<div class="modal-content">
 		  <div class="modal-header">
