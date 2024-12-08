@@ -461,6 +461,23 @@ public class AuthController {
         model.addAttribute("content", contentPage);
         model.addAttribute("phone", appUser.getWhatsappNumber());
         model.addAttribute("isAuthorized", appUser.isAuthorized());
+        model.addAttribute("totalTags", messageService.getAllTagsByPhoneNumber(appUser.getWhatsappNumber()));
+        List<WhatsAppMessage> messages = messageService.totalMessagesFromNumber(appUser.getWhatsappNumber());
+        model.addAttribute("totalMessages", messages.size());
+        long totalCategories = messages
+                .stream()
+                .map(WhatsAppMessage::getCategory)
+                .distinct()
+                .count();
+
+        model.addAttribute("categoriesCount", totalCategories);
+        long totalSubCategories = messages
+                .stream()
+                .map(WhatsAppMessage::getSubCategory)
+                .distinct()
+                .count();
+
+        model.addAttribute("subCategoriesCount", totalSubCategories);
     }
 
     private void setupMessagesPage(Model model, AppUser appUser, boolean isFiltered) {
@@ -479,7 +496,6 @@ public class AuthController {
 
             model.addAttribute("totalMessages", totalMessages);
         }
-        model.addAttribute("totalTags", messageService.getAllTagsByPhoneNumber(appUser.getWhatsappNumber()));
     }
 
 }

@@ -45,6 +45,10 @@ public class WhatsAppMessageService {
         return toOrganizedMessages(messages);
     }
 
+    public List<WhatsAppMessage> totalMessagesFromNumber(String phone){
+        return messageRepository.findByFromNumber(phone);
+    }
+
     private Map<String, Map<String, List<MessageDTO>>> toOrganizedMessages(List<WhatsAppMessage> messages) {
         // Organize by category and subcategory hierarchy
         return messages.stream()
