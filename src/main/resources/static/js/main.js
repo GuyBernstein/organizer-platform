@@ -204,12 +204,14 @@ function clearFileInput(inputId) {
 }
 
 function initializeCategoriesChart(hierarchyData) {
+  if(document.getElementById('categoriesChart') === null)
+    return ;
   const ctx = document.getElementById('categoriesChart').getContext('2d');
 
   function transformToTreemapData(data) {
     // Add padding to values to make boxes larger
     const result = [];
-    const scaleFactor = 2.5; // Increase this to make boxes bigger
+    const scaleFactor = 2; // Increase this to make boxes bigger
 
     data.forEach((category, index) => {
       result.push({
