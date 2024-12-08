@@ -3,47 +3,90 @@
 	  lang="he"
 	  dir="rtl">
 <body>
-<div th:fragment="content">
-  <!-- User is authenticated and authorized -->
+<div th:fragment="content" class="container py-4">
+  <!-- User Profile Card -->
+  <!-- User Profile Card -->
   <div class="row">
 	<div class="col-12">
 	  <div class="card shadow-sm">
 		<div class="card-body">
-		  <h2 class="card-title">ברוך הבא, <span th:text="${name}">משתמש</span>!</h2>
-		  <p><strong>דוא״ל:</strong> <span th:text="${email}">email@example.com</span></p>
+		  <div class="d-flex align-items-center">
+			<img th:if="${picture}"
+				 th:src="${picture}"
+				 class="rounded-circle me-3"
+				 alt="Profile Picture"
+				 width="64"
+				 height="64">
+			<div>
+			  <h2 class="card-title mb-1">ברוך הבא, <span th:text="${name}">משתמש</span>!</h2>
+			  <p class="text-muted mb-0"><strong>דוא״ל:</strong> <span th:text="${email}">email@example.com</span></p>
+			  <p class="text-muted mb-0">
+				<strong>טלפון:</strong>
+				<span th:if="${phone}"
+					  th:text="${'0' + #strings.substring(phone, 3)}">
+                                    05XXXXXXXX
+                                </span>
+			  </p>
+			</div>
+		  </div>
 		</div>
 	  </div>
 	</div>
   </div>
   
+  <!-- Quick Actions & Activity Section -->
   <div class="row mt-4">
+	<!-- Quick Actions -->
 	<div class="col-md-4 col-12 mb-4">
 	  <div class="card shadow-sm h-100">
 		<div class="card-body">
-		  <h5 class="card-title">פעולות מהירות</h5>
+		  <h5 class="card-title mb-3">פעולות מהירות</h5>
 		  <div class="d-grid gap-2">
-			<button class="btn btn-outline-primary">פעולה 1</button>
-			<button class="btn btn-outline-primary">פעולה 2</button>
+			<button class="btn btn-outline-primary d-flex align-items-center justify-content-center">
+			  <i class="bi bi-plus-circle me-2"></i>
+			  פעולה 1
+			</button>
+			<button class="btn btn-outline-primary d-flex align-items-center justify-content-center">
+			  <i class="bi bi-gear me-2"></i>
+			  פעולה 2
+			</button>
 		  </div>
 		</div>
 	  </div>
 	</div>
 	
+	<!-- Recent Activity -->
 	<div class="col-md-8 col-12">
 	  <div class="card shadow-sm h-100">
 		<div class="card-body">
-		  <h5 class="card-title">פעילות אחרונה</h5>
+		  <h5 class="card-title mb-3">פעילות אחרונה</h5>
 		  <div class="table-responsive">
-			<table class="table">
+			<table class="table table-hover">
 			  <thead>
 			  <tr>
-				<th>תאריך</th>
-				<th>פעולה</th>
-				<th>סטטוס</th>
+				<th scope="col">תאריך</th>
+				<th scope="col">פעולה</th>
+				<th scope="col">סטטוס</th>
 			  </tr>
 			  </thead>
 			  <tbody>
-			  <!-- Add activity rows here -->
+			  <tr th:each="activity : ${activities}" th:if="${activities}">
+				<td th:text="${#temporals.format(activity.date, 'dd/MM/yyyy HH:mm')}">01/01/2024</td>
+				<td th:text="${activity.action}">פעולה</td>
+				<td>
+                                        <span th:text="${activity.status}"
+											  th:class="${'badge ' +
+                                                        (activity.status == 'הושלם' ? 'bg-success' :
+                                                        (activity.status == 'בתהליך' ? 'bg-warning' :
+                                                        'bg-danger'))}">
+                                            סטטוס
+                                        </span>
+				</td>
+			  </tr>
+			  <!-- Fallback when no activities -->
+			  <tr th:unless="${activities}">
+				<td colspan="3" class="text-center">אין פעילות אחרונה להצגה</td>
+			  </tr>
 			  </tbody>
 			</table>
 		  </div>

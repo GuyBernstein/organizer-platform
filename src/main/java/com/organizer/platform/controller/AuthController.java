@@ -459,6 +459,7 @@ public class AuthController {
         model.addAttribute("email", appUser.getEmail());
         model.addAttribute("picture", picture);
         model.addAttribute("content", contentPage);
+        model.addAttribute("phone", appUser.getWhatsappNumber());
         model.addAttribute("isAuthorized", appUser.isAuthorized());
     }
 
@@ -478,7 +479,6 @@ public class AuthController {
 
             model.addAttribute("totalMessages", totalMessages);
         }
-        model.addAttribute("phone", appUser.getWhatsappNumber());
         model.addAttribute("totalTags", messageService.getAllTags());
     }
 
