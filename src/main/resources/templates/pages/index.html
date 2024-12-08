@@ -89,43 +89,18 @@
 		<div class="row g-4">
 		  <!-- Message Types Chart -->
 		  <div class="col-md-6">
-			<div class="card shadow-sm h-100">
+			<div class="card shadow-whatsapp h-100">
 			  <div class="card-body">
 				<h5 class="card-title">סוגי הודעות</h5>
-				<div class="position-relative" style="height: 300px;">
-				  <canvas id="messageTypesChart"></canvas>
+				<div class="d-flex justify-content-around align-items-center flex-wrap mt-4">
+				  <div th:each="type : ${messageTypes}" class="text-center mb-3 feature-icon p-3" style="min-height: auto;">
+					<div class="mb-2">
+					  <i class="bi" th:class="${type.icon}" style="font-size: 2rem; color: var(--whatsapp-teal)"></i>
+					</div>
+					<div class="h4 mb-0" th:text="${type.count}">0</div>
+					<div class="text-muted" th:text="${type.name}">סוג</div>
+				  </div>
 				</div>
-				<script th:inline="javascript">
-				  document.addEventListener('DOMContentLoaded', function() {
-					const ctx = document.getElementById('messageTypesChart').getContext('2d')
-					const messageTypes = /*[[${messageTypes}]]*/ {}
-					
-					new Chart(ctx, {
-					  type: 'doughnut',
-					  data: {
-						labels: ['טקסט', 'תמונות', 'מסמכים', 'אודיו'],
-						datasets: [{
-						  data: [
-							messageTypes.text || 0,
-							messageTypes.images || 0,
-							messageTypes.documents || 0,
-							messageTypes.audio || 0
-						  ],
-						  backgroundColor: [
-							'#36A2EB',
-							'#FF6384',
-							'#FFCE56',
-							'#4BC0C0'
-						  ]
-						}]
-					  },
-					  options: {
-						responsive: true,
-						maintainAspectRatio: false
-					  }
-					})
-				  })
-				</script>
 			  </div>
 			</div>
 		  </div>

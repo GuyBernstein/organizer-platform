@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.organizer.platform.model.ScraperDTO.ProcessingResult;
 import com.organizer.platform.model.User.AppUser;
 import com.organizer.platform.model.organizedDTO.MessageDTO;
+import com.organizer.platform.model.organizedDTO.MessageTypeCount;
 import com.organizer.platform.model.organizedDTO.WhatsAppMessage;
 import com.organizer.platform.service.Google.CloudStorageService;
 import com.organizer.platform.service.Scraper.ContentProcessorService;
@@ -478,6 +479,8 @@ public class AuthController {
                 .count();
 
         model.addAttribute("subCategoriesCount", totalSubCategories);
+        List<MessageTypeCount> messageTypes = messageService.getMessageTypesByPhoneNumber(appUser.getWhatsappNumber());
+        model.addAttribute("messageTypes", messageTypes);
     }
 
     private void setupMessagesPage(Model model, AppUser appUser, boolean isFiltered) {

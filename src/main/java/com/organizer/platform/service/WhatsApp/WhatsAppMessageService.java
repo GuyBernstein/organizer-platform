@@ -1,9 +1,6 @@
 package com.organizer.platform.service.WhatsApp;
 
-import com.organizer.platform.model.organizedDTO.MessageDTO;
-import com.organizer.platform.model.organizedDTO.NextStep;
-import com.organizer.platform.model.organizedDTO.Tag;
-import com.organizer.platform.model.organizedDTO.WhatsAppMessage;
+import com.organizer.platform.model.organizedDTO.*;
 import com.organizer.platform.repository.NextStepRepository;
 import com.organizer.platform.repository.TagRepository;
 import com.organizer.platform.repository.WhatsAppMessageRepository;
@@ -322,5 +319,19 @@ public class WhatsAppMessageService {
 
     public Set<String> getAllTagsByPhoneNumber(String phoneNumber) {
         return tagRepository.findTagNamesByPhoneNumber(phoneNumber);
+    }
+
+    public List<MessageTypeCount> getMessageTypesByPhoneNumber(String phoneNumber) {
+        // Get counts grouped by message type
+        List<Object[]> results = messageRepository.findMessageTypeCountsByPhoneNumber(phoneNumber);
+
+        // Convert to MessageTypeCount objects
+        return results.stream()
+                .map(result -> new MessageTypeCount(
+                        (String) result[0],
+                        MessageTypeCount.getIconForType((String) result[0]),
+                        (Long) result[1]
+                ))
+                .collect(Collectors.toList());
     }
 }
