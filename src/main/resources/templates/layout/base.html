@@ -34,10 +34,15 @@
   <footer class="footer mt-auto py-3" th:replace="~{fragments/footer :: footer}"></footer>
 
   <!-- Scripts -->
+  <script th:inline="javascript">
+	// Create a global variable to hold the data
+	window.categoriesHierarchyData = [[${categoriesHierarchy}]];
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <!-- Required Chart.js and Treemap plugin -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-treemap"></script>
+  
   <script th:src="@{/js/main.js}"></script>
 </body>
 </html>

@@ -488,14 +488,6 @@ public class AuthController {
 //            }
 //        });
 
-        // Convert to JSON string for frontend debugging
-//        ObjectMapper mapper = new ObjectMapper();
-//        try {
-//            String hierarchyJson = mapper.writeValueAsString(hierarchy);
-//            System.out.println("JSON structure: " + hierarchyJson);
-//        } catch (JsonProcessingException e) {
-//            e.printStackTrace();
-//        }
         model.addAttribute("categoriesHierarchy", hierarchy);
     }
 

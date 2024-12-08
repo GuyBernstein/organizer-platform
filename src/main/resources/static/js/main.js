@@ -53,8 +53,8 @@ document.addEventListener('DOMContentLoaded', function() {
     customizeFileInputText(input)
   })
 
-  const hierarchyData = /*[[${categoriesHierarchy}]]*/ [];
-  console.log(hierarchyData);
+  // Access the data through the global variable
+  const hierarchyData = window.categoriesHierarchyData || [];
   initializeCategoriesChart(hierarchyData);
 })
 
