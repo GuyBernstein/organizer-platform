@@ -55,8 +55,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Access the data through the global variable
   if (window.categoriesHierarchyData) {
-    initializeCategoriesChart(window.categoriesHierarchyData);
+    initializeCategoriesChart(window.categoriesHierarchyData)
   }
+
+  // Initialize the chart when the document is ready
+  initializeMiniCategoriesChart(window.miniCategoriesData)
 })
 
 // toggle between view, edit and smart edit mode in the modal
@@ -204,14 +207,14 @@ function clearFileInput(inputId) {
 }
 
 function initializeCategoriesChart(hierarchyData) {
-  if(document.getElementById('categoriesChart') === null)
-    return ;
-  const ctx = document.getElementById('categoriesChart').getContext('2d');
+  if (document.getElementById('categoriesChart') === null)
+    return
+  const ctx = document.getElementById('categoriesChart').getContext('2d')
 
   function transformToTreemapData(data) {
     // Add padding to values to make boxes larger
-    const result = [];
-    const scaleFactor = 2; // Increase this to make boxes bigger
+    const result = []
+    const scaleFactor = 2 // Increase this to make boxes bigger
 
     data.forEach((category, index) => {
       result.push({
@@ -222,7 +225,7 @@ function initializeCategoriesChart(hierarchyData) {
         groupIndex: index,
         // Store original value for display
         displayValue: category.value
-      });
+      })
 
       category.children.forEach(subCategory => {
         result.push({
@@ -234,13 +237,13 @@ function initializeCategoriesChart(hierarchyData) {
           groupIndex: index,
           // Store original value for display
           displayValue: subCategory.value
-        });
-      });
-    });
-    return result;
+        })
+      })
+    })
+    return result
   }
 
-  const treeData = transformToTreemapData(hierarchyData);
+  const treeData = transformToTreemapData(hierarchyData)
 
   const colorSchemes = {
     base: [
@@ -257,7 +260,7 @@ function initializeCategoriesChart(hierarchyData) {
       'rgba(133, 87, 108, 1)',
       'rgba(106, 153, 153, 1)'
     ]
-  };
+  }
 
   new Chart(ctx, {
     type: 'treemap',
@@ -268,38 +271,38 @@ function initializeCategoriesChart(hierarchyData) {
         groups: ['group'],
         spacing: 1, // Reduced spacing to maximize content area
         backgroundColor(context) {
-          if (!context.raw) return 'transparent';
-          const item = treeData[context.dataIndex];
-          if (!item) return colorSchemes.base[0];
-          const colorIndex = item.groupIndex % colorSchemes.base.length;
+          if (!context.raw) return 'transparent'
+          const item = treeData[context.dataIndex]
+          if (!item) return colorSchemes.base[0]
+          const colorIndex = item.groupIndex % colorSchemes.base.length
           return item.parent ?
             colorSchemes.base[colorIndex] + '88' :
-            colorSchemes.base[colorIndex];
+            colorSchemes.base[colorIndex]
         },
         borderWidth: 1,
         borderColor(context) {
-          if (!context.raw) return 'transparent';
-          const item = treeData[context.dataIndex];
-          if (!item) return colorSchemes.hover[0];
-          const colorIndex = item.groupIndex % colorSchemes.hover.length;
-          return colorSchemes.hover[colorIndex];
+          if (!context.raw) return 'transparent'
+          const item = treeData[context.dataIndex]
+          if (!item) return colorSchemes.hover[0]
+          const colorIndex = item.groupIndex % colorSchemes.hover.length
+          return colorSchemes.hover[colorIndex]
         },
         labels: {
           display: true,
           align: 'center',
           position: 'middle',
           formatter: (context) => {
-            if (!context.raw) return '';
-            const item = treeData[context.dataIndex];
-            if (!item) return '';
+            if (!context.raw) return ''
+            const item = treeData[context.dataIndex]
+            if (!item) return ''
 
             // Adjusted threshold for visibility
-            if (context.raw.h < 40 || context.raw.w < 60) return '';
+            if (context.raw.h < 40 || context.raw.w < 60) return ''
 
             return [
               item.name,
               `${item.displayValue} הודעות`  // Use original value for display
-            ];
+            ]
           },
           font: {
             size: 24,
@@ -340,6 +343,148 @@ function initializeCategoriesChart(hierarchyData) {
           padding: 8,
           callbacks: {
             title(items) {
+              if (!items[0] || !items[0].raw) return ''
+              const item = treeData[items[0].dataIndex]
+              return item ? item.name : ''
+            },
+            label(context) {
+              if (!context.raw) return ''
+              const item = treeData[context.dataIndex]
+              return `מספר הודעות: ${item.displayValue}`
+            }
+          }
+        }
+      }
+    }
+  })
+}
+
+function initializeMiniCategoriesChart(miniCategoriesData) {
+  if(document.getElementById('miniCategoriesChart') === null)
+    return;
+
+  const ctx = document.getElementById('miniCategoriesChart').getContext('2d');
+
+  function transformToTreemapData(data) {
+    const result = [];
+    const scaleFactor = 1.5;
+
+    data.forEach((category, index) => {
+      result.push({
+        name: category.name,
+        value: category.value * scaleFactor,
+        group: category.name,
+        groupIndex: index,
+        displayValue: category.value,
+        content: category.content
+      });
+
+      category.children.forEach(subCategory => {
+        result.push({
+          name: subCategory.name,
+          value: subCategory.value * scaleFactor,
+          group: category.name,
+          parent: category.name,
+          groupIndex: index,
+          displayValue: subCategory.value,
+          content: subCategory.content
+        });
+      });
+    });
+    return result;
+  }
+
+  const treeData = transformToTreemapData(miniCategoriesData);
+
+  const colorSchemes = {
+    base: [
+      'rgba(69, 123, 157, 0.8)',
+      'rgba(124, 152, 133, 0.8)'
+    ],
+    hover: [
+      'rgba(69, 123, 157, 1)',
+      'rgba(124, 152, 133, 1)'
+    ]
+  };
+
+  new Chart(ctx, {
+    type: 'treemap',
+    data: {
+      datasets: [{
+        tree: treeData,
+        key: 'value',
+        groups: ['group'],
+        spacing: 1,
+        backgroundColor(context) {
+          if (!context.raw) return 'transparent';
+          const item = treeData[context.dataIndex];
+          if (!item) return colorSchemes.base[0];
+          const colorIndex = item.groupIndex % colorSchemes.base.length;
+          return item.parent ?
+            colorSchemes.base[colorIndex] + '88' :
+            colorSchemes.base[colorIndex];
+        },
+        borderWidth: 1,
+        borderColor(context) {
+          if (!context.raw) return 'transparent';
+          const item = treeData[context.dataIndex];
+          if (!item) return colorSchemes.hover[0];
+          const colorIndex = item.groupIndex % colorSchemes.hover.length;
+          return colorSchemes.hover[colorIndex];
+        },
+        labels: {
+          display: true,
+          align: 'center',
+          position: 'middle',
+          formatter: (context) => {
+            if (!context.raw) return '';
+            const item = treeData[context.dataIndex];
+            if (!item) return '';
+            if (context.raw.h < 30 || context.raw.w < 40) return '';
+            return [
+              item.name,
+              `${item.displayValue}`
+            ];
+          },
+          font: {
+            size: 12,
+            weight: 'bold'
+          },
+          color: 'black',
+          padding: 2
+        }
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: {
+          display: true,
+          text: 'קטגוריות',
+          font: {
+            size: 14,
+            weight: 'bold'
+          },
+          padding: {
+            top: 5,
+            bottom: 10
+          }
+        },
+        legend: {
+          display: false
+        },
+        tooltip: {
+          rtl: true,
+          titleFont: {
+            size: 12
+          },
+          bodyFont: {
+            size: 10
+          },
+          padding: 4,
+          callbacks: {
+            title(items) {
               if (!items[0] || !items[0].raw) return '';
               const item = treeData[items[0].dataIndex];
               return item ? item.name : '';
@@ -347,7 +492,10 @@ function initializeCategoriesChart(hierarchyData) {
             label(context) {
               if (!context.raw) return '';
               const item = treeData[context.dataIndex];
-              return `מספר הודעות: ${item.displayValue}`;
+              return [
+                `מספר הודעות: ${item.displayValue}`,
+                `תוכן: ${item.content || 'לא צוין'}`
+              ];
             }
           }
         }
@@ -355,3 +503,5 @@ function initializeCategoriesChart(hierarchyData) {
     }
   });
 }
+
+

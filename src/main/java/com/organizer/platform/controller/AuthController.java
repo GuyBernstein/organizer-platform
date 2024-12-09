@@ -479,6 +479,7 @@ public class AuthController {
                 messageService.findMessageContentsByFromNumberGroupedByCategoryAndGroupedBySubCategory(appUser.getWhatsappNumber());
 
         List<CategoryHierarchy> hierarchy = buildCategoryHierarchy(organizedMessages);
+
         model.addAttribute("categoriesHierarchy", hierarchy);
     }
 

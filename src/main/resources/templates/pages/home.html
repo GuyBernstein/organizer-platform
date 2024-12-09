@@ -2,101 +2,111 @@
 <html xmlns:th="http://www.thymeleaf.org"
 	  lang="he" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home</title>
 </head>
 <body>
-    <div th:fragment="content">
-        <div class="container py-4">
-            <div class="text-center mb-5">
-                <h1 id="ברוכים-הבאים-whatsapp-organizer" class="display-4 mb-4">
-                    ברוכים הבאים: WhatsApp Organizer
-                </h1>
-                <p class="lead px-2">נהלו את ההודעות שלכם בצורה חכמה ויעילה</p>
-            </div>
-
-            <!-- Cards container with responsive grid -->
-            <div class="row g-4 justify-content-center">
-                <!-- Card 1: ארגון הודעות חכם -->
-                <div class="col-12 col-sm-10 col-md-6 col-lg-3">
-                    <div class="card h-100 shadow-sm rounded-4">
-                        <div class="feature-icon d-flex align-items-center justify-content-center p-4">
-                            <i class="fas fa-folder-tree fa-3x text-whatsapp-green"></i>
-                        </div>
-                        <div class="card-body d-flex flex-column">
-                            <h2 class="h4 mb-3 text-whatsapp-dark">ארגון הודעות חכם</h2>
-                            <p class="card-text">צרו וארגנו הודעות באופן אוטומטי - בין אם דרך וואטסאפ או ישירות במערכת. המיון החכם שלנו מסדר את ההודעות לפי:</p>
-
-                            <ul class="list-unstyled mb-3 ps-2">
-                                <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>קטגוריות ותת-קטגוריות</li>
-                                <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>תאריך יצירה</li>
-                                <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>הגדרת ה-type</li>
-                                <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>הגדרת מטרת ההודעה</li>
-                                <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>תגיות מותאמות אישית</li>
-                                <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>צעדים להמשך</li>
-                            </ul>
-
-                            <p class="card-text">פשוט שלחו או הוסיפו הודעה, והמערכת תדע לארגן אותה במקום הנכון עבורכם</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Card 2: חיפוש מתקדם -->
-                <div class="col-12 col-sm-10 col-md-6 col-lg-3">
-                    <div class="card h-100 shadow-sm rounded-4">
-                        <div class="feature-icon d-flex align-items-center justify-content-center p-4">
-                            <i class="fas fa-magnifying-glass fa-3x text-whatsapp-green"></i>
-                        </div>
-                        <div class="card-body d-flex flex-column">
-                            <h2 class="h4 mb-3 text-whatsapp-dark">חיפוש מתקדם</h2>
-                            <p class="card-text">מנוע חיפוש חכם המאפשר למצוא כל הודעה במהירות ובקלות. אפשרויות החיפוש כוללות:</p>
-
-                            <ul class="list-unstyled mb-3 ps-2">
-                                <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>מיון לפי תת-קטגוריות וקטגוריות</li>
-                                <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>סינון לפי תאריכים ותגיות</li>
-                                <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>חיפוש בתוכן ההודעות</li>
-                            </ul>
-
-                            <p class="card-text">אתרו כל מידע שתצטרכו בלחיצת כפתור</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Card 3: צעדים הבאים -->
-                <div class="col-12 col-sm-10 col-md-6 col-lg-3">
-                    <div class="card h-100 shadow-sm rounded-4">
-                        <div class="feature-icon d-flex align-items-center justify-content-center p-4">
-                            <i class="fas fa-list-check fa-3x text-whatsapp-green"></i>
-                        </div>
-                        <div class="card-body d-flex flex-column">
-                            <h2 class="h4 mb-3 text-whatsapp-dark">צעדים הבאים</h2>
-                            <p class="card-text">המערכת מזהה ומגדירה באופן אוטומטי משימות המשך מתוך ההודעות שלכם</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Card 4: עריכת נתונים -->
-                <div class="col-12 col-sm-10 col-md-6 col-lg-3">
-                    <div class="card h-100 shadow-sm rounded-4">
-                        <div class="feature-icon d-flex align-items-center justify-content-center p-4">
-                            <i class="fas fa-pen-to-square fa-3x text-whatsapp-green"></i>
-                        </div>
-                        <div class="card-body d-flex flex-column">
-                            <h2 class="h4 mb-3 text-whatsapp-dark">עריכת נתונים</h2>
-                            <p class="card-text">שליטה מלאה בארגון המידע שלכם עם אפשרויות עריכה מתקדמות:</p>
-
-                            <ul class="list-unstyled mb-3 ps-2">
-                                <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>עריכה ידנית או אוטומטית</li>
-                                <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>התאמה אישית של קטגוריות</li>
-                            </ul>
-
-                            <p class="card-text">התאימו את המערכת לצרכים שלכם</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+<div th:fragment="content">
+  <div class="container py-4">
+	<div class="text-center mb-5">
+	  <h1 id="ברוכים-הבאים-whatsapp-organizer" class="display-4 mb-4">
+		ברוכים הבאים: WhatsApp Organizer
+	  </h1>
+	  <p class="lead px-2">נהלו את ההודעות שלכם בצורה חכמה ויעילה</p>
+	</div>
+	
+	<!-- Cards container with responsive grid -->
+	<div class="row g-4 justify-content-center">
+	  <!-- Card 1: ארגון הודעות חכם -->
+	  <div class="col-12 col-sm-10 col-md-6 col-lg-3">
+		<div class="card h-100 shadow-sm rounded-4">
+		  <div class="feature-icon d-flex align-items-center justify-content-center p-4">
+			<i class="fas fa-folder-tree fa-3x text-whatsapp-green"></i>
+		  </div>
+		  <div class="card-body d-flex flex-column">
+			<h2 class="h4 mb-3 text-whatsapp-dark">ארגון הודעות חכם</h2>
+			<p class="card-text">צרו וארגנו הודעות באופן אוטומטי - בין אם דרך וואטסאפ או ישירות במערכת. המיון החכם שלנו
+			  מסדר את ההודעות לפי:</p>
+			
+			<ul class="list-unstyled mb-3 ps-2">
+			  <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>קטגוריות ותת-קטגוריות</li>
+			  <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>תאריך יצירה</li>
+			  <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>הגדרת ה-type</li>
+			  <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>הגדרת מטרת ההודעה</li>
+			  <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>תגיות מותאמות אישית</li>
+			  <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>צעדים להמשך</li>
+			</ul>
+			
+			<p class="card-text">פשוט שלחו או הוסיפו הודעה, והמערכת תדע לארגן אותה במקום הנכון עבורכם</p>
+		  </div>
+		</div>
+	  </div>
+	  
+	  <!-- Card 2: חיפוש מתקדם -->
+	  <div class="col-12 col-sm-10 col-md-6 col-lg-3">
+		<div class="card h-100 shadow-sm rounded-4">
+		  <div class="feature-icon d-flex align-items-center justify-content-center p-4">
+			<i class="fas fa-magnifying-glass fa-3x text-whatsapp-green"></i>
+		  </div>
+		  <div class="card-body d-flex flex-column">
+			<h2 class="h4 mb-3 text-whatsapp-dark">חיפוש מתקדם</h2>
+			<p class="card-text">מנוע חיפוש חכם המאפשר למצוא כל הודעה במהירות ובקלות. אפשרויות החיפוש כוללות:</p>
+			
+			<ul class="list-unstyled mb-3 ps-2">
+			  <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>מיון לפי תת-קטגוריות וקטגוריות</li>
+			  <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>סינון לפי תגיות</li>
+			  <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>חיפוש בתוכן ההודעות</li>
+			</ul>
+			
+			<p class="card-text">אתרו כל מידע שתצטרכו בלחיצת כפתור</p>
+		  </div>
+		</div>
+	  </div>
+	  
+	  <!-- Card 3: עריכת נתונים -->
+	  <div class="col-12 col-sm-10 col-md-6 col-lg-3">
+		<div class="card h-100 shadow-sm rounded-4">
+		  <div class="feature-icon d-flex align-items-center justify-content-center p-4">
+			<i class="fas fa-pen-to-square fa-3x text-whatsapp-green"></i>
+		  </div>
+		  <div class="card-body d-flex flex-column">
+			<h2 class="h4 mb-3 text-whatsapp-dark">עריכת נתונים</h2>
+			<p class="card-text">שליטה מלאה בארגון המידע שלכם עם אפשרויות עריכה מתקדמות:</p>
+			
+			<ul class="list-unstyled mb-3 ps-2">
+			  <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>עריכה ידנית או אוטומטית</li>
+			  <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>העתקת התוכן לclipboard</li>
+			  <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>מחיקה וניהול הודעות</li>
+			</ul>
+			
+			<p class="card-text">התאימו את המערכת לצרכים שלכם</p>
+		  </div>
+		</div>
+	  </div>
+	  
+	  <!-- Card 4: סטטיסטיקות -->
+	  <div class="col-12 col-sm-10 col-md-6 col-lg-3">
+		<div class="card h-100 shadow-sm rounded-4">
+		  <div class="feature-icon d-flex align-items-center justify-content-center p-4">
+			<i class="fas fa-chart-pie fa-3x text-whatsapp-green"></i>
+		  </div>
+		  <div class="card-body d-flex flex-column">
+			<h2 class="h4 mb-3 text-whatsapp-dark">סטטיסטיקות מערכת</h2>
+			<p class="card-text">ניתוח מעמיק של נתוני המערכת שלך:</p>
+			
+			<div class="chart-container mb-3" style="position: relative; height: 200px;">
+			  <canvas id="miniCategoriesChart"></canvas>
+			</div>
+			
+			<p class="card-text text-muted small mt-2">
+			  לחץ על הקטגוריות לפירוט נוסף
+			</p>
+		  </div>
+		</div>
+	  </div>
+	</div>
+  </div>
+</div>
 </body>
 </html>
