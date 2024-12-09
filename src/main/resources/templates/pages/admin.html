@@ -79,6 +79,7 @@
 				</thead>
 				<tbody>
 				<tr th:each="user : ${users}">
+				  <td th:text="${user.getName()}">שם</td>
 				  <td><img th:src="${user.getPictureUrl()}" alt="תמונה של המשתמש" /></td>
 				  <td th:text="${user.getCreatedAt()}">נוצר ב</td>
 				  <td th:text="${user.getWhatsappNumber()}">טלפון</td>

@@ -38,16 +38,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
             // Extract email from Google OAuth2 response
             String email = oauth2User.getAttribute("email");
-            if (email == null) {
+            if (email == null || email.isBlank()) {
                 throw new OAuth2AuthenticationException("Email not found in OAuth2 response");
             }
 
             // Find or create our AppUser
             AppUser appUser = userService.findByEmail(email)
-                    .orElseGet(() -> {
-                        AppUser newUser = createNewUser(oauth2User);
-                        return userService.save(newUser);
-                    });
+                    .orElseGet(() -> userService.save(createNewUser(oauth2User)));
 
 
             // Create authorities based on AppUser role
@@ -65,23 +62,15 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             return new DefaultOAuth2User(
                     authorities,
                     attributes,
-                    "email"  // Using email as the name attribute key
+                    "email"
             );
         } catch (Exception e) {
             logger.error("Error loading OAuth2 user", e);
             throw new OAuth2AuthenticationException("Error loading user");
-
         }
     }
 
     private AppUser createNewUser(OAuth2User oauth2User) {
-        String email = oauth2User.getAttribute("email");
-        String name = oauth2User.getAttribute("name");
-
-        return AppUser.UserBuilder.anUser()
-                .email(email)
-                .role(UserRole.UNAUTHORIZED)
-                .authorized(false)
-                .build();
+        return userService.createUser(oauth2User);
     }
 }

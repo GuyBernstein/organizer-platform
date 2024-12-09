@@ -5,7 +5,6 @@ import com.organizer.platform.model.User.AppUser;
 import com.organizer.platform.model.User.UserRole;
 import com.organizer.platform.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
@@ -61,6 +60,16 @@ public class UserService {
 
                 return repository.save(newUser);
             });
+    }
+
+    public AppUser createUser(OAuth2User oauth2User) {
+        return anUser()
+                .name(oauth2User.getAttribute("name"))
+                .pictureUrl(oauth2User.getAttribute("picture"))
+                .email(oauth2User.getAttribute("email"))
+                .authorized(false)
+                .role(UserRole.UNAUTHORIZED)
+                .build();
     }
 
     private Optional<AppUser> findLinkedGoogleUser(String whatsappNumber) {
