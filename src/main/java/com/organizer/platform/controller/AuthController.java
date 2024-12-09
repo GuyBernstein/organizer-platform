@@ -433,20 +433,12 @@ public class AuthController {
         if (contentPage.equals("pages/messages")) {
             setupMessagesPage(model, appUser, isFiltered);
         }
+        if (contentPage.equals("pages/index")) {
+            setupIndexPage(model, appUser);
+        }
     }
 
-    private void setupCommonAttributes(Model model, OAuth2User principal, AppUser appUser,
-                                       String title, String contentPage) {
-        String name = principal.getAttribute("name");
-        String picture = principal.getAttribute("picture");
-
-        model.addAttribute("title", title + " - Organizer Platform");
-        model.addAttribute("name", name != null ? name : "אורח");
-        model.addAttribute("email", appUser.getEmail());
-        model.addAttribute("picture", picture);
-        model.addAttribute("content", contentPage);
-        model.addAttribute("phone", appUser.getWhatsappNumber());
-        model.addAttribute("isAuthorized", appUser.isAuthorized());
+    private void setupIndexPage(Model model, AppUser appUser) {
         model.addAttribute("totalTags", messageService.getAllTagsByPhoneNumber(appUser.getWhatsappNumber()));
         List<WhatsAppMessage> messages = messageService.totalMessagesFromNumber(appUser.getWhatsappNumber());
         model.addAttribute("totalMessages", messages.size());
@@ -483,6 +475,21 @@ public class AuthController {
         model.addAttribute("categoriesHierarchy", hierarchy);
     }
 
+    private void setupCommonAttributes(Model model, OAuth2User principal, AppUser appUser,
+                                       String title, String contentPage) {
+        String name = principal.getAttribute("name");
+        String picture = principal.getAttribute("picture");
+
+        model.addAttribute("title", title + " - Organizer Platform");
+        model.addAttribute("name", name != null ? name : "אורח");
+        model.addAttribute("email", appUser.getEmail());
+        model.addAttribute("picture", picture);
+        model.addAttribute("content", contentPage);
+        model.addAttribute("phone", appUser.getWhatsappNumber());
+        model.addAttribute("isAuthorized", appUser.isAuthorized());
+
+    }
+
 
     private void setupMessagesPage(Model model, AppUser appUser, boolean isFiltered) {
         if(!isFiltered) {
@@ -490,6 +497,8 @@ public class AuthController {
                     messageService.findMessageContentsByFromNumberGroupedByCategoryAndGroupedBySubCategory(appUser.getWhatsappNumber());
             model.addAttribute("categories", organizedMessages); // resets the filter option
         }
+        model.addAttribute("totalTags", messageService.getAllTagsByPhoneNumber(appUser.getWhatsappNumber()));
+
     }
 
 }
