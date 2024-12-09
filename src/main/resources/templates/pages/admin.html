@@ -76,19 +76,19 @@
 				</thead>
 				<tbody>
 				<tr th:each="user : ${users}">
-				  <td th:text="${user.name}">שם משתמש</td>
-				  <td th:text="${user.email}">email@example.com</td>
+				  <td th:text="${user.getWhatsappNumber()}">טלפון</td>
+				  <td th:text="${user.getEmail()}">email@example.com</td>
 				  <td>
-					<span th:if="${user.authorized}" class="badge bg-success">מורשה</span>
-					<span th:unless="${user.authorized}" class="badge bg-danger">לא מורשה</span>
+					<span th:if="${user.isAuthorized()}" class="badge bg-success">מורשה</span>
+					<span th:unless="${user.isAuthorized()}" class="badge bg-danger">לא מורשה</span>
 				  </td>
 				  <td>
 					<div class="btn-group">
-					  <form th:if="${user.authorized}"
+					  <form th:if="${user.isAuthorized()}"
 							th:action="@{/admin/deauthorize-user}"
 							method="post"
 							class="me-2">
-						<input type="hidden" name="userId" th:value="${user.id}">
+						<input type="hidden" name="userId" th:value="${user.getId()}">
 						<button type="submit" class="btn btn-warning btn-sm">
 						  <i class="bi bi-lock"></i>
 						</button>
@@ -97,7 +97,7 @@
 							th:action="@{/admin/authorize-user}"
 							method="post"
 							class="me-2">
-						<input type="hidden" name="userId" th:value="${user.id}">
+						<input type="hidden" name="userId" th:value="${user.getId()}">
 						<button type="submit" class="btn btn-success btn-sm">
 						  <i class="bi bi-unlock"></i>
 						</button>
@@ -105,7 +105,7 @@
 					  <form th:action="@{/admin/delete-user}"
 							method="post"
 							onsubmit="return confirm('האם אתה בטוח שברצונך למחוק משתמש זה?');">
-						<input type="hidden" name="userId" th:value="${user.id}">
+						<input type="hidden" name="userId" th:value="${user.getId()}">
 						<button type="submit" class="btn btn-danger btn-sm">
 						  <i class="bi bi-trash"></i>
 						</button>

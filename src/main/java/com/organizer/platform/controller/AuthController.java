@@ -93,7 +93,7 @@ public class AuthController {
         if (principal == null) {
             return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
         }
-        return handleAuthorizedAccess(principal, model, "ניהול משתמשים", "pages/admin", false);
+        return handleAuthorizedAccess(principal, model, "ניהול", "pages/admin", false);
     }
 
     @GetMapping("/login")
@@ -410,6 +410,37 @@ public class AuthController {
                 .body(fileContent);
     }
 
+    @PostMapping("/admin/deauthorize-user")
+    public String deauthorize(@RequestParam Long userId,
+                              @AuthenticationPrincipal OAuth2User principal,
+                              Model model) {
+        if (principal == null) {
+            return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
+        }
+        userService.deauthorize(userId);
+        return handleAuthorizedAccess(principal, model, "ניהול", "pages/admin", true);
+    }
+    @PostMapping("/admin/authorize-user")
+    public String authorize(@RequestParam Long userId,
+                              @AuthenticationPrincipal OAuth2User principal,
+                              Model model) {
+        if (principal == null) {
+            return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
+        }
+        userService.authorize(userId);
+        return handleAuthorizedAccess(principal, model, "ניהול", "pages/admin", true);
+    }
+    @PostMapping("/admin/delete-user")
+    public String deleteUser(@RequestParam Long userId,
+                            @AuthenticationPrincipal OAuth2User principal,
+                            Model model) {
+        if (principal == null) {
+            return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
+        }
+        userService.deleteById(userId);
+        return handleAuthorizedAccess(principal, model, "ניהול", "pages/admin", true);
+    }
+
     private String extractNameFromMetadata(String metadata, String prefix) {
         // Example input: "MIME Type: image/png, Size: 2614 KB, GCS File: 972509603888/35fd8df1-78c4-40d1-ab48-1fba8648d82c.png"
         if (metadata == null || metadata.isEmpty()) {
@@ -464,12 +495,21 @@ public class AuthController {
                                       String title, String contentPage, boolean isFiltered) {
         setupCommonAttributes(model, principal, appUser, title, contentPage);
 
-        if (contentPage.equals("pages/messages")) {
-            setupMessagesPage(model, appUser, isFiltered);
+        switch (contentPage) {
+            case "pages/messages":
+                setupMessagesPage(model, appUser, isFiltered);
+                break;
+            case "pages/index":
+                setupIndexPage(model, appUser);
+                break;
+            case "pages/admin":
+                setupAdminPage(model, appUser);
+                break;
         }
-        if (contentPage.equals("pages/index")) {
-            setupIndexPage(model, appUser);
-        }
+    }
+
+    private void setupAdminPage(Model model, AppUser appUser) {
+        model.addAttribute("users", userService.findAll());
     }
 
     private void setupIndexPage(Model model, AppUser appUser) {

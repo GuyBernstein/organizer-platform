@@ -171,8 +171,28 @@ public class UserService {
     public void delete(AppUser appUser) {
         repository.delete(appUser);
     }
+    public void deleteById(Long userId) {
+        var appUser = findById(userId);
+        appUser.ifPresent(this::delete);
+
+    }
 
     public void deleteAll() {
         repository.deleteAll();
+    }
+
+    public void deauthorize(Long userId){
+        var appUser = findById(userId);
+        if(appUser.isPresent()) {
+            appUser.get().setAuthorized(false);
+            appUser.get().setRole(UserRole.UNAUTHORIZED);
+        }
+    }
+    public void authorize(Long userId){
+        var appUser = findById(userId);
+        if(appUser.isPresent()) {
+            appUser.get().setAuthorized(true);
+            appUser.get().setRole(UserRole.USER);
+        }
     }
 }
