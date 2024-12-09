@@ -45,6 +45,9 @@ public class AppUser implements Serializable {
     @Column(nullable = false)
     private boolean authorized = false;
 
+    public boolean isAdmin(){
+        return role == UserRole.ADMIN;
+    }
     public Long getId() {
         return id;
     }

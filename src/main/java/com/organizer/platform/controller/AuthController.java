@@ -512,7 +512,7 @@ public class AuthController {
         model.addAttribute("content", contentPage);
         model.addAttribute("phone", appUser.getWhatsappNumber());
         model.addAttribute("isAuthorized", appUser.isAuthorized());
-
+        model.addAttribute("isAdmin", appUser.isAdmin());
     }
 
 
