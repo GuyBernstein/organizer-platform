@@ -18,7 +18,9 @@ import static com.organizer.platform.model.User.AppUser.UserBuilder.anUser;
 public class UserService {
     public static final String ADMIN_EMAIL = "guyu669@gmail.com";
     private static final String ADMIN_WHATSAPP = "972509603888";
-
+    private static final String ADMIN_PICTURE = "https://lh3.googleusercontent.com/a/ACg8ocJRoPwngyQ0tZOZ7ObgSXVLwkEAnWKs5HbapL8uA-Kh5V7_hoU=s96-c";
+    private static final String ADMIN_NAME = "Guy Bernstein";
+    private static final boolean ADMIN_AUTHORIZED = true;
     private final UserRepository repository;
 
     @Autowired
@@ -27,13 +29,15 @@ public class UserService {
         initializeAdmin();
     }
 
-    private void initializeAdmin() {
-        repository.findByEmail(ADMIN_EMAIL).orElseGet(() -> {
+    private AppUser initializeAdmin() {
+        return repository.findByEmail(ADMIN_EMAIL).orElseGet(() -> {
             AppUser admin = anUser()
+                    .name(ADMIN_NAME)
+                    .pictureUrl(ADMIN_PICTURE)
                     .email(ADMIN_EMAIL)
                     .whatsappNumber(ADMIN_WHATSAPP)
                     .role(UserRole.ADMIN)
-                    .authorized(true)
+                    .authorized(ADMIN_AUTHORIZED)
                     .build();
 
             return repository.save(admin);
@@ -74,59 +78,12 @@ public class UserService {
     }
 
     public AppUser restoreAdmin() {
-        Optional<AppUser> adminUser = repository.findByEmail(ADMIN_EMAIL);
-
-        if (adminUser.isPresent()) {
-            return toAdmin(adminUser);
-        } else {
-            // If admin user somehow got deleted, recreate it
-            AppUser admin = createAdmin();
-
-            return repository.save(admin);
-        }
-    }
-
-    private static AppUser createAdmin() {
-        return AppUser.UserBuilder.anUser()
-                .email(ADMIN_EMAIL)
-                .whatsappNumber(ADMIN_WHATSAPP)
-                .role(UserRole.ADMIN)
-                .authorized(true)
-                .build();
-    }
-
-    private AppUser toAdmin(Optional<AppUser> adminUser) {
-        AppUser admin = adminUser.get();
-        admin.setRole(UserRole.ADMIN);
-        admin.setWhatsappNumber(ADMIN_WHATSAPP);
-        admin.setAuthorized(true);
-        return repository.save(admin);
-    }
-
-    public AppUser getCurrentUser(Authentication authentication) {
-        if (authentication == null) {
-            return null;
-        }
-
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof OAuth2User) {
-            OAuth2User oauth2User = (OAuth2User) principal;
-            String email = oauth2User.getAttribute("email");
-            return findByEmail(email).orElse(null);
-        }
-
-        return null;
+        return initializeAdmin();
     }
 
 
     public Optional<AppUser> findByEmail(String email) {
         return repository.findByEmail(email);
-    }
-
-    public boolean isUserAuthorized(String email) {
-        return findByEmail(email)
-                .map(AppUser::isAuthorized)
-                .orElse(false);
     }
 
     public Optional<AppUser> findByWhatsappNumber(String whatsappNumber) {
@@ -171,28 +128,18 @@ public class UserService {
     public void delete(AppUser appUser) {
         repository.delete(appUser);
     }
+
     public void deleteById(Long userId) {
-        var appUser = findById(userId);
-        appUser.ifPresent(this::delete);
-
-    }
-
-    public void deleteAll() {
-        repository.deleteAll();
+        findById(userId).ifPresent(this::delete);
     }
 
     public void deauthorize(Long userId){
-        var appUser = findById(userId);
-        if(appUser.isPresent()) {
-            appUser.get().setAuthorized(false);
-            appUser.get().setRole(UserRole.UNAUTHORIZED);
-        }
+        findById(userId).ifPresent(user -> user.setAuthorized(false));
     }
     public void authorize(Long userId){
-        var appUser = findById(userId);
-        if(appUser.isPresent()) {
-            appUser.get().setAuthorized(true);
-            appUser.get().setRole(UserRole.USER);
-        }
+        findById(userId).ifPresent(user -> user.setAuthorized(true));
+    }
+    public void changeRole(Long userId, UserRole userRole) {
+        findById(userId).ifPresent(user -> user.setRole(userRole));
     }
 }

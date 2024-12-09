@@ -45,9 +45,33 @@ public class AppUser implements Serializable {
     @Column(nullable = false)
     private boolean authorized = false;
 
+    @Column(length = 100)
+    private String name;
+
+    // For storing URL/path
+    @Column(length = 255)
+    private String pictureUrl;
+
     public boolean isAdmin(){
         return role == UserRole.ADMIN;
     }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getPictureUrl() {
+        return pictureUrl;
+    }
+
+    public void setPictureUrl(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
+    }
+
     public Long getId() {
         return id;
     }
@@ -104,6 +128,9 @@ public class AppUser implements Serializable {
         private UserRole role;
         private boolean authorized;
 
+        private String name;
+        private String pictureUrl;
+
         private UserBuilder() {
         }
 
@@ -113,6 +140,14 @@ public class AppUser implements Serializable {
 
         public UserBuilder id(Long id) {
             this.id = id;
+            return this;
+        }
+        public UserBuilder name(String name) {
+            this.name = name;
+            return this;
+        }
+        public UserBuilder pictureUrl(String pictureUrl) {
+            this.pictureUrl = pictureUrl;
             return this;
         }
 
@@ -149,6 +184,8 @@ public class AppUser implements Serializable {
             appUser.setWhatsappNumber(whatsappNumber);
             appUser.setRole(role);
             appUser.setAuthorized(authorized);
+            appUser.setName(name);
+            appUser.setPictureUrl(pictureUrl);
             return appUser;
         }
     }

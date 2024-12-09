@@ -69,21 +69,40 @@
 				<thead>
 				<tr>
 				  <th>שם</th>
+				  <th>נוצר בתאריך</th>
+				  <th>טלפון</th>
 				  <th>דוא״ל</th>
+				  <th>תפקיד</th>
 				  <th>סטטוס</th>
 				  <th>פעולות</th>
 				</tr>
 				</thead>
 				<tbody>
 				<tr th:each="user : ${users}">
+				  <td><img th:src="${user.getPictureUrl()}" alt="תמונה של המשתמש" /></td>
+				  <td th:text="${user.getCreatedAt()}">נוצר ב</td>
 				  <td th:text="${user.getWhatsappNumber()}">טלפון</td>
 				  <td th:text="${user.getEmail()}">email@example.com</td>
+				  <td th:text="${user.getRole()}">USER</td>
 				  <td>
 					<span th:if="${user.isAuthorized()}" class="badge bg-success">מורשה</span>
 					<span th:unless="${user.isAuthorized()}" class="badge bg-danger">לא מורשה</span>
 				  </td>
 				  <td>
 					<div class="btn-group">
+					  <form th:action="@{/admin/change-role}"
+							method="post"
+							class="d-inline">
+						<input type="hidden" name="userId" th:value="${user.getId()}">
+						<select name="newRole" class="form-select form-select-sm d-inline-block" style="width: auto;" onchange="this.form.submit()">
+						  <option th:value="${user.getRole()}" selected>[[${user.getRole()}]]</option>
+						  <option th:each="role : ${T(com.organizer.platform.model.User.UserRole).values()}"
+								  th:if="${role != user.getRole()}"
+								  th:value="${role}"
+								  th:text="${role}">
+						  </option>
+						</select>
+					  </form>
 					  <form th:if="${user.isAuthorized()}"
 							th:action="@{/admin/deauthorize-user}"
 							method="post"

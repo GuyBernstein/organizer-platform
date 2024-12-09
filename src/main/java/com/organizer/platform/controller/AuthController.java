@@ -3,6 +3,7 @@ package com.organizer.platform.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.organizer.platform.model.ScraperDTO.ProcessingResult;
 import com.organizer.platform.model.User.AppUser;
+import com.organizer.platform.model.User.UserRole;
 import com.organizer.platform.model.organizedDTO.CategoryHierarchy;
 import com.organizer.platform.model.organizedDTO.MessageDTO;
 import com.organizer.platform.model.organizedDTO.MessageTypeCount;
@@ -440,6 +441,17 @@ public class AuthController {
         userService.deleteById(userId);
         return handleAuthorizedAccess(principal, model, "ניהול", "pages/admin", true);
     }
+    @PostMapping("/admin/change-role")
+    public String changeRole(@RequestParam Long userId,
+                             @RequestParam UserRole newRole,
+                            @AuthenticationPrincipal OAuth2User principal,
+                            Model model) {
+        if (principal == null) {
+            return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
+        }
+        userService.changeRole(userId, newRole);
+        return handleAuthorizedAccess(principal, model, "ניהול", "pages/admin", true);
+    }
 
     private String extractNameFromMetadata(String metadata, String prefix) {
         // Example input: "MIME Type: image/png, Size: 2614 KB, GCS File: 972509603888/35fd8df1-78c4-40d1-ab48-1fba8648d82c.png"
@@ -503,12 +515,12 @@ public class AuthController {
                 setupIndexPage(model, appUser);
                 break;
             case "pages/admin":
-                setupAdminPage(model, appUser);
+                setupAdminPage(model);
                 break;
         }
     }
 
-    private void setupAdminPage(Model model, AppUser appUser) {
+    private void setupAdminPage(Model model) {
         model.addAttribute("users", userService.findAll());
     }
 
