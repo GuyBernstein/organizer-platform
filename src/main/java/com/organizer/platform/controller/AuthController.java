@@ -1,6 +1,5 @@
 package com.organizer.platform.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.organizer.platform.model.ScraperDTO.ProcessingResult;
 import com.organizer.platform.model.User.AppUser;
@@ -64,7 +63,7 @@ public class AuthController {
         this.cloudStorageService = cloudStorageService;
         this.exportService = exportService;
     }
-//
+
     @GetMapping
     public String home(@AuthenticationPrincipal OAuth2User principal, Model model) {
         if (principal == null) {
@@ -89,6 +88,14 @@ public class AuthController {
         return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", false);
     }
 
+    @GetMapping("/admin")
+    public String admin(@AuthenticationPrincipal OAuth2User principal, Model model) {
+        if (principal == null) {
+            return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
+        }
+        return handleAuthorizedAccess(principal, model, "ניהול משתמשים", "pages/admin", false);
+    }
+
     @GetMapping("/login")
     public String login(@AuthenticationPrincipal OAuth2User principal,
                         @RequestParam(required = false) String logout,
@@ -103,6 +110,8 @@ public class AuthController {
         // show dashboard
         return handleAuthorizedAccess(principal, model, "לוח בקרה", "pages/index", false);
     }
+
+
 
     @PostMapping("/messages/delete")
     public String deleteMessage(@RequestParam Long messageId,
