@@ -11,9 +11,13 @@ import com.organizer.platform.model.organizedDTO.WhatsAppMessage;
 import com.organizer.platform.service.Google.CloudStorageService;
 import com.organizer.platform.service.Scraper.ContentProcessorService;
 import com.organizer.platform.service.Scraper.WebContentScraperService;
+import com.organizer.platform.service.User.ExportService;
 import com.organizer.platform.service.User.UserService;
 import com.organizer.platform.service.WhatsApp.WhatsAppMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -46,17 +50,19 @@ public class AuthController {
     private final ObjectMapper objectMapper;
     private final JmsTemplate jmsTemplate;
     private final CloudStorageService cloudStorageService;
+    private final ExportService exportService;
 
     @Autowired
     public AuthController(UserService userService, WhatsAppMessageService messageService,
                           WebContentScraperService scraperService, ObjectMapper objectMapper,
-                          JmsTemplate jmsTemplate, CloudStorageService cloudStorageService) {
+                          JmsTemplate jmsTemplate, CloudStorageService cloudStorageService, ExportService exportService) {
         this.userService = userService;
         this.messageService = messageService;
         this.scraperService = scraperService;
         this.objectMapper = objectMapper;
         this.jmsTemplate = jmsTemplate;
         this.cloudStorageService = cloudStorageService;
+        this.exportService = exportService;
     }
 //
     @GetMapping
@@ -374,6 +380,25 @@ public class AuthController {
                 return new RedirectView("/login");
 
         }
+    }
+
+    @GetMapping("/export")
+    public ResponseEntity<byte[]> export(@RequestParam String phoneNumber) {
+        List<MessageDTO> messagesToExport = messageService.totalMessagesFromNumber(phoneNumber)
+                .stream()
+                .map(messageService::convertToMessageDTO)
+                .collect(Collectors.toList());
+
+        byte[] fileContent = exportService.generateExportFile(messagesToExport);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+        headers.setContentDispositionFormData("attachment", "messages_export.xlsx");
+
+        return ResponseEntity
+                .ok()
+                .headers(headers)
+                .body(fileContent);
     }
 
     private String extractNameFromMetadata(String metadata, String prefix) {

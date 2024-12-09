@@ -58,11 +58,11 @@
 		  </button>
 
           <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-            <li>
-              <a class="dropdown-item" href="/profile">
-                <i class="fas fa-user-circle"></i> פרופיל
-              </a>
-            </li>
+			<li th:if="${isAuthorized}">
+			  <a class="dropdown-item" th:href="@{/export(phoneNumber=${phone})}">
+				<i class="fas fa-file-export"></i> ייצוא נתונים
+			  </a>
+			</li>
             <li>
               <a class="dropdown-item" href="/settings">
                 <i class="fas fa-cog"></i> הגדרות
