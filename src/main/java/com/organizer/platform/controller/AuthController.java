@@ -423,8 +423,8 @@ public class AuthController {
     }
     @PostMapping("/admin/authorize-user")
     public String authorize(@RequestParam Long userId,
-                              @AuthenticationPrincipal OAuth2User principal,
-                              Model model) {
+                            @AuthenticationPrincipal OAuth2User principal,
+                            Model model) {
         if (principal == null) {
             return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
         }
@@ -450,6 +450,20 @@ public class AuthController {
             return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
         }
         userService.changeRole(userId, newRole);
+        return handleAuthorizedAccess(principal, model, "ניהול", "pages/admin", true);
+    }
+
+    @PostMapping("/admin/create-user")
+    public String createUser(@RequestParam String email,
+                             @RequestParam String phone,
+                             @RequestParam String name,
+                             @RequestParam UserRole role,
+                             @AuthenticationPrincipal OAuth2User principal,
+                             Model model) {
+        if (principal == null) {
+            return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
+        }
+        userService.createUserFromPhone(email, role, phone, name);
         return handleAuthorizedAccess(principal, model, "ניהול", "pages/admin", true);
     }
 

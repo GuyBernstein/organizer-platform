@@ -34,18 +34,21 @@
 				<input type="email" class="form-control" id="newEmail" name="email" required>
 			  </div>
 			  <div class="mb-3">
-				<label for="newName" class="form-label">שם מלא</label>
-				<input type="text" class="form-control" id="newName" name="name" required>
-			  </div>
-			  <div class="mb-3">
 				<label for="newPhone" class="form-label">טלפון</label>
 				<input type="tel" class="form-control" id="newPhone" name="phone">
 			  </div>
 			  <div class="mb-3">
+				<label for="newName" class="form-label">שם</label>
+				<input type="tel" class="form-control" id="newName" name="name">
+			  </div>
+			  <div class="mb-3">
 				<label for="newRole" class="form-label">תפקיד</label>
 				<select class="form-select" id="newRole" name="role" required>
-				  <option value="USER">משתמש רגיל</option>
-				  <option value="ADMIN">מנהל</option>
+				  <option value="" selected disabled>בחר תפקיד</option>
+				  <option th:each="role : ${T(com.organizer.platform.model.User.UserRole).values()}"
+						  th:value="${role}"
+						  th:text="${role}">
+				  </option>
 				</select>
 			  </div>
 			  <button type="submit" class="btn btn-success">
@@ -69,6 +72,7 @@
 				<thead>
 				<tr>
 				  <th>שם</th>
+				  <th>תמונה</th>
 				  <th>נוצר בתאריך</th>
 				  <th>טלפון</th>
 				  <th>דוא״ל</th>
@@ -118,6 +122,8 @@
 							method="post"
 							class="me-2">
 						<input type="hidden" name="userId" th:value="${user.getId()}">
+						<input type="text" class="form-control" name="phoneNumber" required>
+						
 						<button type="submit" class="btn btn-success btn-sm">
 						  <i class="bi bi-unlock"></i>
 						</button>

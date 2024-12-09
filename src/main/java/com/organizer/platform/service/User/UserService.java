@@ -43,22 +43,34 @@ public class UserService {
         });
     }
 
+    public void createUserFromPhone(String email, UserRole role, String phone, String name) {
+        repository.findByWhatsappNumber(phone)
+                .ifPresentOrElse(
+                        existingUser -> {
+                            existingUser.setName(name);
+                            existingUser.setAuthorized(role != UserRole.UNAUTHORIZED);
+                            existingUser.setRole(role);
+                            existingUser.setEmail(email);
+                            repository.save(existingUser);
+                        },
+                        () -> repository.save(toAuthorizedUser(phone, email, role, name))
+                );
+    }
+
     public void createUnauthorizedUser(String whatsappNumber) {
         repository.findByWhatsappNumber(whatsappNumber) // ensure if exists
             .orElseGet(() -> {
                 // First check if this is a temporary user that was replaced
-                Optional<AppUser> linkedUser = findLinkedGoogleUser(whatsappNumber);
-                if (linkedUser.isPresent()) {
-                    return linkedUser.get();
-                }
+                return findLinkedGoogleUser(whatsappNumber)
+                        .orElseGet(() -> {
 
-                // If no linked user found, create temporary user
-                String tempEmail =
-                        "whatsapp." + whatsappNumber.replaceAll("[^0-9]", "") + "@temp.platform.com";
+                            // create a temp user with UNAUTHORIZED role
+                            String tempEmail =
+                                    "whatsapp." + whatsappNumber
+                                            .replaceAll("[^0-9]", "") + "@temp.platform.com";
 
-                AppUser newUser = toUser(whatsappNumber, tempEmail);
-
-                return repository.save(newUser);
+                            return repository.save(toUnauthorizedUser(whatsappNumber, tempEmail));
+                        });
             });
     }
 
@@ -71,13 +83,22 @@ public class UserService {
                 .role(UserRole.UNAUTHORIZED)
                 .build();
     }
+    private static AppUser toAuthorizedUser(String whatsappNumber, String email, UserRole role, String name) {
+        return AppUser.UserBuilder.anUser()
+                .whatsappNumber(whatsappNumber)
+                .name(name)
+                .email(email)
+                .role(role)
+                .authorized(role != UserRole.UNAUTHORIZED)
+                .build();
+    }
 
     private Optional<AppUser> findLinkedGoogleUser(String whatsappNumber) {
         return repository.findByWhatsappNumber(whatsappNumber)
                 .filter(user -> !user.getEmail().endsWith("@temp.platform.com"));
     }
 
-    private static AppUser toUser(String whatsappNumber, String tempEmail) {
+    private static AppUser toUnauthorizedUser(String whatsappNumber, String tempEmail) {
         return AppUser.UserBuilder.anUser()
                 .whatsappNumber(whatsappNumber)
                 .email(tempEmail)
@@ -85,6 +106,7 @@ public class UserService {
                 .authorized(false)
                 .build();
     }
+
 
     public AppUser restoreAdmin() {
         return initializeAdmin();

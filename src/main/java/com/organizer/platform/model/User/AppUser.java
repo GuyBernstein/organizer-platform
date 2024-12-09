@@ -35,7 +35,7 @@ public class AppUser implements Serializable {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(unique = true)
+    @Column(length = 15)
     private String whatsappNumber;
 
     @Column(nullable = false)
