@@ -40,41 +40,110 @@
   </script>
   <!-- Initialize data for the mini chart -->
   <script th:inline="javascript">
-	// Create a global variable for the mini chart data
+	// Create a global variable for the treemap data with Hebrew categories
 	window.miniCategoriesData = [
 	  {
-		name: 'משימות',
-		value: 45,
+		name: 'אומנות גוף',
+		value: 2,
 		children: [
 		  {
-			name: 'דחופות',
-			value: 15,
-			content: 'משימה לביצוע מיידי'  // Added content field
+			name: 'קעקועים מינימליסטיים',
+			value: 2
+			
 		  },
 		  {
-			name: 'רגילות',
-			value: 30,
-			content: 'משימות שוטפות'  // Added content field
+			name: 'קעקועים יפים',
+			value: 1
 		  }
 		]
 	  },
 	  {
-		name: 'צעדים הבאים',
-		value: 30,
+		name: 'ביוגרפיה',
+		value: 1,
 		children: [
 		  {
-			name: 'בתהליך',
-			value: 20,
-			content: 'פעולות המשך נדרשות'  // Added content field
+			name: 'דמות ציבורית דתית',
+			value: 1
+		  }
+		]
+	  },
+	  {
+		name: 'דוגמה טכנולוגית',
+		value: 3,
+		children: [
+		  {
+			name: 'תכנות בסיסי',
+			value: 5
 		  },
 		  {
-			name: 'ממתין',
-			value: 10,
-			content: 'ממתין להמשך טיפול'  // Added content field
+			name: 'מדריך פשוט',
+			value: 2
+		  },
+		  {
+			name: 'התקנת מחשב',
+			value: 2
+		  }
+		]
+	  },
+	  {
+		name: 'אקדמי',
+		value: 1,
+		children: [
+		  {
+			name: 'אישור תכנית לימודים',
+			value: 2
 		  }
 		]
 	  }
 	];
+	
+	
+	
+	// Configuration options for RTL support and Hebrew text
+	window.treeMapOptions = {
+	  plugins: {
+		title: {
+		  display: true,
+		  text: 'התפלגות הודעות לפי קטגוריה',
+		  font: {
+			size: 18,
+			weight: 'bold'
+		  },
+		  padding: {
+			top: 10
+		  }
+		},
+		legend: {
+		  display: false
+		},
+		tooltip: {
+		  titleFont: {
+			size: 16
+		  },
+		  bodyFont: {
+			size: 16
+		  },
+		  callbacks: {
+			title(items) {
+			  if (!items[0] || !items[0].raw) return ''
+			  const item = window.miniCategoriesData[items[0].dataIndex]
+			  return item ? item.name : ''
+			},
+			label(context) {
+			  if (!context.raw) return ''
+			  const item = window.miniCategoriesData[context.dataIndex]
+			  return `מספר הודעות: ${item.value}`
+			}
+		  },
+		  rtl: true,
+		  textDirection: 'rtl'
+		}
+	  },
+	  animation: {
+		duration: 500
+	  },
+	  maintainAspectRatio: false
+	};
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <!-- Required Chart.js and Treemap plugin -->

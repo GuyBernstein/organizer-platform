@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Initialize the chart when the document is ready
-  initializeMiniCategoriesChart(window.miniCategoriesData)
+  initializeTreeMap(window.miniCategoriesData, window.treeMapOptions)
 })
 
 // toggle between view, edit and smart edit mode in the modal
@@ -359,148 +359,37 @@ function initializeCategoriesChart(hierarchyData) {
   })
 }
 
-function initializeMiniCategoriesChart(miniCategoriesData) {
-  if(document.getElementById('miniCategoriesChart') === null)
-    return;
 
-  const ctx = document.getElementById('miniCategoriesChart').getContext('2d');
-
-  function transformToTreemapData(data) {
-    const result = [];
-    const scaleFactor = 1.5;
-
-    data.forEach((category, index) => {
-      result.push({
-        name: category.name,
-        value: category.value * scaleFactor,
-        group: category.name,
-        groupIndex: index,
-        displayValue: category.value,
-        content: category.content
-      });
-
-      category.children.forEach(subCategory => {
-        result.push({
-          name: subCategory.name,
-          value: subCategory.value * scaleFactor,
-          group: category.name,
-          parent: category.name,
-          groupIndex: index,
-          displayValue: subCategory.value,
-          content: subCategory.content
-        });
-      });
-    });
-    return result;
-  }
-
-  const treeData = transformToTreemapData(miniCategoriesData);
-
-  const colorSchemes = {
-    base: [
-      'rgba(69, 123, 157, 0.8)',
-      'rgba(124, 152, 133, 0.8)'
-    ],
-    hover: [
-      'rgba(69, 123, 157, 1)',
-      'rgba(124, 152, 133, 1)'
-    ]
-  };
-
+// Function to initialize the treemap
+function initializeTreeMap(data, options) {
+  const ctx = document.getElementById('treeMapChart').getContext('2d');
   new Chart(ctx, {
     type: 'treemap',
     data: {
       datasets: [{
-        tree: treeData,
+        tree: data,
         key: 'value',
-        groups: ['group'],
-        spacing: 1,
-        backgroundColor(context) {
-          if (!context.raw) return 'transparent';
-          const item = treeData[context.dataIndex];
-          if (!item) return colorSchemes.base[0];
-          const colorIndex = item.groupIndex % colorSchemes.base.length;
-          return item.parent ?
-            colorSchemes.base[colorIndex] + '88' :
-            colorSchemes.base[colorIndex];
-        },
+        groups: ['name'],
+        spacing: 0.5,
         borderWidth: 1,
-        borderColor(context) {
-          if (!context.raw) return 'transparent';
-          const item = treeData[context.dataIndex];
-          if (!item) return colorSchemes.hover[0];
-          const colorIndex = item.groupIndex % colorSchemes.hover.length;
-          return colorSchemes.hover[colorIndex];
+        borderColor: 'white',
+        backgroundColor: function(ctx) {
+          // Generate colors based on the category
+          const colors = ['#FF9999', '#99FF99', '#9999FF', '#FFFF99'];
+          return colors[ctx.dataIndex % colors.length];
         },
         labels: {
           display: true,
           align: 'center',
-          position: 'middle',
-          formatter: (context) => {
-            if (!context.raw) return '';
-            const item = treeData[context.dataIndex];
-            if (!item) return '';
-            if (context.raw.h < 30 || context.raw.w < 40) return '';
-            return [
-              item.name,
-              `${item.displayValue}`
-            ];
-          },
+          position: 'center',
           font: {
-            size: 12,
-            weight: 'bold'
-          },
-          color: 'black',
-          padding: 2
+            family: "'Heebo', sans-serif",
+            size: 14
+          }
         }
       }]
     },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        title: {
-          display: true,
-          text: 'קטגוריות',
-          font: {
-            size: 14,
-            weight: 'bold'
-          },
-          padding: {
-            top: 5,
-            bottom: 10
-          }
-        },
-        legend: {
-          display: false
-        },
-        tooltip: {
-          rtl: true,
-          titleFont: {
-            size: 12
-          },
-          bodyFont: {
-            size: 10
-          },
-          padding: 4,
-          callbacks: {
-            title(items) {
-              if (!items[0] || !items[0].raw) return '';
-              const item = treeData[items[0].dataIndex];
-              return item ? item.name : '';
-            },
-            label(context) {
-              if (!context.raw) return '';
-              const item = treeData[context.dataIndex];
-              return [
-                `מספר הודעות: ${item.displayValue}`,
-                `תוכן: ${item.content || 'לא צוין'}`
-              ];
-            }
-          }
-        }
-      }
-    }
+    options: options
   });
 }
 
