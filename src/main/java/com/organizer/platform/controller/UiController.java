@@ -568,30 +568,9 @@ public class UiController {
             cumulativeCountsByDate.put(entry.getKey(), runningTotal);
         }
 
-        List<UserActivityDTO> activityData = users.stream()
-                .map(user -> {
-                    List<WhatsAppMessage> messages = messageService.findMessagesFromNumber(user.getWhatsappNumber());
-                    return UserActivityDTO.builder()
-                            .userId(user.getId())
-                            .username(user.getName())
-                            .messageCountByDate(messages.stream()
-                                    .collect(Collectors.groupingBy(
-                                            msg -> Dates.atLocalTime(msg.getCreatedAt())
-                                                    .withDayOfMonth(1) // counting the messages per month
-                                                    .withHourOfDay(0)
-                                                    .withMinuteOfHour(0)
-                                                    .withSecondOfMinute(0)
-                                                    .withMillisOfSecond(0),
-                                            Collectors.counting()
-                                    )))
-                            .build();
-                })
-                .collect(Collectors.toList());
-
         model.addAttribute("users", users);
         model.addAttribute("userCountsByDate", userCountsByDate);
         model.addAttribute("cumulativeCountsByDate", cumulativeCountsByDate);
-        model.addAttribute("activityData", activityData);
         model.addAttribute("authorizedUsers", users.stream().filter(AppUser::isAuthorized).count());
         model.addAttribute("unauthorizedUsers", users.stream().filter(AppUser::isUnauthorized).count());
         model.addAttribute("adminUsers", users.stream().filter(AppUser::isAdmin).count());

@@ -67,9 +67,6 @@ document.addEventListener('DOMContentLoaded', function() {
   initializeUsersChart(window.authorizedUsers , window.adminUsers , window.unauthorizedUsers)
 
   initUserActivityChart(window.userCountsByDate, window.cumulativeCountsByDate)
-
-
-  initUserHeatMap(window.activityData)
 })
 
 // toggle between view, edit and smart edit mode in the modal
@@ -486,6 +483,7 @@ function initializeUsersChart(authorizedUsers , adminUsers , unauthorizedUsers){
   });
 }
 
+
 // Function to initialize user activity chart
 function initUserActivityChart(datesGlobal, countsGlobal) {
   if (document.getElementById('usersActivityChart') === null)
@@ -571,145 +569,4 @@ function initUserActivityChart(datesGlobal, countsGlobal) {
       }
     }
   })
-}
-
-function processActivityData(activityData) {
-  const chartData = [];
-
-  activityData.forEach(userData => {
-    Object.entries(userData.messageCountByDate).forEach(([date, count]) => {
-      if (count > 0) {
-        chartData.push({
-          x: date,
-          y: userData.userId,
-          v: count,
-          username: userData.username
-        });
-      }
-    });
-  });
-
-  return chartData;
-}
-
-function initUserHeatMap(activityDataGlobal) {
-  if (document.getElementById('activityHeatmap') === null)
-    return;
-
-  const ctx = document.getElementById('activityHeatmap');
-  const processedData = processActivityData(activityDataGlobal);
-
-  new Chart(ctx, {
-    type: 'scatter',
-    plugins: [ChartDataLabels], // Add the plugin only to this chart
-    data: {
-      datasets: [{
-        label: 'פעילות הודעות',
-        data: processedData,
-        pointBackgroundColor: (context) => {
-          const value = context.raw?.v || 0;
-          const alpha = Math.min(0.8, Math.max(0.1, value / 20));
-          return `rgba(37, 211, 102, ${alpha})`; // WhatsApp green color
-        },
-        pointRadius: 15,
-        pointHoverRadius: 20
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      layout: {
-        padding: {
-          top: 20,
-          right: 100,
-          bottom: 20,
-          left: 100
-        }
-      },
-      scales: {
-        y: {
-          type: 'category',
-          offset: true,
-          position: 'left',
-          grid: {
-            display: true,
-            color: 'rgba(0, 0, 0, 0.1)'
-          },
-          ticks: {
-            callback: function(value) {
-              const user = activityDataGlobal.find(u => u.userId === value);
-              return user ? user.username : value;
-            },
-            font: {
-              size: 14,
-              weight: 'bold'
-            },
-            color: '#000000',
-            align: 'center',
-            padding: 10
-          },
-          display: true,
-          title: {
-            display: true,
-            text: 'משתמשים',
-            font: {
-              size: 16,
-              weight: 'bold'
-            }
-          }
-        },
-        x: {
-          type: 'time',
-          time: {
-            unit: 'day',
-            displayFormats: {
-              day: 'MM/dd'
-            },
-            tooltipFormat: 'yyyy-MM-dd'
-          },
-          offset: true,
-          grid: {
-            display: true,
-            color: 'rgba(0, 0, 0, 0.1)'
-          },
-          title: {
-            display: true,
-            text: 'תאריך',
-            font: {
-              size: 16,
-              weight: 'bold'
-            }
-          }
-        }
-      },
-      plugins: {
-        datalabels: {
-          backgroundColor: 'rgba(255, 255, 255, 0.85)',
-          borderRadius: 4,
-          padding: 4,
-          color: 'black',
-          font: {
-            size: 10
-          },
-          formatter: function(value, context) {
-            const date = new Date(value.x).toLocaleDateString();
-            return [
-              `${value.username}`,
-              `${date}`,
-              `הודעות: ${value.v}`
-            ].join('\n');
-          },
-          anchor: 'center',
-          align: 'center',
-          textAlign: 'center'
-        },
-        tooltip: {
-          enabled: false  // Disable tooltips since we're showing all info directly
-        },
-        legend: {
-          display: false
-        }
-      }
-    }
-  });
 }
