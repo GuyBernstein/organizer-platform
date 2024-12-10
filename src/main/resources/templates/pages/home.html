@@ -4,6 +4,9 @@
 <body>
 <div th:fragment="content">
   <div class="container py-4">
+	<div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+	  <span th:text="${errorMessage}">Error message here</span>
+	</div>
 	<div class="text-center mb-5">
 	  <h1 id="ברוכים-הבאים-whatsapp-organizer" class="display-4 mb-4">
 		ברוכים הבאים: WhatsApp Organizer

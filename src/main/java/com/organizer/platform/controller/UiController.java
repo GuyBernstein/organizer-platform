@@ -25,14 +25,13 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
+import javax.servlet.RequestDispatcher;
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -45,7 +44,7 @@ import static com.organizer.platform.model.organizedDTO.WhatsAppMessage.WhatsApp
 
 @Controller
 @RequestMapping({"/"})
-public class AuthController {
+public class UiController {
     private final UserService userService;
     private final WhatsAppMessageService messageService;
     private final WebContentScraperService scraperService;
@@ -55,9 +54,9 @@ public class AuthController {
     private final ExportService exportService;
 
     @Autowired
-    public AuthController(UserService userService, WhatsAppMessageService messageService,
-                          WebContentScraperService scraperService, ObjectMapper objectMapper,
-                          JmsTemplate jmsTemplate, CloudStorageService cloudStorageService, ExportService exportService) {
+    public UiController(UserService userService, WhatsAppMessageService messageService,
+                        WebContentScraperService scraperService, ObjectMapper objectMapper,
+                        JmsTemplate jmsTemplate, CloudStorageService cloudStorageService, ExportService exportService) {
         this.userService = userService;
         this.messageService = messageService;
         this.scraperService = scraperService;
@@ -67,6 +66,7 @@ public class AuthController {
         this.exportService = exportService;
     }
 
+
     @GetMapping
     public String home(@AuthenticationPrincipal OAuth2User principal, Model model) {
         if (principal == null) {
@@ -74,6 +74,19 @@ public class AuthController {
         }
         return handleAuthorizedAccess(principal, model, "דף הבית", "pages/home", false);
     }
+
+    @ExceptionHandler(Exception.class)
+    public String handleAllExceptions(Model model,
+                                      @AuthenticationPrincipal OAuth2User principal) {
+        // Add error information to the model
+        model.addAttribute("errorMessage", "אופס! משהו השתבש");
+
+        if (principal == null) {
+            return setupAnonymousPage(model, "דף הבית", "pages/home");
+        }
+        return handleAuthorizedAccess(principal, model, "דף הבית", "pages/home", false);
+    }
+
 
     @GetMapping("/dashboard")
     public String dashboard(@AuthenticationPrincipal OAuth2User principal, Model model) {
