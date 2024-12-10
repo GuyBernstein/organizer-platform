@@ -63,7 +63,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeTreeMap(window.miniCategoriesData, window.treeMapOptions)
   }
 
-
   initializeUsersChart(window.authorizedUsers , window.adminUsers , window.unauthorizedUsers)
 
   initUserActivityChart(window.userCountsByDate, window.cumulativeCountsByDate)
@@ -218,154 +217,119 @@ function initializeCategoriesChart(hierarchyData) {
     return
   const ctx = document.getElementById('categoriesChart').getContext('2d')
 
-  function transformToTreemapData(data) {
-    // Add padding to values to make boxes larger
-    const result = []
-    const scaleFactor = 2 // Increase this to make boxes bigger
+  // Transform the nested map structure into the required tree format
+  const transformedData = [];
+  Object.entries(hierarchyData).forEach(([category, subCategories]) => {
+    Object.entries(subCategories).forEach(([subCategory, count]) => {
+      transformedData.push({
+        category: category,
+        subCategory: subCategory,
+        value: count
+      });
+    });
+  });
 
-    data.forEach((category, index) => {
-      result.push({
-        name: category.name,
-        // Scale up the values to force larger boxes
-        value: category.value * scaleFactor,
-        group: category.name,
-        groupIndex: index,
-        // Store original value for display
-        displayValue: category.value
-      })
+  // Generate a color palette for a category
+  const generateCategoryColors = (() => {
+    const baseColors = [
+      { r: 78, g: 121, b: 167 },  // Blue
+      { r: 242, g: 142, b: 43 },  // Orange
+      { r: 89, g: 161, b: 79 },   // Green
+      { r: 237, g: 201, b: 72 },  // Yellow
+      { r: 225, g: 87, b: 89 },   // Red
+      { r: 130, g: 183, b: 180 }, // Teal
+      { r: 176, g: 122, b: 161 }, // Purple
+      { r: 255, g: 157, b: 167 }, // Pink
+      { r: 156, g: 117, b: 95 }   // Brown
+    ];
 
-      category.children.forEach(subCategory => {
-        result.push({
-          name: subCategory.name,
-          // Scale up the values to force larger boxes
-          value: subCategory.value * scaleFactor,
-          group: category.name,
-          parent: category.name,
-          groupIndex: index,
-          // Store original value for display
-          displayValue: subCategory.value
-        })
-      })
-    })
-    return result
-  }
+    let colorIndex = 0;
+    const categoryColorMap = new Map();
 
-  const treeData = transformToTreemapData(hierarchyData)
+    return (category) => {
+      if (!categoryColorMap.has(category)) {
+        const baseColor = baseColors[colorIndex % baseColors.length];
+        const colors = [
+          `rgb(${baseColor.r}, ${baseColor.g}, ${baseColor.b})`,
+          `rgb(${Math.min(baseColor.r + 30, 255)}, ${Math.min(baseColor.g + 30, 255)}, ${Math.min(baseColor.b + 30, 255)})`
+        ];
+        categoryColorMap.set(category, colors);
+        colorIndex++;
+      }
+      return categoryColorMap.get(category);
+    };
+  })();
 
-  const colorSchemes = {
-    base: [
-      'rgba(69, 123, 157, 0.8)',
-      'rgba(124, 152, 133, 0.8)',
-      'rgba(146, 111, 91, 0.8)',
-      'rgba(133, 87, 108, 0.8)',
-      'rgba(106, 153, 153, 0.8)'
-    ],
-    hover: [
-      'rgba(69, 123, 157, 1)',
-      'rgba(124, 152, 133, 1)',
-      'rgba(146, 111, 91, 1)',
-      'rgba(133, 87, 108, 1)',
-      'rgba(106, 153, 153, 1)'
-    ]
-  }
-
+  // Create the chart
   new Chart(ctx, {
     type: 'treemap',
     data: {
       datasets: [{
-        tree: treeData,
+        tree: transformedData,
         key: 'value',
-        groups: ['group'],
-        spacing: 1, // Reduced spacing to maximize content area
-        backgroundColor(context) {
-          if (!context.raw) return 'transparent'
-          const item = treeData[context.dataIndex]
-          if (!item) return colorSchemes.base[0]
-          const colorIndex = item.groupIndex % colorSchemes.base.length
-          return item.parent ?
-            colorSchemes.base[colorIndex] + '88' :
-            colorSchemes.base[colorIndex]
-        },
-        borderWidth: 1,
-        borderColor(context) {
-          if (!context.raw) return 'transparent'
-          const item = treeData[context.dataIndex]
-          if (!item) return colorSchemes.hover[0]
-          const colorIndex = item.groupIndex % colorSchemes.hover.length
-          return colorSchemes.hover[colorIndex]
+        groups: ['category', 'subCategory'],
+        spacing: 1,
+        borderWidth: 1.5,
+        borderColor: 'white',
+        backgroundColor: function(ctx) {
+          if (!ctx.raw) return 'gray';
+          const category = ctx.raw._data.category || 'לא מזוהה';
+          const palette = generateCategoryColors(category);
+          return palette[ctx.dataIndex % palette.length];
         },
         labels: {
           display: true,
           align: 'center',
-          position: 'middle',
-          formatter: (context) => {
-            if (!context.raw) return ''
-            const item = treeData[context.dataIndex]
-            if (!item) return ''
-
-            // Adjusted threshold for visibility
-            if (context.raw.h < 40 || context.raw.w < 60) return ''
-
-            return [
-              item.name,
-              `${item.displayValue} הודעות`  // Use original value for display
-            ]
+          position: 'center',
+          formatter: function(ctx) {
+            if (!ctx.raw) return 'לא מזוהה';
+            const subCategory = ctx.raw._data.subCategory;
+            const value = ctx.raw._data.value;
+            return `${subCategory}\n(${value})`;
           },
           font: {
-            size: 24,
-            weight: 'bold'
+            family: "'Heebo', sans-serif",
+            size: 13
           },
-          color: 'black',
-          padding: 4
+          color: function(ctx) {
+            const backgroundColor = ctx.dataset.backgroundColor(ctx);
+            const rgb = backgroundColor.match(/\d+/g);
+            if (!rgb) return '#000000';
+            const brightness = (parseInt(rgb[0]) * 299 + parseInt(rgb[1]) * 587 + parseInt(rgb[2]) * 114) / 1000;
+            return brightness > 128 ? '#000000' : '#FFFFFF';
+          }
         }
       }]
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: false, // Allow chart to determine its own height
       plugins: {
         title: {
           display: true,
-          text: 'התפלגות הודעות לפי קטגוריה',
+          text: 'התפלגות קטגוריות ותת קטגוריות לכמות הודעות',
           font: {
-            size: 36,
+            size: 16,
             weight: 'bold'
-          },
-          padding: {
-            top: 10,
-            bottom: 20
           }
         },
         legend: {
           display: false
         },
         tooltip: {
-          rtl: true,
-          titleFont: {
-            size: 24
-          },
-          bodyFont: {
-            size: 20
-          },
-          padding: 8,
           callbacks: {
-            title(items) {
-              if (!items[0] || !items[0].raw) return ''
-              const item = treeData[items[0].dataIndex]
-              return item ? item.name : ''
+            title: function(context) {
+              const item = context[0].raw;
+              if (!item) return 'לא מזוהה';
+              return `${item._data.category} - ${item._data.subCategory}`;
             },
-            label(context) {
-              if (!context.raw) return ''
-              const item = treeData[context.dataIndex]
-              return `מספר הודעות: ${item.displayValue}`
+            label: function(context) {
+              return `כמות: ${context.raw._data.value}`;
             }
           }
         }
       }
     }
-  })
+  });
 }
-
 
 // Function to initialize the treemap
 function initializeTreeMap(data, options) {

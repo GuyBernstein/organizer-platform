@@ -665,12 +665,44 @@ public class UiController {
         List<MessageTypeCount> messageTypes = messageService.getMessageTypesByPhoneNumber(appUser.getWhatsappNumber());
         model.addAttribute("messageTypes", messageTypes);
 
-        Map<String, Map<String, List<MessageDTO>>> organizedMessages =
-                messageService.findMessageContentsByFromNumberGroupedByCategoryAndGroupedBySubCategory(appUser.getWhatsappNumber());
-
-        List<CategoryHierarchy> hierarchy = buildCategoryHierarchy(organizedMessages);
-
+        Map<String, Map<String, Long>> hierarchy = messages.stream()
+                .collect(Collectors.groupingBy(
+                        msg -> msg.getCategory() != null ? msg.getCategory() : "UNCATEGORIZED",
+                        Collectors.groupingBy(
+                                msg -> msg.getSubCategory() != null ? msg.getSubCategory() : "UNCATEGORIZED",
+                                Collectors.counting()
+                        )
+                ));
         model.addAttribute("categoriesHierarchy", hierarchy);
+
+//        // Print the entire hierarchy with proper formatting
+//        hierarchy.forEach((category, subCategoryMap) -> {
+//            System.out.println("Category: " + category);
+//
+//            // Track category total
+//            long categoryTotal = 0;
+//
+//            // Print each subcategory and its count
+//            for (Map.Entry<String, Long> entry : subCategoryMap.entrySet()) {
+//                String subCategory = entry.getKey();
+//                Long count = entry.getValue();
+//                categoryTotal += count;
+//
+//                System.out.println("    ├─ " + subCategory + ": " + count);
+//            }
+//
+//            // Print category total
+//            System.out.println("    └─ Total messages in category: " + categoryTotal);
+//            System.out.println(); // Empty line between categories
+//        });
+//
+//        // Print grand total
+//        long grandTotal = hierarchy.values().stream()
+//                .flatMap(subMap -> subMap.values().stream())
+//                .mapToLong(Long::valueOf)
+//                .sum();
+//
+//        System.out.println("Total messages across all categories: " + grandTotal);
     }
 
     private void setupCommonAttributes(Model model, AppUser appUser,
