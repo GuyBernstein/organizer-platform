@@ -572,19 +572,20 @@ function initUserActivityChart(datesGlobal, countsGlobal) {
     }
   })
 }
+// Register the plugin globally
+Chart.register(ChartDataLabels);
 
-// Function to process activity data for the heatmap
 function processActivityData(activityData) {
   const chartData = [];
 
   activityData.forEach(userData => {
-    // messageCountByDate is a Map in the DTO where keys are dates and values are message counts
     Object.entries(userData.messageCountByDate).forEach(([date, count]) => {
       if (count > 0) {
         chartData.push({
           x: date,
           y: userData.userId,
-          v: count
+          v: count,
+          username: userData.username
         });
       }
     });
@@ -593,7 +594,6 @@ function processActivityData(activityData) {
   return chartData;
 }
 
-// Function to initialize the heatmap
 function initUserHeatMap(activityDataGlobal) {
   if (document.getElementById('activityHeatmap') === null)
     return;
@@ -602,7 +602,7 @@ function initUserHeatMap(activityDataGlobal) {
   const processedData = processActivityData(activityDataGlobal);
 
   new Chart(ctx, {
-    type: 'scatter',  // Changed from 'matrix' to 'scatter'
+    type: 'scatter',
     data: {
       datasets: [{
         label: 'פעילות הודעות',
@@ -613,18 +613,28 @@ function initUserHeatMap(activityDataGlobal) {
           return `rgba(37, 211, 102, ${alpha})`; // WhatsApp green color
         },
         pointRadius: 15,
-        pointHoverRadius: 20,
+        pointHoverRadius: 20
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      layout: {
+        padding: {
+          top: 20,
+          right: 100,
+          bottom: 20,
+          left: 100
+        }
+      },
       scales: {
         y: {
           type: 'category',
           offset: true,
+          position: 'left',
           grid: {
-            display: false
+            display: true,
+            color: 'rgba(0, 0, 0, 0.1)'
           },
           ticks: {
             callback: function(value) {
@@ -634,6 +644,18 @@ function initUserHeatMap(activityDataGlobal) {
             font: {
               size: 14,
               weight: 'bold'
+            },
+            color: '#000000',
+            align: 'center',
+            padding: 10
+          },
+          display: true,
+          title: {
+            display: true,
+            text: 'משתמשים',
+            font: {
+              size: 16,
+              weight: 'bold'
             }
           }
         },
@@ -642,12 +664,14 @@ function initUserHeatMap(activityDataGlobal) {
           time: {
             unit: 'day',
             displayFormats: {
-              day: 'yyyy-MM-dd'
-            }
+              day: 'MM/dd'
+            },
+            tooltipFormat: 'yyyy-MM-dd'
           },
           offset: true,
           grid: {
-            display: false
+            display: true,
+            color: 'rgba(0, 0, 0, 0.1)'
           },
           title: {
             display: true,
@@ -660,7 +684,24 @@ function initUserHeatMap(activityDataGlobal) {
         }
       },
       plugins: {
+        datalabels: {
+          backgroundColor: 'transparent',
+          color: function(context) {
+            const value = context.dataset.data[context.dataIndex].v;
+            return value / 20 > 0.5 ? 'white' : 'black';
+          },
+          font: {
+            weight: 'bold',
+            size: 10
+          },
+          formatter: function(value) {
+            return value.v;
+          },
+          anchor: 'center',
+          align: 'center'
+        },
         tooltip: {
+          enabled: true,
           titleFont: {
             size: 14
           },
