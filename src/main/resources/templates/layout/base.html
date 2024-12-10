@@ -34,7 +34,122 @@
   <footer class="footer mt-auto py-3" th:replace="~{fragments/footer :: footer}"></footer>
   
   <!-- Scripts -->
-  <script th:src="@{/js/globals.js}"></script>
+  <script th:inline="javascript">
+	window.authorizedUsers = [[${users}]]
+	
+	// Create a global variable to hold the data for the admin page
+	window.authorizedUsers = [[${authorizedUsers}]];
+	window.adminUsers = [[${adminUsers}]];
+	window.unauthorizedUsers = [[${unauthorizedUsers}]];
+	
+	// Create a global variable to hold the data for the index page
+	window.categoriesHierarchyData = [[${categoriesHierarchy}]];
+ 
+	// Create a global variable for the treemap data with Hebrew categories for the home page example
+	window.miniCategoriesData = [
+	  {
+		name: 'אומנות גוף',
+		value: 2,
+		children: [
+		  {
+			name: 'קעקועים מינימליסטיים',
+			value: 2
+			
+		  },
+		  {
+			name: 'קעקועים יפים',
+			value: 1
+		  }
+		]
+	  },
+	  {
+		name: 'ביוגרפיה',
+		value: 1,
+		children: [
+		  {
+			name: 'דמות ציבורית דתית',
+			value: 1
+		  }
+		]
+	  },
+	  {
+		name: 'דוגמה טכנולוגית',
+		value: 3,
+		children: [
+		  {
+			name: 'תכנות בסיסי',
+			value: 5
+		  },
+		  {
+			name: 'מדריך פשוט',
+			value: 2
+		  },
+		  {
+			name: 'התקנת מחשב',
+			value: 2
+		  }
+		]
+	  },
+	  {
+		name: 'אקדמי',
+		value: 1,
+		children: [
+		  {
+			name: 'אישור תכנית לימודים',
+			value: 2
+		  }
+		]
+	  }
+	];
+	
+	
+	
+	// Configuration options for RTL support and Hebrew text
+	window.treeMapOptions = {
+	  plugins: {
+		title: {
+		  display: true,
+		  text: 'התפלגות הודעות לפי קטגוריה(דוגמא)',
+		  font: {
+			size: 18,
+			weight: 'bold'
+		  },
+		  padding: {
+			top: 10
+		  }
+		},
+		legend: {
+		  display: false
+		},
+		tooltip: {
+		  titleFont: {
+			size: 16
+		  },
+		  bodyFont: {
+			size: 16
+		  },
+		  callbacks: {
+			title(items) {
+			  if (!items[0] || !items[0].raw) return ''
+			  const item = window.miniCategoriesData[items[0].dataIndex]
+			  return item ? item.name : ''
+			},
+			label(context) {
+			  if (!context.raw) return ''
+			  const item = window.miniCategoriesData[context.dataIndex]
+			  return `מספר הודעות: ${item.value}`
+			}
+		  },
+		  rtl: true,
+		  textDirection: 'rtl'
+		}
+	  },
+	  animation: {
+		duration: 500
+	  },
+	  maintainAspectRatio: false
+	};
+  </script>
   <!-- Bootstrap -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   
