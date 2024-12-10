@@ -3,6 +3,7 @@ package com.organizer.platform.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.organizer.platform.model.ScraperDTO.ProcessingResult;
 import com.organizer.platform.model.User.AppUser;
+import com.organizer.platform.model.User.UserActivityDTO;
 import com.organizer.platform.model.User.UserRole;
 import com.organizer.platform.model.organizedDTO.CategoryHierarchy;
 import com.organizer.platform.model.organizedDTO.MessageDTO;
@@ -30,8 +31,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
 
-import javax.servlet.RequestDispatcher;
-import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -409,7 +408,7 @@ public class UiController {
 
     @GetMapping("/export")
     public ResponseEntity<byte[]> export(@RequestParam String phoneNumber) {
-        List<MessageDTO> messagesToExport = messageService.totalMessagesFromNumber(phoneNumber)
+        List<MessageDTO> messagesToExport = messageService.findMessagesFromNumber(phoneNumber)
                 .stream()
                 .map(messageService::convertToMessageDTO)
                 .collect(Collectors.toList());
@@ -569,9 +568,30 @@ public class UiController {
             cumulativeCountsByDate.put(entry.getKey(), runningTotal);
         }
 
+        List<UserActivityDTO> activityData = users.stream()
+                .map(user -> {
+                    List<WhatsAppMessage> messages = messageService.findMessagesFromNumber(user.getWhatsappNumber());
+                    return UserActivityDTO.builder()
+                            .userId(user.getId())
+                            .username(user.getName())
+                            .messageCountByDate(messages.stream()
+                                    .collect(Collectors.groupingBy(
+                                            msg -> Dates.atLocalTime(msg.getCreatedAt())
+                                                    .withDayOfMonth(1) // counting the messages per month
+                                                    .withHourOfDay(0)
+                                                    .withMinuteOfHour(0)
+                                                    .withSecondOfMinute(0)
+                                                    .withMillisOfSecond(0),
+                                            Collectors.counting()
+                                    )))
+                            .build();
+                })
+                .collect(Collectors.toList());
+
         model.addAttribute("users", users);
         model.addAttribute("userCountsByDate", userCountsByDate);
         model.addAttribute("cumulativeCountsByDate", cumulativeCountsByDate);
+        model.addAttribute("activityData", activityData);
         model.addAttribute("authorizedUsers", users.stream().filter(AppUser::isAuthorized).count());
         model.addAttribute("unauthorizedUsers", users.stream().filter(AppUser::isUnauthorized).count());
         model.addAttribute("adminUsers", users.stream().filter(AppUser::isAdmin).count());
@@ -580,7 +600,7 @@ public class UiController {
 
     private void setupIndexPage(Model model, AppUser appUser) {
         model.addAttribute("totalTags", messageService.getAllTagsByPhoneNumber(appUser.getWhatsappNumber()));
-        List<WhatsAppMessage> messages = messageService.totalMessagesFromNumber(appUser.getWhatsappNumber());
+        List<WhatsAppMessage> messages = messageService.findMessagesFromNumber(appUser.getWhatsappNumber());
         model.addAttribute("totalMessages", messages.size());
         long totalCategories = messages
                 .stream()

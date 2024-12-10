@@ -42,7 +42,7 @@ public class WhatsAppMessageService {
         return toOrganizedMessages(messages);
     }
 
-    public List<WhatsAppMessage> totalMessagesFromNumber(String phone){
+    public List<WhatsAppMessage> findMessagesFromNumber(String phone){
         return messageRepository.findByFromNumber(phone);
     }
 

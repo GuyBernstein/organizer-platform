@@ -67,6 +67,9 @@ document.addEventListener('DOMContentLoaded', function() {
   initializeUsersChart(window.authorizedUsers , window.adminUsers , window.unauthorizedUsers)
 
   initUserActivityChart(window.userCountsByDate, window.cumulativeCountsByDate)
+
+
+  initUserHeatMap(window.activityData)
 })
 
 // toggle between view, edit and smart edit mode in the modal
@@ -570,3 +573,117 @@ function initUserActivityChart(datesGlobal, countsGlobal) {
   })
 }
 
+// Function to process activity data for the heatmap
+function processActivityData(activityData) {
+  const chartData = [];
+
+  activityData.forEach(userData => {
+    // messageCountByDate is a Map in the DTO where keys are dates and values are message counts
+    Object.entries(userData.messageCountByDate).forEach(([date, count]) => {
+      if (count > 0) {
+        chartData.push({
+          x: date,
+          y: userData.userId,
+          v: count
+        });
+      }
+    });
+  });
+
+  return chartData;
+}
+
+// Function to initialize the heatmap
+function initUserHeatMap(activityDataGlobal) {
+  if (document.getElementById('activityHeatmap') === null)
+    return;
+
+  const ctx = document.getElementById('activityHeatmap');
+  const processedData = processActivityData(activityDataGlobal);
+
+  new Chart(ctx, {
+    type: 'scatter',  // Changed from 'matrix' to 'scatter'
+    data: {
+      datasets: [{
+        label: 'פעילות הודעות',
+        data: processedData,
+        pointBackgroundColor: (context) => {
+          const value = context.raw?.v || 0;
+          const alpha = Math.min(0.8, Math.max(0.1, value / 20));
+          return `rgba(37, 211, 102, ${alpha})`; // WhatsApp green color
+        },
+        pointRadius: 15,
+        pointHoverRadius: 20,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          type: 'category',
+          offset: true,
+          grid: {
+            display: false
+          },
+          ticks: {
+            callback: function(value) {
+              const user = activityDataGlobal.find(u => u.userId === value);
+              return user ? user.username : value;
+            },
+            font: {
+              size: 14,
+              weight: 'bold'
+            }
+          }
+        },
+        x: {
+          type: 'time',
+          time: {
+            unit: 'day',
+            displayFormats: {
+              day: 'yyyy-MM-dd'
+            }
+          },
+          offset: true,
+          grid: {
+            display: false
+          },
+          title: {
+            display: true,
+            text: 'תאריך',
+            font: {
+              size: 16,
+              weight: 'bold'
+            }
+          }
+        }
+      },
+      plugins: {
+        tooltip: {
+          titleFont: {
+            size: 14
+          },
+          bodyFont: {
+            size: 16
+          },
+          callbacks: {
+            title: function(context) {
+              const data = context[0].raw;
+              const user = activityDataGlobal.find(u => u.userId === data.y);
+              const username = user ? user.username : data.y;
+              return `${username} - ${new Date(data.x).toLocaleDateString()}`;
+            },
+            label: function(context) {
+              const value = context.raw.v;
+              return `הודעות: ${value}`;
+            }
+          }
+        },
+        legend: {
+          display: false
+        }
+      }
+    }
+  });
+}
