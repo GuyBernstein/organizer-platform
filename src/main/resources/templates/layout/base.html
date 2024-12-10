@@ -35,9 +35,11 @@
   
   <!-- Scripts -->
   <script th:inline="javascript">
-	window.authorizedUsers = [[${users}]]
-	
-	// Create a global variable to hold the data for the admin page
+	// Create a global variables to hold the data for the admin page
+	// users activity chart
+	window.userCountsByDate = [[${userCountsByDate}]];
+	window.cumulativeCountsByDate = [[${cumulativeCountsByDate}]];
+	// authorized chart
 	window.authorizedUsers = [[${authorizedUsers}]];
 	window.adminUsers = [[${adminUsers}]];
 	window.unauthorizedUsers = [[${unauthorizedUsers}]];

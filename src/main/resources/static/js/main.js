@@ -66,6 +66,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   initializeUsersChart(window.authorizedUsers , window.adminUsers , window.unauthorizedUsers)
 
+  initUserActivityChart(window.userCountsByDate, window.cumulativeCountsByDate)
 })
 
 // toggle between view, edit and smart edit mode in the modal
@@ -481,3 +482,91 @@ function initializeUsersChart(authorizedUsers , adminUsers , unauthorizedUsers){
     plugins: [ChartDataLabels]
   });
 }
+
+// Function to initialize user activity chart
+function initUserActivityChart(datesGlobal, countsGlobal) {
+  if (document.getElementById('usersActivityChart') === null)
+    return
+
+  const ctx = document.getElementById('usersActivityChart')
+
+  const dates = Object.keys(datesGlobal)
+  const counts = Object.values(countsGlobal)
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: dates,
+      datasets: [{
+        label: 'סה״כ משתמשים',
+        data: counts,
+        borderColor: '#25D366',
+        backgroundColor: 'rgba(37, 211, 102, 0.1)',
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        x: {
+          type: 'time',
+          time: {
+            unit: 'day',
+            displayFormats: {
+              day: 'yyyy-MM-dd'
+            }
+          },
+          title: {
+            display: true,
+            text: 'תאריך',
+            font: {
+              size: 16,
+              weight: 'bold'
+            }
+          }
+        },
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'מספר משתמשים',
+            font: {
+              size: 16,
+              weight: 'bold'
+            }
+          }
+        }
+      },
+      plugins: {
+        legend: {
+          labels: {
+            font: {
+              size: 16,
+              weight: 'bold'
+            }
+          }
+        },
+        tooltip: {
+          titleFont: {
+            size: 14
+          },
+          bodyFont: {
+            size: 16
+          },
+          callbacks: {
+            label: function(context) {
+              const date = context.label
+              const totalUsers = context.parsed.y
+              const dailyUsers = window.userCountsByDate[date] || 0
+              return [
+                `סה״כ משתמשים: ${totalUsers}`,
+                `משתמשים חדשים: ${dailyUsers}`
+              ]
+            }
+          }
+        }
+      }
+    }
+  })
+}
+

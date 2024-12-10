@@ -14,7 +14,8 @@ import com.organizer.platform.service.Scraper.WebContentScraperService;
 import com.organizer.platform.service.User.ExportService;
 import com.organizer.platform.service.User.UserService;
 import com.organizer.platform.service.WhatsApp.WhatsAppMessageService;
-import org.checkerframework.checker.units.qual.A;
+import com.organizer.platform.util.Dates;
+import org.joda.time.LocalDateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -537,7 +538,27 @@ public class AuthController {
 
     private void setupAdminPage(Model model) {
         List<AppUser> users = userService.findAll();
+
+        // Create a TreeMap to maintain date order
+        Map<LocalDateTime, Long> userCountsByDate = users.stream()
+                .map(user -> Dates.atLocalTime(user.getCreatedAt()))  // Convert to LocalDate
+                .collect(Collectors.groupingBy(
+                        date -> date,
+                        TreeMap::new,  // Use TreeMap to sort by date
+                        Collectors.counting()
+                ));
+
+        // Create cumulative count map
+        Map<LocalDateTime, Long> cumulativeCountsByDate = new TreeMap<>();
+        long runningTotal = 0;
+        for (Map.Entry<LocalDateTime, Long> entry : userCountsByDate.entrySet()) {
+            runningTotal += entry.getValue();
+            cumulativeCountsByDate.put(entry.getKey(), runningTotal);
+        }
+
         model.addAttribute("users", users);
+        model.addAttribute("userCountsByDate", userCountsByDate);
+        model.addAttribute("cumulativeCountsByDate", cumulativeCountsByDate);
         model.addAttribute("authorizedUsers", users.stream().filter(AppUser::isAuthorized).count());
         model.addAttribute("unauthorizedUsers", users.stream().filter(AppUser::isUnauthorized).count());
         model.addAttribute("adminUsers", users.stream().filter(AppUser::isAdmin).count());
