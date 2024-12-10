@@ -79,14 +79,14 @@ public class UiController {
     @ExceptionHandler(Exception.class)
     public String handleAllExceptions(Model model,
                                       @AuthenticationPrincipal OAuth2User principal,
-                                      RedirectAttributes redirectAttributes) {
+                                      Exception ex) {
         // Add error information to the model
-        redirectAttributes.addFlashAttribute("errorMessage", "אופס! משהו השתבש");
-        
+        model.addAttribute("errorMessage", " אופס! משהו השתבש"+ ex);
         if (principal == null) {
-            return setupAnonymousPage(model, "דף הבית", "pages/home");
+            model.addAttribute("content", "pages/auth/login");
         }
-        return handleAuthorizedAccess(principal, model, "דף הבית", "pages/home", false);
+        model.addAttribute("content", "pages/home");
+        return "layout/base";
     }
 
 
@@ -506,7 +506,7 @@ public class UiController {
         Optional<AppUser> appUser = userService.findByEmail(email);
 
         if (appUser.isPresent() && appUser.get().isAuthorized()) {
-            setupAuthorizedModel(model, principal, appUser.get(), title, contentPage, isFiltered);
+            setupAuthorizedModel(model, appUser.get(), title, contentPage, isFiltered);
         } else {
             setupUnauthorizedModel(model, principal,
                     appUser.orElse(anUser().authorized(false).build()));
@@ -517,6 +517,7 @@ public class UiController {
     private String setupAnonymousPage(Model model, String title, String contentPage) {
         model.addAttribute("title", title + " - Organizer Platform");
         model.addAttribute("content", contentPage);
+        model.addAttribute("errorMessage", "");
         return "layout/base";
     }
 
@@ -534,9 +535,9 @@ public class UiController {
         model.addAttribute("isAuthorized", appUser != null && appUser.isAuthorized());
     }
 
-    private void setupAuthorizedModel(Model model, OAuth2User principal, AppUser appUser,
+    private void setupAuthorizedModel(Model model, AppUser appUser,
                                       String title, String contentPage, boolean isFiltered) {
-        setupCommonAttributes(model, principal, appUser, title, contentPage);
+        setupCommonAttributes(model, appUser, title, contentPage);
 
         switch (contentPage) {
             case "pages/messages":
@@ -631,23 +632,31 @@ public class UiController {
         model.addAttribute("totalTags", messageService.getAllTagsByPhoneNumber(appUser.getWhatsappNumber()));
         List<WhatsAppMessage> messages = messageService.findMessagesFromNumber(appUser.getWhatsappNumber());
         model.addAttribute("totalMessages", messages.size());
+
+        // Filter out null categories before counting
         long totalCategories = messages
                 .stream()
                 .map(WhatsAppMessage::getCategory)
+                .filter(Objects::nonNull)
                 .distinct()
                 .count();
 
         model.addAttribute("categoriesCount", totalCategories);
+
+        // Filter out null subcategories before counting
         long totalSubCategories = messages
                 .stream()
                 .map(WhatsAppMessage::getSubCategory)
+                .filter(Objects::nonNull)
                 .distinct()
                 .count();
 
         model.addAttribute("subCategoriesCount", totalSubCategories);
+
         long totalNextSteps = messages
                 .stream()
                 .map(WhatsAppMessage::getNextSteps)
+                .filter(Objects::nonNull)
                 .mapToLong(Set::size)
                 .sum();
 
@@ -664,15 +673,12 @@ public class UiController {
         model.addAttribute("categoriesHierarchy", hierarchy);
     }
 
-    private void setupCommonAttributes(Model model, OAuth2User principal, AppUser appUser,
+    private void setupCommonAttributes(Model model, AppUser appUser,
                                        String title, String contentPage) {
-        String name = principal.getAttribute("name");
-        String picture = principal.getAttribute("picture");
-
         model.addAttribute("title", title + " - Organizer Platform");
-        model.addAttribute("name", name != null ? name : "אורח");
+        model.addAttribute("name", appUser.getName());
         model.addAttribute("email", appUser.getEmail());
-        model.addAttribute("picture", picture);
+        model.addAttribute("picture", appUser.getPictureUrl());
         model.addAttribute("content", contentPage);
         model.addAttribute("phone", appUser.getWhatsappNumber());
         model.addAttribute("isAuthorized", appUser.isAuthorized());

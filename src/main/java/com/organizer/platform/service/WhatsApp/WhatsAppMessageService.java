@@ -37,6 +37,7 @@ public class WhatsAppMessageService {
     public Map<String, Map<String, List<MessageDTO>>> findMessageContentsByFromNumberGroupedByCategoryAndGroupedBySubCategory(String fromNumber) {
         List<WhatsAppMessage> messages = messageRepository.findByFromNumber(fromNumber).stream()
                 .filter(message -> message.getMessageContent() != null && !message.getMessageContent().trim().isEmpty())
+                .filter(message -> message.getCategory() != null)  // Filter out null categories
                 .collect(Collectors.toList());
 
         return toOrganizedMessages(messages);
@@ -47,12 +48,13 @@ public class WhatsAppMessageService {
     }
 
     private Map<String, Map<String, List<MessageDTO>>> toOrganizedMessages(List<WhatsAppMessage> messages) {
-        // Organize by category and subcategory hierarchy
+        // Filter out messages with null categories first
         return messages.stream()
+                .filter(message -> message.getMessageContent() != null)  // Ensure message content exists
                 .collect(Collectors.groupingBy(
-                        message1 -> message1.getCategory() != null ? message1.getCategory() : "uncategorized",
+                        message -> Optional.ofNullable(message.getCategory()).orElse("uncategorized"),
                         Collectors.groupingBy(
-                                message1 -> message1.getSubCategory() != null ? message1.getSubCategory() : "unsubcategorized",
+                                message -> Optional.ofNullable(message.getSubCategory()).orElse("unsubcategorized"),
                                 Collectors.mapping(this::convertToMessageDTO, Collectors.toList())
                         )
                 ));
@@ -151,18 +153,24 @@ public class WhatsAppMessageService {
         return MessageDTO.builder()
                 .id(message.getId())
                 .createdAt(message.getCreatedAt())
-                .messageContent(message.getMessageContent())
-                .category(message.getCategory())
-                .subCategory(message.getSubCategory())
-                .type(message.getType())
-                .purpose(message.getPurpose())
-                .tags(message.getTags().stream()
+                .messageContent(Optional.ofNullable(message.getMessageContent()).orElse(""))
+                .category(Optional.ofNullable(message.getCategory()).orElse("uncategorized"))
+                .subCategory(Optional.ofNullable(message.getSubCategory()).orElse("unsubcategorized"))
+                .type(Optional.ofNullable(message.getType()).orElse(""))
+                .purpose(Optional.ofNullable(message.getPurpose()).orElse(""))
+                .tags(Optional.ofNullable(message.getTags())
+                        .orElse(Collections.emptySet())
+                        .stream()
+                        .filter(Objects::nonNull)
                         .map(Tag::getName)
                         .collect(Collectors.toSet()))
-                .nextSteps(message.getNextSteps().stream()
+                .nextSteps(Optional.ofNullable(message.getNextSteps())
+                        .orElse(Collections.emptySet())
+                        .stream()
+                        .filter(Objects::nonNull)
                         .map(NextStep::getName)
                         .collect(Collectors.toSet()))
-                .mime(message.getMessageType())
+                .mime(Optional.ofNullable(message.getMessageType()).orElse(""))
                 .build();
     }
 

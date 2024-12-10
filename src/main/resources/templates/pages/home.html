@@ -4,7 +4,7 @@
 <body>
 <div th:fragment="content">
   <div class="container py-4">
-	<div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+	<div th:if="${errorMessage != null && !errorMessage.isEmpty()}" class="alert alert-danger alert-dismissible fade show" role="alert">
 	  <i class="bi bi-exclamation-triangle-fill me-2"></i>
 	  <span th:text="${errorMessage}">אופס! משהו השתבש</span>
 	  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="סגור"></button>
