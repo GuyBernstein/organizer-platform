@@ -17,11 +17,13 @@
 	</div>
   </div>
   
+  
+  
   <!-- User Management Grid -->
   <div class="container-fluid">
 	<div class="row g-4">
 	  <!-- Create User Card -->
-	  <div class="col-lg-6">
+	  <div class="col-lg-4">
 		<div class="card shadow-whatsapp">
 		  <div class="card-body">
 			<h5 class="card-title mb-4">
@@ -51,7 +53,7 @@
 				  </option>
 				</select>
 			  </div>
-			  <button type="submit" class="btn btn-success">
+			  <button type="submit" class="btn btn-success w-100">
 				<i class="bi bi-plus-circle me-2"></i>צור משתמש
 			  </button>
 			</form>
@@ -60,7 +62,7 @@
 	  </div>
 	  
 	  <!-- Manage Users Card -->
-	  <div class="col-lg-6">
+	  <div class="col-lg-8">
 		<div class="card shadow-whatsapp">
 		  <div class="card-body">
 			<h5 class="card-title mb-4">
@@ -84,23 +86,34 @@
 				<tbody>
 				<tr th:each="user : ${users}">
 				  <td th:text="${user.getName()}">שם</td>
-				  <td><img th:src="${user.getPictureUrl()}" alt="תמונה של המשתמש" /></td>
+				  <td>
+					<img th:src="${user.getPictureUrl()}"
+						 alt="תמונה של המשתמש"
+						 class="rounded-circle"
+						 style="width: 32px; height: 32px;" />
+					</td>
 				  <td th:text="${user.getCreatedAt()}">נוצר ב</td>
 				  <td th:text="${user.getWhatsappNumber()}">טלפון</td>
 				  <td th:text="${user.getEmail()}">email@example.com</td>
 				  <td th:text="${user.getRole()}">USER</td>
 				  <td>
-					<span th:if="${user.isAuthorized()}" class="badge bg-success">מורשה</span>
-					<span th:unless="${user.isAuthorized()}" class="badge bg-danger">לא מורשה</span>
+					<span th:if="${user.isAuthorized()}"
+						  class="badge bg-success">מורשה</span>
+					<span th:unless="${user.isAuthorized()}"
+						  class="badge bg-danger">לא מורשה</span>
 				  </td>
 				  <td>
-					<div class="btn-group">
+					<div class="btn-group gap-2">
 					  <form th:action="@{/admin/change-role}"
 							method="post"
 							class="d-inline">
 						<input type="hidden" name="userId" th:value="${user.getId()}">
-						<select name="newRole" class="form-select form-select-sm d-inline-block" style="width: auto;" onchange="this.form.submit()">
-						  <option th:value="${user.getRole()}" selected>[[${user.getRole()}]]</option>
+						<select name="newRole"
+								class="form-select form-select-sm d-inline-block px-2 py-2"
+								style="width: auto;"
+								onchange="this.form.submit()">
+						  <option th:value="${user.getRole()}"
+								  selected>[[${user.getRole()}]]</option>
 						  <option th:each="role : ${T(com.organizer.platform.model.User.UserRole).values()}"
 								  th:if="${role != user.getRole()}"
 								  th:value="${role}"
@@ -113,27 +126,26 @@
 							method="post"
 							class="me-2">
 						<input type="hidden" name="userId" th:value="${user.getId()}">
-						<button type="submit" class="btn btn-warning btn-sm">
-						  <i class="bi bi-lock"></i>
+						<button type="submit" class="btn btn-warning px-3 py-2">
+						  <i class="bi bi-lock fs-5"></i>
 						</button>
 					  </form>
-					  <form th:unless="${user.authorized}"
+					  <form th:unless="${user.isAuthorized()}"
 							th:action="@{/admin/authorize-user}"
 							method="post"
 							class="me-2">
 						<input type="hidden" name="userId" th:value="${user.getId()}">
-						<input type="text" class="form-control" name="phoneNumber" required>
-						
-						<button type="submit" class="btn btn-success btn-sm">
-						  <i class="bi bi-unlock"></i>
+						<button type="submit" class="btn btn-success px-3 py-2">
+						  <i class="bi bi-unlock fs-5"></i>
 						</button>
 					  </form>
 					  <form th:action="@{/admin/delete-user}"
 							method="post"
+							class="ms-2"
 							onsubmit="return confirm('האם אתה בטוח שברצונך למחוק משתמש זה?');">
 						<input type="hidden" name="userId" th:value="${user.getId()}">
-						<button type="submit" class="btn btn-danger btn-sm">
-						  <i class="bi bi-trash"></i>
+						<button type="submit" class="btn btn-danger px-3 py-2">
+						  <i class="bi bi-trash fs-5"></i>
 						</button>
 					  </form>
 					</div>
