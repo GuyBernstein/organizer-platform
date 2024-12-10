@@ -572,8 +572,6 @@ function initUserActivityChart(datesGlobal, countsGlobal) {
     }
   })
 }
-// Register the plugin globally
-Chart.register(ChartDataLabels);
 
 function processActivityData(activityData) {
   const chartData = [];
@@ -603,6 +601,7 @@ function initUserHeatMap(activityDataGlobal) {
 
   new Chart(ctx, {
     type: 'scatter',
+    plugins: [ChartDataLabels], // Add the plugin only to this chart
     data: {
       datasets: [{
         label: 'פעילות הודעות',
@@ -685,41 +684,27 @@ function initUserHeatMap(activityDataGlobal) {
       },
       plugins: {
         datalabels: {
-          backgroundColor: 'transparent',
-          color: function(context) {
-            const value = context.dataset.data[context.dataIndex].v;
-            return value / 20 > 0.5 ? 'white' : 'black';
-          },
+          backgroundColor: 'rgba(255, 255, 255, 0.85)',
+          borderRadius: 4,
+          padding: 4,
+          color: 'black',
           font: {
-            weight: 'bold',
             size: 10
           },
-          formatter: function(value) {
-            return value.v;
+          formatter: function(value, context) {
+            const date = new Date(value.x).toLocaleDateString();
+            return [
+              `${value.username}`,
+              `${date}`,
+              `הודעות: ${value.v}`
+            ].join('\n');
           },
           anchor: 'center',
-          align: 'center'
+          align: 'center',
+          textAlign: 'center'
         },
         tooltip: {
-          enabled: true,
-          titleFont: {
-            size: 14
-          },
-          bodyFont: {
-            size: 16
-          },
-          callbacks: {
-            title: function(context) {
-              const data = context[0].raw;
-              const user = activityDataGlobal.find(u => u.userId === data.y);
-              const username = user ? user.username : data.y;
-              return `${username} - ${new Date(data.x).toLocaleDateString()}`;
-            },
-            label: function(context) {
-              const value = context.raw.v;
-              return `הודעות: ${value}`;
-            }
-          }
+          enabled: false  // Disable tooltips since we're showing all info directly
         },
         legend: {
           display: false
