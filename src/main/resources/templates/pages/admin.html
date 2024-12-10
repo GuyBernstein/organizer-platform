@@ -20,48 +20,15 @@
   <!-- Statistics Dashboard -->
   <div class="container-fluid mb-4">
 	<div class="row g-4">
-	  <!-- Summary Cards -->
-	  <div class="col-md-3">
-		<div class="card shadow-whatsapp bg-primary text-white">
-		  <div class="card-body">
-			<h6 class="card-title">סך משתמשים</h6>
-			<h2 class="mb-0" th:text="${users.size()}">0</h2>
-		  </div>
-		</div>
-	  </div>
-	  <div class="col-md-3">
-		<div class="card shadow-whatsapp bg-success text-white">
-		  <div class="card-body">
-			<h6 class="card-title">משתמשים פעילים</h6>
-			<h2 class="mb-0" th:text="${authorizedUsers}">0</h2>
-		  </div>
-		</div>
-	  </div>
-	  
-	  <div class="col-md-3">
-		<div class="card shadow-whatsapp bg-info text-white">
-		  <div class="card-body">
-			<h6 class="card-title">משתמשי מנהל</h6>
-			<h2 class="mb-0" th:text="${adminUsers}">0</h2>
-		  </div>
-		</div>
-	  </div>
-	  
-	  <div class="col-md-3">
-		<div class="card shadow-whatsapp bg-dark text-white">
-		  <div class="card-body">
-			<h6 class="card-title">משתמשים לא מורשים</h6>
-			<h2 class="mb-0" th:text="${unauthorizedUsers}">0</h2>
-		  </div>
-		</div>
-	  </div>
 	  
 	  <!-- Charts Row -->
 	  <div class="col-lg-6">
 		<div class="card shadow-whatsapp">
 		  <div class="card-body">
 			<h5 class="card-title">התפלגות הרשאות משתמשים</h5>
+			<div style="height: 400px;">
 			<canvas id="authorizationChart"></canvas>
+			</div>
 		  </div>
 		</div>
 	  </div>
@@ -69,8 +36,8 @@
 	  <div class="col-lg-6">
 		<div class="card shadow-whatsapp">
 		  <div class="card-body">
-			<h5 class="card-title">פעילות הודעות</h5>
-			<canvas id="messageActivityChart"></canvas>
+			<h5 class="card-title">פעילות הרשמת משתמשים</h5>
+			<canvas id="usersActivityChart"></canvas>
 		  </div>
 		</div>
 	  </div>

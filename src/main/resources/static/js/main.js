@@ -64,6 +64,8 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
 
+  initializeUsersChart(window.authorizedUsers , window.adminUsers , window.unauthorizedUsers)
+
 })
 
 // toggle between view, edit and smart edit mode in the modal
@@ -366,6 +368,8 @@ function initializeCategoriesChart(hierarchyData) {
 
 // Function to initialize the treemap
 function initializeTreeMap(data, options) {
+  if (document.getElementById('treeMapChart') === null)
+    return
   const ctx = document.getElementById('treeMapChart').getContext('2d');
   new Chart(ctx, {
     type: 'treemap',
@@ -397,4 +401,83 @@ function initializeTreeMap(data, options) {
   });
 }
 
+function initializeUsersChart(authorizedUsers , adminUsers , unauthorizedUsers){
+  if (document.getElementById('authorizationChart') === null)
+    return
 
+  // Calculate total for percentages
+  const total = authorizedUsers + adminUsers + unauthorizedUsers;
+
+  // Get the canvas element
+  const ctx = document.getElementById('authorizationChart').getContext('2d');
+
+  // Create the pie chart
+  new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels: ['משתמשים מורשים', 'משתמשי מנהל', 'משתמשים לא מורשים'],
+      datasets: [{
+        data: [authorizedUsers, adminUsers, unauthorizedUsers],
+        backgroundColor: [
+          '#198754',  // bg-success color for authorized users
+          '#0dcaf0',  // bg-info color for admin users
+          '#212529'   // bg-dark color for unauthorized users
+        ],
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            font: {
+              size: 14
+            }
+          }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const value = context.raw;
+              const percentage = ((value / total) * 100).toFixed(1);
+              return `${context.label}: ${value} (${percentage}%)`;
+            }
+          }
+        },
+        datalabels: {
+          color: '#fff',
+          font: {
+            weight: 'bold',
+            size: 18
+          },
+          formatter: function(value, context) {
+            const percentage = ((value / total) * 100).toFixed(1);
+            // Only show label if percentage is greater than 0
+            if (percentage > 0) {
+              return `${value}\n(${percentage}%)`;
+            } else {
+              return null;  // This will hide the label
+            }
+          },
+          anchor: 'center',
+          align: 'right',   // This aligns the label to the right of the anchor point
+          offset: 20,       // This moves the label 20 pixels to the right from the anchor point
+          padding: {
+            left: 0,
+            right: 0
+          }
+        }
+      },
+      layout: {
+        padding: {
+          top: 10,
+          bottom: 10
+        }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+}
