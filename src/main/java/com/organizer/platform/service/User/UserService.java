@@ -57,23 +57,6 @@ public class UserService {
                 );
     }
 
-    public void createUnauthorizedUser(String whatsappNumber) {
-        repository.findByWhatsappNumber(whatsappNumber) // ensure if exists
-            .orElseGet(() -> {
-                // First check if this is a temporary user that was replaced
-                return findLinkedGoogleUser(whatsappNumber)
-                        .orElseGet(() -> {
-
-                            // create a temp user with UNAUTHORIZED role
-                            String tempEmail =
-                                    "whatsapp." + whatsappNumber
-                                            .replaceAll("[^0-9]", "") + "@temp.platform.com";
-
-                            return repository.save(toUnauthorizedUser(whatsappNumber, tempEmail));
-                        });
-            });
-    }
-
     public AppUser createUser(OAuth2User oauth2User) {
         return anUser()
                 .name(oauth2User.getAttribute("name"))
@@ -91,11 +74,6 @@ public class UserService {
                 .role(role)
                 .authorized(role != UserRole.UNAUTHORIZED)
                 .build();
-    }
-
-    private Optional<AppUser> findLinkedGoogleUser(String whatsappNumber) {
-        return repository.findByWhatsappNumber(whatsappNumber)
-                .filter(user -> !user.getEmail().endsWith("@temp.platform.com"));
     }
 
     private static AppUser toUnauthorizedUser(String whatsappNumber, String tempEmail) {
@@ -144,10 +122,23 @@ public class UserService {
         return repository.save(appUser);
     }
 
-    public boolean isAuthorizedNumber(String whatsappNumber) {
-        return findByWhatsappNumber(whatsappNumber)
-                .map(AppUser::isAuthorized)
-                .orElse(false);
+    public boolean processNewUser(String whatsappNumber) {
+        return repository.findByWhatsappNumber(whatsappNumber)
+                .map(user -> {
+                    // If user exists, check if authorized
+                    if (!user.getEmail().endsWith("@temp.platform.com")) {
+                        return user.isAuthorized();
+                    }
+                    // If it's a temp user, look for linked Google account
+                    return false;
+                })
+                .orElseGet(() -> {
+                    // User doesn't exist, create unauthorized temp user
+                    String tempEmail = "whatsapp." + whatsappNumber.replaceAll("[^0-9]", "")
+                            + "@temp.platform.com";
+                    repository.save(toUnauthorizedUser(whatsappNumber, tempEmail));
+                    return false;
+                });
     }
 
     public boolean isAdmin(String email) {

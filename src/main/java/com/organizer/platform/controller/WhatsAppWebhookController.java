@@ -63,11 +63,10 @@ public class WhatsAppWebhookController {
                     String whatsappNumber = message.getFrom(); // and the number
 
                     try {
-                        // Create unauthorized user if number is not authorized, or if the user does not exist
-                        if (!userService.isAuthorizedNumber(message.getFrom())) {
-                            userService.createUnauthorizedUser(whatsappNumber);
+                        // Only process message if user is authorized
+                        if (userService.processNewUser(message.getFrom())) {
+                            processMessage(message);
                         }
-                        processMessage(message);
                     } catch (Exception e) {
                         logger.error("Failed to create unauthorized user for number: " + whatsappNumber, e);
                     }

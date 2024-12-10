@@ -78,10 +78,11 @@ public class UiController {
 
     @ExceptionHandler(Exception.class)
     public String handleAllExceptions(Model model,
-                                      @AuthenticationPrincipal OAuth2User principal) {
+                                      @AuthenticationPrincipal OAuth2User principal,
+                                      RedirectAttributes redirectAttributes) {
         // Add error information to the model
-        model.addAttribute("errorMessage", "אופס! משהו השתבש");
-
+        redirectAttributes.addFlashAttribute("errorMessage", "אופס! משהו השתבש");
+        
         if (principal == null) {
             return setupAnonymousPage(model, "דף הבית", "pages/home");
         }

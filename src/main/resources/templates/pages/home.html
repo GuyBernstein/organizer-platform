@@ -4,8 +4,10 @@
 <body>
 <div th:fragment="content">
   <div class="container py-4">
-	<div th:if="${errorMessage}" class="alert alert-danger" role="alert">
-	  <span th:text="${errorMessage}">Error message here</span>
+	<div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+	  <i class="bi bi-exclamation-triangle-fill me-2"></i>
+	  <span th:text="${errorMessage}">אופס! משהו השתבש</span>
+	  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="סגור"></button>
 	</div>
 	<div class="text-center mb-5">
 	  <h1 id="ברוכים-הבאים-whatsapp-organizer" class="display-4 mb-4">

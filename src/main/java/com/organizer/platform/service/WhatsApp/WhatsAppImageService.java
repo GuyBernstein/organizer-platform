@@ -3,14 +3,13 @@ package com.organizer.platform.service.WhatsApp;
 import com.organizer.platform.model.WhatsApp.Image;
 import com.organizer.platform.model.WhatsApp.MediaResponse;
 import com.organizer.platform.service.Google.CloudStorageService;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Objects;
@@ -45,13 +44,23 @@ public class WhatsAppImageService {
         );
     }
 
-    private byte[] downloadImageFromWhatsApp(String mediaId, String token)  {
+    private byte[] downloadImageFromWhatsApp(String mediaId, String token) {
+        if (StringUtils.isEmpty(token)) {
+            throw new IllegalArgumentException("WhatsApp API token cannot be empty");
+        }
+
         try {
+            // Validate the media ID
+            if (StringUtils.isEmpty(mediaId)) {
+                throw new IllegalArgumentException("Media ID cannot be empty");
+            }
+
             // First, get the image URL using the media ID
             String mediaUrl = String.format("https://graph.facebook.com/v18.0/%s", mediaId);
 
             HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(token);
+            headers.setBearerAuth(token.trim()); // Trim the token to remove any whitespace
+            headers.setContentType(MediaType.APPLICATION_JSON);
 
             ResponseEntity<MediaResponse> mediaResponse = restTemplate.exchange(
                     mediaUrl,
@@ -66,7 +75,7 @@ public class WhatsAppImageService {
 
             // Now download the actual image using the URL from the response
             HttpHeaders downloadHeaders = new HttpHeaders();
-            downloadHeaders.setBearerAuth(token);
+            downloadHeaders.setBearerAuth(token.trim());
 
             ResponseEntity<byte[]> imageResponse = restTemplate.exchange(
                     mediaResponse.getBody().getUrl(),
@@ -75,13 +84,22 @@ public class WhatsAppImageService {
                     byte[].class
             );
 
+            if (imageResponse.getBody() == null) {
+                throw new RuntimeException("Downloaded image data is empty");
+            }
+
             return imageResponse.getBody();
 
+        } catch (HttpClientErrorException.Unauthorized e) {
+            logger.error("Authentication failed for media ID: {}. Please check your token.", mediaId);
+            throw new RuntimeException("Invalid or expired WhatsApp API token", e);
+        } catch (HttpClientErrorException e) {
+            logger.error("HTTP error while downloading image with ID: {}. Status: {}", mediaId, e.getStatusCode());
+            throw new RuntimeException("Failed to download image: " + e.getStatusText(), e);
         } catch (Exception e) {
             logger.error("Error downloading image with ID: {}", mediaId, e);
             throw new RuntimeException("Failed to download image", e);
         }
-
     }
 
 
