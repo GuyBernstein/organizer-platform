@@ -14,6 +14,7 @@ import com.organizer.platform.service.Scraper.WebContentScraperService;
 import com.organizer.platform.service.User.ExportService;
 import com.organizer.platform.service.User.UserService;
 import com.organizer.platform.service.WhatsApp.WhatsAppMessageService;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -535,7 +536,12 @@ public class AuthController {
     }
 
     private void setupAdminPage(Model model) {
-        model.addAttribute("users", userService.findAll());
+        List<AppUser> users = userService.findAll();
+        model.addAttribute("users", users);
+        model.addAttribute("authorizedUsers", users.stream().filter(AppUser::isAuthorized).count());
+        model.addAttribute("unauthorizedUsers", users.stream().filter(AppUser::isUnauthorized).count());
+        model.addAttribute("adminUsers", users.stream().filter(AppUser::isAdmin).count());
+
     }
 
     private void setupIndexPage(Model model, AppUser appUser) {

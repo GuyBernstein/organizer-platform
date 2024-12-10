@@ -115,6 +115,9 @@ public class AppUser implements Serializable {
     public boolean isAuthorized() {
         return authorized;
     }
+    public boolean isUnauthorized() {
+        return !authorized;
+    }
 
     public void setAuthorized(boolean authorized) {
         this.authorized = authorized;

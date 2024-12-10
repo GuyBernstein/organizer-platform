@@ -59,7 +59,11 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Initialize the chart when the document is ready
-  initializeTreeMap(window.miniCategoriesData, window.treeMapOptions)
+  if(window.miniCategoriesData && window.treeMapOptions){
+    initializeTreeMap(window.miniCategoriesData, window.treeMapOptions)
+  }
+
+
 })
 
 // toggle between view, edit and smart edit mode in the modal
