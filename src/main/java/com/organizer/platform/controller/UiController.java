@@ -17,6 +17,8 @@ import com.organizer.platform.service.User.UserService;
 import com.organizer.platform.service.WhatsApp.WhatsAppMessageService;
 import com.organizer.platform.util.Dates;
 import org.joda.time.LocalDateTime;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -568,9 +570,56 @@ public class UiController {
             cumulativeCountsByDate.put(entry.getKey(), runningTotal);
         }
 
+        Map<Long, UserActivityDTO> activityDataMap = users.stream()
+                .map(user -> {
+                    List<WhatsAppMessage> messages = messageService.findMessagesFromNumber(user.getWhatsappNumber());
+                    return UserActivityDTO.builder()
+                            .userId(user.getId())
+                            .username(user.getName())
+                            .messageCountByDate(messages.stream()
+                                    .collect(Collectors.groupingBy(
+                                            msg -> Dates.atLocalTime(msg.getCreatedAt())
+                                                    .withDayOfMonth(1)
+                                                    .withHourOfDay(0)
+                                                    .withMinuteOfHour(0)
+                                                    .withSecondOfMinute(0)
+                                                    .withMillisOfSecond(0),
+                                            Collectors.counting()
+                                    )))
+                            .build();
+                })
+                .collect(Collectors.toMap(
+                        UserActivityDTO::getUserId,
+                        activity -> activity
+                ));
+
+        Map<Long, Map<String, Long>> userMonthlyMessageCounts = users.stream()
+                .collect(Collectors.toMap(
+                        AppUser::getId,
+                        user -> messageService.findMessagesFromNumber(user.getWhatsappNumber())
+                                .stream()
+                                .collect(Collectors.groupingBy(
+                                        msg -> {
+                                            DateTimeFormatter formatter = DateTimeFormat.forPattern("MM/yyyy");
+                                            return Dates.atLocalTime(msg.getCreatedAt())
+                                                    .withDayOfMonth(1)
+                                                    .withHourOfDay(0)
+                                                    .withMinuteOfHour(0)
+                                                    .withSecondOfMinute(0)
+                                                    .withMillisOfSecond(0)
+                                                    .toString(formatter);
+                                        },
+                                        Collectors.counting()
+                                ))
+                ));
+
+
+
         model.addAttribute("users", users);
         model.addAttribute("userCountsByDate", userCountsByDate);
         model.addAttribute("cumulativeCountsByDate", cumulativeCountsByDate);
+        model.addAttribute("messageCountsByMonth", userMonthlyMessageCounts);
+
         model.addAttribute("authorizedUsers", users.stream().filter(AppUser::isAuthorized).count());
         model.addAttribute("unauthorizedUsers", users.stream().filter(AppUser::isUnauthorized).count());
         model.addAttribute("adminUsers", users.stream().filter(AppUser::isAdmin).count());

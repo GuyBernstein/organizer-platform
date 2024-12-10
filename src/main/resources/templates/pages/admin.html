@@ -107,6 +107,7 @@
 				  <th>דוא״ל</th>
 				  <th>תפקיד</th>
 				  <th>סטטוס</th>
+				  <th>הודעות לפי חודש</th>
 				  <th>פעולות</th>
 				</tr>
 				</thead>
@@ -114,10 +115,11 @@
 				<tr th:each="user : ${users}">
 				  <td th:text="${user.getName()}">שם</td>
 				  <td>
-					<img th:src="${user.getPictureUrl()}"
+					<img src="" th:attr="src=${user.getPictureUrl()}"
 						 alt="תמונה של המשתמש"
 						 class="rounded-circle"
-						 style="width: 32px; height: 32px;" />
+						 width="48"
+						 height="48" />
 					</td>
 				  <td th:text="${user.getCreatedAt()}">נוצר ב</td>
 				  <td th:text="${user.getWhatsappNumber()}">טלפון</td>
@@ -128,6 +130,27 @@
 						  class="badge bg-success">מורשה</span>
 					<span th:unless="${user.isAuthorized()}"
 						  class="badge bg-danger">לא מורשה</span>
+				  </td>
+				  <td>
+					<div class="dropdown">
+					  <button class="btn btn-profile dropdown-toggle"
+							  type="button"
+							  data-bs-toggle="dropdown"
+							  aria-expanded="false">
+						<i class="bi bi-eye"></i>
+						צפה בנתונים
+					  </button>
+					  <ul class="dropdown-menu shadow">
+						<li th:each="monthly : ${messageCountsByMonth.get(user.id)}">
+						  <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#">
+							<i class="bi bi-calendar-event text-primary"></i>
+							<span th:text="${monthly.key}"></span>:
+							<span class="fw-semibold" th:text="${monthly.value}"></span>
+							<span>הודעות</span>
+						  </a>
+						</li>
+					  </ul>
+					</div>
 				  </td>
 				  <td>
 					<div class="btn-group gap-2">
