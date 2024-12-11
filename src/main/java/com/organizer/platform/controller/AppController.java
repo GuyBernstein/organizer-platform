@@ -3,7 +3,6 @@ package com.organizer.platform.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.organizer.platform.model.ScraperDTO.ProcessingResult;
-import com.organizer.platform.model.ScraperDTO.WebsiteContent;
 import com.organizer.platform.model.User.AppUser;
 import com.organizer.platform.model.organizedDTO.MessageDTO;
 import com.organizer.platform.model.organizedDTO.WhatsAppMessage;
@@ -15,14 +14,11 @@ import com.organizer.platform.service.WhatsApp.WhatsAppMessageService;
 import com.organizer.platform.util.AccessControlResponse;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,21 +26,15 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.persistence.EntityNotFoundException;
 import java.io.IOException;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import static com.organizer.platform.model.organizedDTO.WhatsAppMessage.WhatsAppMessageBuilder.aWhatsAppMessage;
 import static com.organizer.platform.util.PhoneNumberValidator.validateAndCheckAccess;
 import static com.organizer.platform.util.PhoneNumberValidator.validatePhoneNumber;
-import com.organizer.platform.model.ScraperDTO.TextBlock;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @RestController
 @RequestMapping("/api/content")
 @Api(tags = "Content Management API")
 public class AppController {
-    private static final Logger log = LoggerFactory.getLogger(AppController.class);
 
     private final WhatsAppMessageService messageService;
     private final CloudStorageService cloudStorageService;
@@ -74,7 +64,6 @@ public class AppController {
                     "Authentication required",
                     "Only admin can access this content"
             );
-            log.warn("Unauthorized deletion attempt by user: {}", email);
             return accessControl.toResponseEntity();
         }
         messageService.cleanDatabasePostgres();
@@ -96,8 +85,6 @@ public class AppController {
         // Check access control
         AccessControlResponse accessControl = checkAccessControl(authentication, message.getFromNumber());
         if (!accessControl.isAllowed()) {
-            log.warn("Unauthorized access attempt to related messages for number: {} by user: {} - {}",
-                    message.getFromNumber(), authentication.getName(), accessControl.getMessage());
             return accessControl.toResponseEntity();
         }
 
@@ -170,7 +157,6 @@ public class AppController {
             response.put("fileName", imageName);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            log.error("Error generating URL", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));
         }
@@ -213,7 +199,6 @@ public class AppController {
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            log.error("Error generating document URL", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));
         }
@@ -264,7 +249,6 @@ public class AppController {
 
             return ResponseEntity.ok(response);
         } catch (Exception e) {
-            log.error("Error generating audio URL", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", e.getMessage()));
         }
@@ -291,18 +275,14 @@ public class AppController {
             // Check access control
             AccessControlResponse accessControl = checkAccessControl(authentication, message.getFromNumber());
             if (!accessControl.isAllowed()) {
-                log.warn("Unauthorized update attempt for message: {} by user: {} - {}",
-                        messageId, authentication.getName(), accessControl.getMessage());
                 return accessControl.toResponseEntity();
             }
 
             return ResponseEntity.ok(messageService.partialUpdateMessage(message, updateRequest));
         } catch (EntityNotFoundException e) {
-            log.warn("Message not found with id: {}", messageId);
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("error", e.getMessage()));
         } catch (Exception e) {
-            log.error("Error updating message with id: {}", messageId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to update message: " + e.getMessage()));
         }
@@ -329,8 +309,6 @@ public class AppController {
             // Check access control
             AccessControlResponse accessControl = checkAccessControl(authentication, message.getFromNumber());
             if (!accessControl.isAllowed()) {
-                log.warn("Unauthorized update attempt for message: {} by user: {} - {}",
-                        messageId, authentication.getName(), accessControl.getMessage());
                 return accessControl.toResponseEntity();
             }
 
@@ -349,7 +327,6 @@ public class AppController {
 
             // Serialize the WhatsAppMessage to JSON string
             String serializedMessage = objectMapper.writeValueAsString(message);
-            log.info("Serialized message sent to JMS queue: {}", serializedMessage);
 
             // Send the serialized JSON string to the queue for a reorganization of the message
             jmsTemplate.convertAndSend("exampleQueue", serializedMessage);
@@ -358,15 +335,12 @@ public class AppController {
                     .body(Map.of("processing", "updating message: " + serializedMessage));
 
         } catch (EntityNotFoundException e) {
-            log.warn("Message not found with id: {}", messageId);
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Map.of("error", e.getMessage()));
         } catch (JsonProcessingException e) {
-            log.error("Error serializing WhatsAppMessage", e);
             throw new RuntimeException("Error processing message", e);
         }
         catch (Exception e) {
-            log.error("Error updating message with id: {}", messageId, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to update message: " + e.getMessage()));
         }
@@ -416,14 +390,11 @@ public class AppController {
             // Check access control
             AccessControlResponse accessControl = checkAccessControl(authentication, internationalFormat);
             if (!accessControl.isAllowed()) {
-                log.warn("Unauthorized Create attempt for message: {} by user: {} - {}",
-                        message.getId(), authentication.getName(), accessControl.getMessage());
                 return accessControl.toResponseEntity();
             }
 
             // Serialize the WhatsAppMessage to JSON string
             String serializedMessage = objectMapper.writeValueAsString(message);
-            log.info("Serialized message sent to JMS queue: {}", serializedMessage);
 
             // Send the serialized JSON string to the queue for a reorganization of the message
             jmsTemplate.convertAndSend("exampleQueue", serializedMessage);
@@ -432,11 +403,9 @@ public class AppController {
                     .body(Map.of("Processing...", "Creating message: " + serializedMessage));
 
         } catch (JsonProcessingException e) {
-            log.error("Error serializing WhatsAppMessage", e);
             throw new RuntimeException("Error processing message", e);
         }
         catch (Exception e) {
-            log.error("Error creating message with id: {}", message.getId(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to create message: " + e.getMessage()));
         }
@@ -553,7 +522,6 @@ public class AppController {
         try {
             // Serialize the WhatsAppMessage to JSON string
             String serializedMessage = objectMapper.writeValueAsString(message);
-            log.info("Serialized message sent to JMS queue: {}", serializedMessage);
 
             // Send the serialized JSON string to the queue for a reorganization of the message
             jmsTemplate.convertAndSend("exampleQueue", serializedMessage);
@@ -562,11 +530,9 @@ public class AppController {
                     .body(Map.of("Processing...", "Creating message: " + serializedMessage));
 
         } catch (JsonProcessingException e) {
-            log.error("Error serializing WhatsAppMessage", e);
             throw new RuntimeException("Error processing message", e);
         }
         catch (Exception e) {
-            log.error("Error creating message with id: {}", message.getId(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Failed to create message: " + e.getMessage()));
         }

@@ -3,8 +3,6 @@ package com.organizer.platform.service.Scraper;
 import com.organizer.platform.model.ScraperDTO.ProcessingResult;
 import com.organizer.platform.model.ScraperDTO.TextBlock;
 import com.organizer.platform.model.ScraperDTO.WebsiteContent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,8 +17,6 @@ public class ContentProcessorService {
     private static final String URL_REGEX = "https?://\\S+";
     private static final Pattern URL_PATTERN = Pattern.compile(URL_REGEX);
     private final WebContentScraperService scraperService;
-    private static final Logger log = LoggerFactory.getLogger(ContentProcessorService.class);
-
     @Autowired
     public ContentProcessorService(WebContentScraperService scraperService) {
         this.scraperService = scraperService;

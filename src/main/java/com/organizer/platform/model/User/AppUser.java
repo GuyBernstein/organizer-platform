@@ -118,6 +118,13 @@ public class AppUser implements Serializable {
     public boolean isUnauthorized() {
         return !authorized;
     }
+    public boolean isNormalUser() {
+        return role == UserRole.USER;
+    }
+
+    public boolean isUNAUTHORIZEDUser() {
+        return role == UserRole.UNAUTHORIZED;
+    }
 
     public void setAuthorized(boolean authorized) {
         this.authorized = authorized;

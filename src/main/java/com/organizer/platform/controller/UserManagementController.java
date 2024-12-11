@@ -3,8 +3,6 @@ package com.organizer.platform.controller;
 import com.organizer.platform.model.User.AppUser;
 import com.organizer.platform.model.User.UserRole;
 import com.organizer.platform.service.User.UserService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -19,8 +17,6 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/users")
 public class UserManagementController {
-    private static final Logger logger = LoggerFactory.getLogger(UserManagementController.class);
-
     private final UserService userService;
 
     @Autowired
@@ -37,8 +33,6 @@ public class UserManagementController {
     @GetMapping("/all")
     public ResponseEntity<?> getAllUsers(Authentication authentication) {
         if (!isAdminUser(authentication)) {
-            logger.warn("Unauthorized access attempt to view all users by: {}",
-                    authentication.getName());
             return ResponseEntity.status(403)
                     .body("Only administrators can view all users");
         }
@@ -54,8 +48,6 @@ public class UserManagementController {
     @GetMapping("/authorized")
     public ResponseEntity<?> getAuthorizedUsers(Authentication authentication) {
         if (!isAdminUser(authentication)) {
-            logger.warn("Unauthorized access attempt to view authorized users by: {}",
-                    authentication.getName());
             return ResponseEntity.status(403)
                     .body("Only administrators can view authorized users");
         }
@@ -71,8 +63,6 @@ public class UserManagementController {
     @GetMapping("/unauthorized")
     public ResponseEntity<?> getUnauthorizedUsers(Authentication authentication) {
         if (!isAdminUser(authentication)) {
-            logger.warn("Unauthorized access attempt to view unauthorized users by: {}",
-                    authentication.getName());
             return ResponseEntity.status(403)
                     .body("Only administrators can view unauthorized users");
         }
@@ -90,8 +80,6 @@ public class UserManagementController {
             @PathVariable Long userId,
             Authentication authentication) {
         if (!isAdminUser(authentication)) {
-            logger.warn("Unauthorized access attempt to authorize AppUser by: {}",
-                    authentication.getName());
             return ResponseEntity.status(403)
                     .body("Only administrators can authorize users");
         }
@@ -103,10 +91,7 @@ public class UserManagementController {
                     AppUser updatedUser = userService.save(AppUser);
                     return ResponseEntity.ok(updatedUser);
                 })
-                .orElseGet(() -> {
-                    logger.warn("Attempt to authorize non-existent AppUser: {}", userId);
-                    return ResponseEntity.notFound().build();
-                });
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping("/{userId}/deauthorize")
@@ -114,8 +99,6 @@ public class UserManagementController {
             @PathVariable Long userId,
             Authentication authentication) {
         if (!isAdminUser(authentication)) {
-            logger.warn("Unauthorized access attempt to deauthorize AppUser by: {}",
-                    authentication.getName());
             return ResponseEntity.status(403)
                     .body("Only administrators can deauthorize users");
         }
@@ -127,10 +110,7 @@ public class UserManagementController {
                     AppUser updatedUser = userService.save(AppUser);
                     return ResponseEntity.ok(updatedUser);
                 })
-                .orElseGet(() -> {
-                    logger.warn("Attempt to deauthorize non-existent AppUser: {}", userId);
-                    return ResponseEntity.notFound().build();
-                });
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/search")
@@ -139,8 +119,6 @@ public class UserManagementController {
             @RequestParam(required = false) String whatsappNumber,
             Authentication authentication) {
         if (!isAdminUser(authentication)) {
-            logger.warn("Unauthorized access attempt to search users by: {}",
-                    authentication.getName());
             return ResponseEntity.status(403)
                     .body("Only administrators can search users");
         }
@@ -164,8 +142,6 @@ public class UserManagementController {
     @GetMapping("/stats")
     public ResponseEntity<?> getUserStats(Authentication authentication) {
         if (!isAdminUser(authentication)) {
-            logger.warn("Unauthorized access attempt to view AppUser stats by: {}",
-                    authentication.getName());
             return ResponseEntity.status(403)
                     .body("Only administrators can view AppUser statistics");
         }
@@ -189,8 +165,6 @@ public class UserManagementController {
             @RequestParam String whatsappNumber,
             Authentication authentication) {
         if (!isAdminUser(authentication)) {
-            logger.warn("Unauthorized access attempt to link WhatsApp by: {}",
-                    authentication.getName());
             return ResponseEntity.status(403)
                     .body("Only administrators can link WhatsApp numbers");
         }
@@ -215,10 +189,7 @@ public class UserManagementController {
                     AppUser updatedUser = userService.save(user);
                     return ResponseEntity.ok(updatedUser);
                 })
-                .orElseGet(() -> {
-                    logger.warn("Attempt to link WhatsApp to non-existent user: {}", userId);
-                    return ResponseEntity.notFound().build();
-                });
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{userId}")
@@ -226,8 +197,6 @@ public class UserManagementController {
             @PathVariable Long userId,
             Authentication authentication) {
         if (!isAdminUser(authentication)) {
-            logger.warn("Unauthorized access attempt to delete a user by the user: {}",
-                    authentication.getName());
             return ResponseEntity.status(403)
                     .body("Only administrators can delete a user");
         }

@@ -164,4 +164,10 @@ public class UserService {
     public void changeRole(Long userId, UserRole userRole) {
         findById(userId).ifPresent(user -> user.setRole(userRole));
     }
+
+    public void ensureUserExists(OAuth2User principal) {
+        String email = principal.getAttribute("email");
+        findByEmail(email)
+                .orElseGet(() -> save(createUser(principal)));
+    }
 }

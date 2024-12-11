@@ -8,8 +8,6 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import com.organizer.platform.model.AI.Response;
 import com.organizer.platform.model.organizedDTO.WhatsAppMessage;
 import com.organizer.platform.service.WhatsApp.WhatsAppMessageService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -178,9 +176,7 @@ public class AiService {
 
     private void toWhatsappMessage(HttpResponse<String> response, WhatsAppMessage whatsAppMessage) throws JsonProcessingException {
         try {
-            Logger logger = LoggerFactory.getLogger(AiService.class);
             Response res = objectMapper.readValue(response.getBody(), Response.class);
-            logger.info("aiContent: {}", res.getContent().get(0).getText());
 
             if (res.getContent().isEmpty())
                 return;

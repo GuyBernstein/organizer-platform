@@ -2,8 +2,6 @@ package com.organizer.platform.config;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
@@ -21,7 +19,6 @@ import java.io.IOException;
 
 @Configuration
 public class GoogleOAuthConfig {
-    private static final Logger logger = LoggerFactory.getLogger(GoogleOAuthConfig.class);
     private static final String GOOGLE_JWK_SET_URI = "https://www.googleapis.com/oauth2/v3/certs";
     private final OAuthProperties oAuthProperties;
 
@@ -34,8 +31,6 @@ public class GoogleOAuthConfig {
         if (!StringUtils.hasText(oAuthProperties.getCredentialsPath())) {
             throw new IllegalStateException("OAuth credentials path not configured");
         }
-        logger.info("Initializing Google OAuth Configuration...");
-        logger.info("Using credentials path: {}", oAuthProperties.getCredentialsPath());
     }
 
     @Bean

@@ -3,15 +3,12 @@ package com.organizer.platform.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.organizer.platform.model.User.AppUser;
 import com.organizer.platform.model.WhatsApp.*;
 import com.organizer.platform.model.organizedDTO.WhatsAppMessage;
 import com.organizer.platform.service.User.UserService;
 import com.organizer.platform.service.WhatsApp.WhatsAppAudioService;
 import com.organizer.platform.service.WhatsApp.WhatsAppDocumentService;
 import com.organizer.platform.service.WhatsApp.WhatsAppImageService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -26,7 +23,6 @@ import static com.organizer.platform.model.organizedDTO.WhatsAppMessage.WhatsApp
 @RestController
 @RequestMapping("/webhook")
 public class WhatsAppWebhookController {
-    private static final Logger logger = LoggerFactory.getLogger(WhatsAppWebhookController.class);
 
     private final JmsTemplate jmsTemplate;
     private final ObjectMapper objectMapper;
@@ -55,27 +51,23 @@ public class WhatsAppWebhookController {
     @PostMapping
     public ResponseEntity<String> receiveMessage(@RequestBody WhatsAppWebhookRequest webhookRequest) {
         try {
-            logger.info("Received webhook request: {}", webhookRequest);
 
             webhookRequest.getEntry().forEach(entry -> entry.getChanges().forEach(change -> {
                 if (change.getValue().getMessages() != null && !change.getValue().getMessages().isEmpty()) {
                     Message message = change.getValue().getMessages().get(0); // get the message
-                    String whatsappNumber = message.getFrom(); // and the number
 
                     try {
                         // Only process message if user is authorized
                         if (userService.processNewUser(message.getFrom())) {
                             processMessage(message);
                         }
-                    } catch (Exception e) {
-                        logger.error("Failed to create unauthorized user for number: " + whatsappNumber, e);
+                    } catch (Exception ignored) {
                     }
                 }
             }));
 
             return ResponseEntity.ok("Message processed");
         } catch (Exception e) {
-            logger.error("Error processing webhook request", e);
             return ResponseEntity.status(500).body("Error processing message");
         }
     }
@@ -86,13 +78,11 @@ public class WhatsAppWebhookController {
 
             // Serialize the WhatsAppMessage to JSON string
             String serializedMessage = objectMapper.writeValueAsString(whatsAppMessage);
-            logger.info("Serialized message sent to JMS queue: {}", serializedMessage);
 
             // Send the serialized JSON string to the queue
             jmsTemplate.convertAndSend("exampleQueue", serializedMessage);
 
         } catch (JsonProcessingException e) {
-            logger.error("Error serializing WhatsAppMessage", e);
             throw new RuntimeException("Error processing message", e);
         }
     }
@@ -118,7 +108,6 @@ public class WhatsAppWebhookController {
                 processAudioMessage(message, builder);
                 break;
             default:
-                logger.warn("Unsupported message type: {}", message.getType());
         }
 
 
@@ -136,8 +125,6 @@ public class WhatsAppWebhookController {
 
             String audioMetadata = createAudioMetadata(message.getAudio(), storedFileName);
             builder.messageContent(audioMetadata);
-        } else {
-            logger.warn("Audio message received but audio content is null");
         }
     }
 
@@ -152,8 +139,6 @@ public class WhatsAppWebhookController {
 
             String documentMetadata = createDocumentMetadata(message.getDocument(), storedFileName);
             builder.messageContent(documentMetadata);
-        } else {
-            logger.warn("Document message received but document content is null");
         }
     }
 
@@ -168,16 +153,12 @@ public class WhatsAppWebhookController {
 
             String imageMetadata = createImageMetadata(message, storedFileName);
             builder.messageContent(imageMetadata);
-        } else {
-            logger.warn("Image message received but image content is null");
         }
     }
 
     private static void processTextMessage(Message message, WhatsAppMessage.WhatsAppMessageBuilder builder) {
         if (message.getText() != null) {
             builder.messageContent(message.getText().getBody());
-        } else {
-            logger.warn("Text message received but text content is null");
         }
     }
 

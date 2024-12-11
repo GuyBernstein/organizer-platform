@@ -4,19 +4,14 @@ import com.organizer.platform.model.WhatsApp.Image;
 import com.organizer.platform.model.WhatsApp.MediaResponse;
 import com.organizer.platform.service.Google.CloudStorageService;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Objects;
-
 @Service
 public class WhatsAppImageService {
-    private static final Logger logger = LoggerFactory.getLogger(WhatsAppImageService.class);
     private final CloudStorageService cloudStorageService;
     private final RestTemplate restTemplate;
 
@@ -91,13 +86,10 @@ public class WhatsAppImageService {
             return imageResponse.getBody();
 
         } catch (HttpClientErrorException.Unauthorized e) {
-            logger.error("Authentication failed for media ID: {}. Please check your token.", mediaId);
             throw new RuntimeException("Invalid or expired WhatsApp API token", e);
         } catch (HttpClientErrorException e) {
-            logger.error("HTTP error while downloading image with ID: {}. Status: {}", mediaId, e.getStatusCode());
             throw new RuntimeException("Failed to download image: " + e.getStatusText(), e);
         } catch (Exception e) {
-            logger.error("Error downloading image with ID: {}", mediaId, e);
             throw new RuntimeException("Failed to download image", e);
         }
     }

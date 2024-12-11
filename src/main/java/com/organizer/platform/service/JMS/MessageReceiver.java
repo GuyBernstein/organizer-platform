@@ -44,7 +44,6 @@ public class MessageReceiver {
             // Deserialize the JSON string back to WhatsAppMessage object
             WhatsAppMessage whatsAppMessage = objectMapper.readValue(serializedMessage, WhatsAppMessage.class);
 
-            log.info("Received message from queue: {}", whatsAppMessage.getMessageContent());
 
             // Validate message
             validateMessage(whatsAppMessage);
@@ -56,13 +55,10 @@ public class MessageReceiver {
 
             validateAIProcessing(whatsAppMessage, mediaName);
 
-            whatsAppMessage = saveAfterProcessedMessage(whatsAppMessage, mediaName);
-            log.info("Successfully saved message to database with ID: {}", whatsAppMessage.getId());
+            saveAfterProcessedMessage(whatsAppMessage, mediaName);
         } catch (JsonProcessingException e) {
-            log.error("Error deserializing message from queue", e);
             throw new RuntimeException("Error processing message from queue", e);
         } catch (UnirestException e) {
-            log.error("Error processing message content: {}", e.getMessage());
             throw new RuntimeException("Failed to process message content", e);
         }
     }
@@ -88,10 +84,10 @@ public class MessageReceiver {
         }
     }
 
-    private WhatsAppMessage saveAfterProcessedMessage(WhatsAppMessage whatsAppMessage, String mediaName) throws UnirestException, JsonProcessingException {
+    private void saveAfterProcessedMessage(WhatsAppMessage whatsAppMessage, String mediaName) throws UnirestException, JsonProcessingException {
         // Save initially only if was not in the database
         if (whatsAppMessage.getId() == null) {
-            whatsAppMessage = messageService.save(whatsAppMessage);
+            messageService.save(whatsAppMessage);
         }
 
         // Process message based on type
@@ -101,7 +97,6 @@ public class MessageReceiver {
         if (whatsAppMessage.isProcessed()) {
             messageService.save(whatsAppMessage);
         }
-        return whatsAppMessage;
     }
 
     private void processMessageByType(WhatsAppMessage whatsAppMessage, String mediaName) throws UnirestException, JsonProcessingException {
@@ -175,7 +170,6 @@ public class MessageReceiver {
 
             return fetchAndProcessContent(preSignedUrl, fileType);
         } catch (Exception e) {
-            log.error("Error fetching and converting {}: {}", fileType, fileName, e);
             throw new RuntimeException(String.format("Failed to process %s: %s", fileType, fileName), e);
         }
     }

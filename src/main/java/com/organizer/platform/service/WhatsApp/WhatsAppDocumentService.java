@@ -3,8 +3,6 @@ package com.organizer.platform.service.WhatsApp;
 import com.organizer.platform.model.WhatsApp.Document;
 import com.organizer.platform.model.WhatsApp.MediaResponse;
 import com.organizer.platform.service.Google.CloudStorageService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -13,11 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Objects;
-
 @Service
 public class WhatsAppDocumentService {
-    private static final Logger logger = LoggerFactory.getLogger(WhatsAppDocumentService.class);
     private final CloudStorageService cloudStorageService;
     private final RestTemplate restTemplate;
 
@@ -79,7 +74,6 @@ public class WhatsAppDocumentService {
             return documentResponse.getBody();
 
         } catch (Exception e) {
-            logger.error("Error downloading document with ID: {}", mediaId, e);
             throw new RuntimeException("Failed to download document", e);
         }
 

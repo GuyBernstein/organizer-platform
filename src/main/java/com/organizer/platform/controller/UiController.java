@@ -5,7 +5,6 @@ import com.organizer.platform.model.ScraperDTO.ProcessingResult;
 import com.organizer.platform.model.User.AppUser;
 import com.organizer.platform.model.User.UserActivityDTO;
 import com.organizer.platform.model.User.UserRole;
-import com.organizer.platform.model.organizedDTO.CategoryHierarchy;
 import com.organizer.platform.model.organizedDTO.MessageDTO;
 import com.organizer.platform.model.organizedDTO.MessageTypeCount;
 import com.organizer.platform.model.organizedDTO.WhatsAppMessage;
@@ -40,7 +39,6 @@ import java.util.stream.Collectors;
 
 import static com.organizer.platform.controller.AppController.storedMediaName;
 import static com.organizer.platform.model.User.AppUser.UserBuilder.anUser;
-import static com.organizer.platform.model.organizedDTO.CategoryHierarchy.buildCategoryHierarchy;
 import static com.organizer.platform.model.organizedDTO.WhatsAppMessage.WhatsAppMessageBuilder.aWhatsAppMessage;
 
 @Controller
@@ -81,7 +79,7 @@ public class UiController {
                                       @AuthenticationPrincipal OAuth2User principal,
                                       Exception ex) {
         // Add error information to the model
-        model.addAttribute("errorMessage", " אופס! משהו השתבש"+ ex);
+        model.addAttribute("errorMessage", " אופס! משהו השתבש");
         if (principal == null) {
             model.addAttribute("content", "pages/auth/login");
         }
@@ -125,6 +123,8 @@ public class UiController {
             }
             return setupAnonymousPage(model, "התחברות", "pages/auth/login");
         }
+        // Find or create user
+        userService.ensureUserExists(principal);
         // show dashboard
         return handleAuthorizedAccess(principal, model, "לוח בקרה", "pages/index", false);
     }
@@ -622,8 +622,8 @@ public class UiController {
         model.addAttribute("cumulativeCountsByDate", cumulativeCountsByDate);
         model.addAttribute("messageCountsByMonth", userMonthlyMessageCounts);
 
-        model.addAttribute("authorizedUsers", users.stream().filter(AppUser::isAuthorized).count());
-        model.addAttribute("unauthorizedUsers", users.stream().filter(AppUser::isUnauthorized).count());
+        model.addAttribute("authorizedUsers", users.stream().filter(AppUser::isNormalUser).count());
+        model.addAttribute("unauthorizedUsers", users.stream().filter(AppUser::isUNAUTHORIZEDUser).count());
         model.addAttribute("adminUsers", users.stream().filter(AppUser::isAdmin).count());
 
     }
@@ -674,35 +674,6 @@ public class UiController {
                         )
                 ));
         model.addAttribute("categoriesHierarchy", hierarchy);
-
-//        // Print the entire hierarchy with proper formatting
-//        hierarchy.forEach((category, subCategoryMap) -> {
-//            System.out.println("Category: " + category);
-//
-//            // Track category total
-//            long categoryTotal = 0;
-//
-//            // Print each subcategory and its count
-//            for (Map.Entry<String, Long> entry : subCategoryMap.entrySet()) {
-//                String subCategory = entry.getKey();
-//                Long count = entry.getValue();
-//                categoryTotal += count;
-//
-//                System.out.println("    ├─ " + subCategory + ": " + count);
-//            }
-//
-//            // Print category total
-//            System.out.println("    └─ Total messages in category: " + categoryTotal);
-//            System.out.println(); // Empty line between categories
-//        });
-//
-//        // Print grand total
-//        long grandTotal = hierarchy.values().stream()
-//                .flatMap(subMap -> subMap.values().stream())
-//                .mapToLong(Long::valueOf)
-//                .sum();
-//
-//        System.out.println("Total messages across all categories: " + grandTotal);
     }
 
     private void setupCommonAttributes(Model model, AppUser appUser,

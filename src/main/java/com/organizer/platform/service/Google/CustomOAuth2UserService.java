@@ -1,10 +1,7 @@
 package com.organizer.platform.service.Google;
 
 import com.organizer.platform.model.User.AppUser;
-import com.organizer.platform.model.User.UserRole;
 import com.organizer.platform.service.User.UserService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -22,7 +19,6 @@ import java.util.Map;
 
 @Service
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
-    private static final Logger logger = LoggerFactory.getLogger(CustomOAuth2UserService.class);
     private final UserService userService;
 
     @Autowired
@@ -65,7 +61,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     "email"
             );
         } catch (Exception e) {
-            logger.error("Error loading OAuth2 user", e);
             throw new OAuth2AuthenticationException("Error loading user");
         }
     }

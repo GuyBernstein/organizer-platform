@@ -3,10 +3,7 @@ package com.organizer.platform.service.Google;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.storage.*;
 import com.organizer.platform.config.GCSProperties;
-import com.organizer.platform.controller.WhatsAppWebhookController;
 import com.organizer.platform.util.Dates;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -20,8 +17,6 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 public class CloudStorageService {
-    private static final Logger logger = LoggerFactory.getLogger(WhatsAppWebhookController.class);
-
     private final GCSProperties gcsProperties;
     private Storage storage;
     private Bucket bucket;
@@ -89,7 +84,6 @@ public class CloudStorageService {
             return documentPath;
 
         } catch (Exception e) {
-            logger.error("Storage error while uploading document for {}: {}", fromNumber, originalFilename, e);
             throw new RuntimeException("Failed to upload document to Google Cloud Storage", e);
         }
     }
@@ -114,16 +108,12 @@ public class CloudStorageService {
 
     public String uploadAudio(String fromNumber, byte[] audioData, String mimeType, String originalFileName) {
         try {
-            logger.info("Starting audio upload process for file: {} from: {}", originalFileName, fromNumber);
-
             // Generate a unique filename using timestamp and original filename
             String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(Dates.nowUTC());
             String uniqueFilename = timestamp + "_" + originalFileName;
 
             // Create audio path in GCS under 'audio' directory with fromNumber prefix
             String audioPath = "audios/" + fromNumber + "/" + uniqueFilename;
-
-            logger.info("Uploading audio to path: {}", audioPath);
 
             // Create blob (file) in GCS
             BlobId blobId = BlobId.of(gcsProperties.getBucketName(), audioPath);
@@ -134,11 +124,9 @@ public class CloudStorageService {
             // Upload the file
             storage.create(blobInfo, audioData);
 
-            logger.info("Successfully uploaded audio file to GCS: {}", audioPath);
             return audioPath;
 
         } catch (Exception e) {
-            logger.error("Storage error while uploading audio from {}: {}", fromNumber, originalFileName, e);
             throw new RuntimeException("Failed to upload audio to Google Cloud Storage", e);
         }
     }

@@ -319,7 +319,7 @@ function initializeCategoriesChart(hierarchyData) {
             title: function(context) {
               const item = context[0].raw;
               if (!item) return 'לא מזוהה';
-              return `${item._data.category} - ${item._data.subCategory}`;
+              return `${item._data.category}`;
             },
             label: function(context) {
               return `כמות: ${context.raw._data.value}`;
