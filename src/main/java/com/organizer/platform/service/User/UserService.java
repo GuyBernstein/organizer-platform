@@ -43,17 +43,16 @@ public class UserService {
         });
     }
 
-    public void createUserFromPhone(String email, UserRole role, String phone, String name) {
-        repository.findByWhatsappNumber(phone)
+    public void createUserFromEmail(String email, UserRole role, String phone) {
+        repository.findByEmail(email)
                 .ifPresentOrElse(
                         existingUser -> {
-                            existingUser.setName(name);
                             existingUser.setAuthorized(role != UserRole.UNAUTHORIZED);
                             existingUser.setRole(role);
-                            existingUser.setEmail(email);
+                            existingUser.setWhatsappNumber(phone);
                             repository.save(existingUser);
                         },
-                        () -> repository.save(toAuthorizedUser(phone, email, role, name))
+                        () -> repository.save(toAuthorizedUser(phone, email, role))
                 );
     }
 
@@ -66,10 +65,9 @@ public class UserService {
                 .role(UserRole.UNAUTHORIZED)
                 .build();
     }
-    private static AppUser toAuthorizedUser(String whatsappNumber, String email, UserRole role, String name) {
+    private static AppUser toAuthorizedUser(String whatsappNumber, String email, UserRole role) {
         return AppUser.UserBuilder.anUser()
                 .whatsappNumber(whatsappNumber)
-                .name(name)
                 .email(email)
                 .role(role)
                 .authorized(role != UserRole.UNAUTHORIZED)

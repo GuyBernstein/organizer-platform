@@ -54,7 +54,7 @@
 		<div class="card shadow-whatsapp">
 		  <div class="card-body">
 			<h5 class="card-title mb-4">
-			  <i class="bi bi-person-plus me-2" style="color: var(--whatsapp-teal)"></i>
+			  <i class="bi bi-person-circle me-2" style="color: var(--whatsapp-teal)"></i>
 			  יצירת משתמש חדש
 			</h5>
 			<form th:action="@{/admin/create-user}" method="post">
@@ -64,11 +64,7 @@
 			  </div>
 			  <div class="mb-3">
 				<label for="newPhone" class="form-label">טלפון</label>
-				<input type="tel" class="form-control" id="newPhone" name="phone">
-			  </div>
-			  <div class="mb-3">
-				<label for="newName" class="form-label">שם</label>
-				<input type="tel" class="form-control" id="newName" name="name">
+				<input type="tel" class="form-control" id="newPhone" name="phone" required>
 			  </div>
 			  <div class="mb-3">
 				<label for="newRole" class="form-label">תפקיד</label>
@@ -81,7 +77,7 @@
 				</select>
 			  </div>
 			  <button type="submit" class="btn btn-success w-100">
-				<i class="bi bi-plus-circle me-2"></i>צור משתמש
+				<i class="bi bi-plus-lg me-2"></i>צור משתמש
 			  </button>
 			</form>
 		  </div>

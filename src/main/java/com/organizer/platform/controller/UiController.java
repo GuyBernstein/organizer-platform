@@ -473,14 +473,13 @@ public class UiController {
     @PostMapping("/admin/create-user")
     public String createUser(@RequestParam String email,
                              @RequestParam String phone,
-                             @RequestParam String name,
                              @RequestParam UserRole role,
                              @AuthenticationPrincipal OAuth2User principal,
                              Model model) {
         if (principal == null) {
             return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
         }
-        userService.createUserFromPhone(email, role, phone, name);
+        userService.createUserFromEmail(email, role, phone);
         return handleAuthorizedAccess(principal, model, "ניהול", "pages/admin", true);
     }
 
