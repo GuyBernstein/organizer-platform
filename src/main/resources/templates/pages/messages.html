@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="he" dir="rtl">
+<body>
+<div th:fragment="content">
+  <div class="container-fluid p-3">
+	
+	<!-- Flash Messages -->
+	<div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+	  <span th:text="${successMessage}"></span>
+	  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+	</div>
+	
+	<div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+	  <span th:text="${errorMessage}"></span>
+	  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+	</div>
+	
+	<!-- Main Heading Section -->
+	<div class="row g-3">
+	  <!-- Header Section -->
+	  <div class="col-12">
+		<div class="text-center mb-4">
+		  <h1 class="display-5 fw-bold mb-3">ניהול הודעות</h1>
+		</div>
+		
+		<!-- Action Buttons -->
+		<div class="d-flex justify-content-between align-items-center mb-4">
+		  <div class="btn-group">
+			<button class="btn btn-outline-primary"
+					data-bs-toggle="modal"
+					data-bs-target="#addDocumentModal"
+					title="הוסף מסמך">
+			  <i class="bi bi-file-earmark-text"></i>
+			  <span class="d-none d-sm-inline ms-1">הוסף מסמך</span>
+			</button>
+			
+			<button class="btn btn-outline-primary"
+					data-bs-toggle="modal"
+					data-bs-target="#addImageModal"
+					title="הוסף תמונה">
+			  <i class="bi bi-image"></i>
+			  <span class="d-none d-sm-inline ms-1">הוסף תמונה</span>
+			</button>
+			
+			<button class="btn btn-outline-primary"
+					data-bs-toggle="modal"
+					data-bs-target="#addTextMessageModal"
+					title="הוסף הודעת טקסט">
+			  <i class="bi bi-chat-text"></i>
+			  <span class="d-none d-sm-inline ms-1">הוסף טקסט</span>
+			</button>
+		  </div>
+		  
+		  <!-- Search Toggle Button -->
+		  <button class="btn btn-outline-secondary"
+				  type="button"
+				  data-bs-toggle="collapse"
+				  data-bs-target="#searchFilterSection"
+				  aria-expanded="false">
+			<i class="bi bi-search me-1"></i>
+			חיפוש וסינון
+		  </button>
+		</div>
+	  </div>
+	  
+	  <!-- Collapsible Search and Filter Section -->
+	  <div class="col-12 collapse" id="searchFilterSection">
+		<div class="card">
+		  <div class="card-body">
+			<!-- Search Form -->
+			<form th:action="@{/messages/search}" method="GET" class="mb-3">
+			  <input type="hidden" name="phoneNumber" th:value="${phone}" />
+			  <div class="input-group">
+				<input type="text"
+					   name="content"
+					   class="form-control"
+					   placeholder="חיפוש בתוכן...">
+				<button class="btn btn-outline-secondary" type="submit">
+				  <i class="bi bi-search"></i>
+				</button>
+			  </div>
+			</form>
+			
+			<!-- Tags Filter -->
+			<form th:action="@{/messages/filter}" method="GET">
+			  <div class="d-flex flex-wrap gap-2 justify-content-center">
+				<th:block th:with="availableTags=${totalTags}">
+				  <input type="hidden" name="phoneNumber" th:value="${phone}" />
+				  <div th:each="tag : ${availableTags}"
+					   class="form-check form-check-inline">
+					<input class="form-check-input"
+						   type="checkbox"
+						   name="selectedTags"
+						   th:id="'tag-' + ${tag}"
+						   th:value="${tag}">
+					<label class="form-check-label badge bg-light text-dark"
+						   th:for="'tag-' + ${tag}"
+						   th:text="${tag}">
+					</label>
+				  </div>
+				</th:block>
+			  </div>
+			  <div class="text-center mt-2">
+				<button type="submit" class="btn btn-sm btn-secondary">
+				  סנן לפי תגיות
+				</button>
+			  </div>
+			</form>
+		  </div>
+		</div>
+	  </div>
+	</div>
+	
+	<!-- Categories Grid -->
+	<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+	  <!-- Category Cards -->
+	  <div th:each="category : ${categories}" class="col">
+		<div class="card h-100 shadow-sm">
+		  <div class="card-body">
+			<h5 class="card-title d-flex justify-content-between align-items-center mb-3">
+			  <span th:text="${category.key}">Category Name</span>
+			  <span class="badge bg-primary rounded-pill"
+					th:text="${#maps.size(category.value)}">0</span>
+			</h5>
+			
+			<!-- Subcategories -->
+			<div class="list-group list-group-flush">
+			  <div th:each="subcategory : ${category.value}" class="list-group-item border-0 px-0">
+				<div class="d-flex justify-content-between align-items-center mb-2">
+				  <h6 class="mb-0" th:text="${subcategory.key}">Subcategory Name</h6>
+				  <span class="badge bg-secondary rounded-pill"
+						th:text="${#lists.size(subcategory.value)}">0</span>
+				</div>
+				
+				<!-- Container for Messages -->
+				<div class="messages-container">
+				  <div class="d-flex flex-wrap gap-2">
+					<div th:each="message : ${subcategory.value}"
+						 class="message-item">
+					  <button class="btn btn-sm btn-outline-primary d-flex align-items-center gap-2"
+							  data-bs-toggle="modal"
+							  th:data-bs-target="'#message-modal-' + ${message.id}">
+							  <span class="message-preview"
+									th:switch="${message.mime}">
+								<span th:case="'image'">תמונה</span>
+								<span th:case="'document'">מסמך</span>
+								<span th:case="'audio'">הקלטה</span>
+								<span th:case="*"
+									  th:text="${#strings.abbreviate(message.messageContent, 20)}">
+								  Message...
+								</span>
+							  </span>
+					  </button>
+					</div>
+				  </div>
+				</div>
+			  </div>
+			</div>
+		  </div>
+		</div>
+	  </div>
+	</div>
+	
+	<!-- Individual Message Modals -->
+	<div th:each="category : ${categories}">
+	  <div th:each="subcategory : ${category.value}">
+		<div th:each="message : ${subcategory.value}" class="modal fade"
+			 th:id="'message-modal-' + ${message.id}" tabindex="-1"
+			 th:aria-labelledby="'messageLabel-' + ${message.id}" aria-hidden="true">
+		  <div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+			  <div class="modal-header bg-light p-2 border-0">
+				<div class="container-fluid p-0">
+				  <div class="row g-2">
+					<div class="col-3">
+					  <!-- Copy Button -->
+					  <button type="button"
+							  class="btn btn-outline-secondary w-100 p-2 rounded-3 copy-button"
+							  data-bs-toggle="tooltip"
+							  data-bs-placement="top"
+							  th:data-content="${message.messageContent}"
+							  title="העתק">
+						<i class="bi bi-clipboard fs-5 d-block mb-1"></i>
+						<span class="d-block small">העתק תוכן</span>
+					  </button>
+					</div>
+					<!-- Regular Edit Button -->
+					<div class="col-3">
+					  <button type="button"
+							  class="btn btn-outline-primary w-100 p-2 rounded-3"
+							  onclick="toggleMode(this, 'edit')"
+							  data-bs-toggle="tooltip"
+							  data-bs-placement="top"
+							  title="ערוך">
+						<i class="bi bi-pencil-square fs-5 d-block mb-1"></i>
+						<span class="d-block small edit-text">ערוך</span>
+					  </button>
+					</div>
+					<!-- Smart Edit Button -->
+					<div class="col-3">
+					  <button type="button"
+							  class="btn btn-outline-info w-100 p-2 rounded-3"
+							  onclick="toggleMode(this, 'smart')"
+							  data-bs-toggle="tooltip"
+							  data-bs-placement="top"
+							  title="עריכה חכמה">
+						<i class="bi bi-stars fs-5 d-block mb-1"></i>
+						<span class="d-block small smart-edit-text">עריכה חכמה</span>
+					  </button>
+					</div>
+					<!-- Delete Button -->
+					<div class="col-3">
+					  <form th:action="@{/messages/delete}" method="post" class="m-0">
+						<input type="hidden" name="messageId" th:value="${message.id}" />
+						<button type="submit"
+								class="btn btn-outline-danger w-100 p-2 rounded-3"
+								data-bs-toggle="tooltip"
+								data-bs-placement="top"
+								title="מחק"
+								onclick="return confirm('האם אתה בטוח שברצונך למחוק הודעה זו?');">
+						  <i class="bi bi-trash fs-5 d-block mb-1"></i>
+						  <span class="d-block small">מחק</span>
+						</button>
+					  </form>
+					</div>
+				  </div>
+				</div>
+			  </div>
+			  
+			  <!-- Modal Body with View/Edit Forms -->
+			  <div class="modal-body">
+				<!-- View Mode Content -->
+				<div class="view-mode">
+				  <!-- Message Details -->
+				  <div class="message-details mb-4">
+					<div class="row mb-3">
+					  <div class="col-6">
+						<strong>סוג:</strong>
+						<span class="badge bg-dark ms-2" th:text="${message.type}">Type</span>
+					  </div>
+					  <div class="col-6">
+						<strong>מטרה:</strong>
+						<span class="badge bg-dark ms-2" th:text="${message.purpose}">Purpose</span>
+					  </div>
+					</div>
+				  </div>
+				  
+				  <!-- Message Content -->
+				  <div class="message-content mb-4">
+					<div th:if="${message.mime}" class="mb-3" th:switch="${message.mime.toLowerCase()}">
+					  <strong>תוכן:</strong>
+					  
+					  <th:block th:case="'text'">
+						<p class="shadow-whatsapp" th:text="${message.messageContent}">צפה בטקסט</p>
+					  </th:block>
+					  
+					  <th:block th:case="'image'">
+						<div>
+						  <form th:action="@{/messages/getMedia}" method="get" class="m-0 d-inline">
+							<input type="hidden" name="content" th:value="${message.messageContent}">
+							<input type="hidden" name="phone" th:value="${phone}">
+							<input type="hidden" name="type" th:value="${message.mime}">
+							<button type="submit" class="btn btn-primary" formtarget="_blank">
+							  <i class="bi bi-image me-1"></i> צפה בתמונה
+							</button>
+						  </form>
+						</div>
+					  </th:block>
+					  
+					  <th:block th:case="'document'">
+						<div>
+						  <form th:action="@{/messages/getMedia}" method="get" class="m-0 d-inline">
+							<input type="hidden" name="content" th:value="${message.messageContent}">
+							<input type="hidden" name="phone" th:value="${phone}">
+							<input type="hidden" name="type" th:value="${message.mime}">
+							<button type="submit" class="btn btn-primary" formtarget="_blank">
+							  <i class="bi bi-file-earmark me-1"></i> צפה בקובץ
+							</button>
+						  </form>
+						</div>
+					  </th:block>
+					  
+					  <th:block th:case="'audio'">
+						<div>
+						  <form th:action="@{/messages/getMedia}" method="get" class="m-0 d-inline">
+							<input type="hidden" name="content" th:value="${message.messageContent}">
+							<input type="hidden" name="phone" th:value="${phone}">
+							<input type="hidden" name="type" th:value="${message.mime}">
+							<button type="submit" class="btn btn-primary" formtarget="_blank">
+							  <i class="bi bi-volume-up me-1"></i> נגן שמע
+							</button>
+						  </form>
+						</div>
+					  </th:block>
+					  
+					  <th:block th:case="*">
+						<p>לא נתמך</p>
+					  </th:block>
+					</div>
+				  </div>
+				  
+				  <!-- Tags and Next Steps -->
+				  <div class="tags-section">
+					<div th:if="${message.tags}" class="mb-3">
+					  <strong>תגיות:</strong>
+					  <div class="d-flex gap-2 flex-wrap mt-1">
+						<span th:each="tag : ${message.tags}"
+							  class="badge bg-info" th:text="${tag}">Tag</span>
+					  </div>
+					</div>
+					<div th:if="${message.nextSteps}" class="mb-3">
+					  <strong>צעדים הבאים:</strong>
+					  <div class="d-flex gap-2 flex-wrap mt-1">
+                    <span th:each="step : ${message.nextSteps}"
+						  class="badge bg-success" th:text="${step}">Step</span>
+					  </div>
+					</div>
+				  </div>
+				</div>
+				
+				<!-- Regular Edit Mode -->
+				<form class="edit-mode d-none" th:action="@{/messages/update}" method="post">
+				  <input type="hidden" name="messageId" th:value="${message.id}" />
+				  <input type="hidden" name="editMode" value="regular" />
+				  
+				  <!-- Type and Purpose -->
+				  <div class="row mb-3">
+					<div class="col-6">
+					  <label class="form-label">סוג:</label>
+					  <input type="text" class="form-control" name="type"
+							 th:value="${message.type}" required>
+					</div>
+					<div class="col-6">
+					  <label class="form-label">מטרה:</label>
+					  <input type="text" class="form-control" name="purpose"
+							 th:value="${message.purpose}" required>
+					</div>
+				  </div>
+				  
+				  <!-- Message Content -->
+				  <div class="mb-3">
+					<label class="form-label">תוכן:</label>
+					<textarea class="form-control" name="messageContent"
+							  rows="4" required th:text="${message.messageContent}"></textarea>
+				  </div>
+				  
+				  <!-- Tags -->
+				  <div class="mb-3">
+					<label class="form-label">תגיות (הפרד בפסיקים):</label>
+					<input type="text" class="form-control" name="tags"
+						   th:value="${#strings.listJoin(message.tags, ', ')}">
+				  </div>
+				  
+				  <!-- Next Steps -->
+				  <div class="mb-3">
+					<label class="form-label">צעדים הבאים (הפרד בפסיקים):</label>
+					<input type="text" class="form-control" name="nextSteps"
+						   th:value="${#strings.listJoin(message.nextSteps, ', ')}">
+				  </div>
+				  
+				  <!-- Save/Cancel Buttons -->
+				  <div class="d-flex gap-2 justify-content-end">
+					<button type="button" class="btn btn-secondary" onclick="toggleEditMode(this)">ביטול</button>
+					<button type="submit" class="btn btn-primary">שמור</button>
+				  </div>
+				</form>
+				
+				<!-- Smart Edit Mode -->
+				<form class="smart-edit-mode d-none" th:action="@{/messages/smartUpdate}" method="post">
+				  <input type="hidden" name="messageId" th:value="${message.id}" />
+				  <input type="hidden" name="editMode" value="smart" />
+				  
+				  <!-- Only Message Content is Editable -->
+				  <div class="mb-3">
+					<label class="form-label">תוכן:</label>
+					<textarea class="form-control" name="messageContent"
+							  rows="4" required th:text="${message.messageContent}"></textarea>
+				  </div>
+				  
+				  <!-- Save/Cancel Buttons -->
+				  <div class="d-flex gap-2 justify-content-end">
+					<button type="button" class="btn btn-secondary" onclick="toggleMode(this, 'view')">ביטול</button>
+					<button type="submit" class="btn btn-primary">שמור</button>
+				  </div>
+				</form>
+				
+				<div class="d-flex justify-content-between align-items-center mt-3">
+				  <div class="text-muted">
+					<small th:text="${message.createdAt}">Date</small>
+				  </div>
+				  
+				  <button type="button"
+						  class="btn btn-outline-secondary btn-sm"
+						  data-bs-dismiss="modal">
+					<span class="me-1">✕</span>סגור
+				  </button>
+				</div>
+			  </div>
+			</div>
+		  </div>
+		</div>
+	  </div>
+	</div>
+	
+	<!-- Document Upload Modal -->
+	<div class="modal fade" id="addDocumentModal" tabindex="-1" aria-labelledby="addDocumentModalLabel"
+		 aria-hidden="true">
+	  <div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+		  <div class="modal-header">
+			<h5 class="modal-title" id="addDocumentModalLabel">הוסף מסמך חדש</h5>
+			<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+		  </div>
+		  <form th:action="@{/messages/media}"
+				method="post"
+				enctype="multipart/form-data"
+				class="m-0">
+			<div class="modal-body">
+			  <input type="hidden" name="phoneNumber" th:value="${phone}" />
+			  <input type="hidden" name="type" value="document" />
+			  
+			  <div class="mb-3">
+				<div
+					class="d-flex flex-column align-items-center justify-content-center p-5 bg-light rounded-3 border-2 border-dashed position-relative"
+					id="documentDropZone"
+					th:data-upload-zone="true">
+				  <!-- Upload Icon and Text -->
+				  <div class="text-center mb-3">
+					<i class="bi bi-file-earmark-text display-4 text-secondary mb-3"></i>
+					<h5 class="mb-2 text-secondary">גרור קבצים לכאן</h5>
+					<p class="text-muted mb-3">או</p>
+				  </div>
+				  
+				  <!-- File Input Group -->
+				  <div class="input-group">
+					<input type="file"
+						   class="form-control"
+						   id="documentInput"
+						   name="file"
+						   accept=".pdf,.doc,.docx,.txt"
+						   required
+						   th:data-bs-file-input="true">
+				  </div>
+				  
+				  <!-- File Preview -->
+				  <div id="documentPreview" class="mt-3 w-100 d-none">
+					<div class="alert alert-info d-flex align-items-center">
+					  <i class="bi bi-file-earmark me-2"></i>
+					  <span id="documentFileName"></span>
+					  <button type="button" class="btn-close ms-auto"
+							  onclick="clearFileInput('documentInput')"></button>
+					</div>
+				  </div>
+				</div>
+			  </div>
+			</div>
+			<div class="modal-footer">
+			  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+			  <button type="submit" class="btn btn-primary">שמור מסמך</button>
+			</div>
+		  </form>
+		</div>
+	  </div>
+	</div>
+	
+	<!-- Image Upload Modal -->
+	<div class="modal fade" id="addImageModal" tabindex="-1" aria-labelledby="addImageModalLabel" aria-hidden="true">
+	  <div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+		  <div class="modal-header">
+			<h5 class="modal-title" id="addImageModalLabel">הוסף תמונה חדשה</h5>
+			<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+		  </div>
+		  <form th:action="@{/messages/media}"
+				method="post"
+				enctype="multipart/form-data"
+				class="m-0">
+			<div class="modal-body">
+			  <input type="hidden" name="phoneNumber" th:value="${phone}" />
+			  <input type="hidden" name="type" value="image" />
+			  
+			  <div class="mb-3">
+				<div
+					class="d-flex flex-column align-items-center justify-content-center p-5 bg-light rounded-3 border-2 border-dashed position-relative"
+					id="imageDropZone"
+					th:data-upload-zone="true">
+				  <!-- Upload Icon and Text -->
+				  <div class="text-center mb-3">
+					<i class="bi bi-image display-4 text-secondary mb-3"></i>
+					<h5 class="mb-2 text-secondary">גרור תמונות לכאן</h5>
+					<p class="text-muted mb-3">או</p>
+				  </div>
+				  
+				  <!-- File Input Group -->
+				  <div class="input-group">
+					<input type="file"
+						   class="form-control"
+						   id="imageInput"
+						   name="file"
+						   accept="image/*"
+						   required
+						   th:data-bs-file-input="true">
+				  </div>
+				  
+				  <!-- Image Preview -->
+				  <div id="imagePreview" class="mt-3 w-100 d-none">
+					<div class="alert alert-info d-flex align-items-center">
+					  <i class="bi bi-image me-2"></i>
+					  <span id="imageFileName"></span>
+					  <button type="button" class="btn-close ms-auto" onclick="clearFileInput('imageInput')"></button>
+					</div>
+					<img id="imagePreviewElement" class="img-fluid rounded mt-2 d-none" alt="תצוגה מקדימה">
+				  </div>
+				</div>
+			  </div>
+			</div>
+			<div class="modal-footer">
+			  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+			  <button type="submit" class="btn btn-primary">שמור תמונה</button>
+			</div>
+		  </form>
+		</div>
+	  </div>
+	</div>
+	
+	<!-- Add Text Message Modal -->
+	<div class="modal fade" id="addTextMessageModal" tabindex="-1" aria-labelledby="addTextMessageModalLabel"
+		 aria-hidden="true">
+	  <div class="modal-dialog modal-dialog-centered">
+		<div class="modal-content">
+		  <div class="modal-header">
+			<h5 class="modal-title" id="addTextMessageModalLabel">הוסף הודעת טקסט חדשה</h5>
+			<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+		  </div>
+		  <form th:action="@{/messages/text}" method="post" class="m-0">
+			<div class="modal-body">
+			  <input type="hidden" name="phoneNumber" th:value="${phone}" />
+			  <div class="mb-3">
+				<label for="messageContent" class="form-label">תוכן ההודעה</label>
+				<textarea class="form-control"
+						  id="messageContent"
+						  name="content"
+						  rows="4"
+						  required></textarea>
+			  </div>
+			</div>
+			<div class="modal-footer">
+			  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ביטול</button>
+			  <button type="submit" class="btn btn-primary">שמור הודעה</button>
+			</div>
+		  </form>
+		</div>
+	  </div>
+	</div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	  lang="he" dir="rtl">
+<body>
+<div th:fragment="content">
+  <!-- Admin Header Section -->
+  <div class="container-fluid py-4 mb-4">
+	<div class="row">
+	  <div class="col-12">
+		<div class="card shadow-whatsapp">
+		  <div class="card-body">
+			<h2 class="mb-3">ניהול משתמשים</h2>
+			<p class="text-muted">נהל הרשאות והגדרות משתמשים במערכת</p>
+		  </div>
+		</div>
+	  </div>
+	</div>
+  </div>
+  
+  <!-- Statistics Dashboard -->
+  <!-- Statistics Dashboard - Adjusted for fuller card usage -->
+  <div class="container-fluid mb-5">
+	<div class="row g-4">
+	  <!-- Charts Row -->
+	  <div class="col-lg-6">
+		<div class="card shadow-whatsapp">
+		  <div class="card-body">
+			<h5 class="card-title">התפלגות הרשאות משתמשים</h5>
+			<div class="chart-container" style="position: relative; min-height: 500px; width: 100%;">
+			  <canvas id="authorizationChart" style="width: 100%; height: 100%;"></canvas>
+			</div>
+		  </div>
+		</div>
+	  </div>
+	  
+	  <div class="col-lg-6">
+		<div class="card shadow-whatsapp">
+		  <div class="card-body">
+			<h5 class="card-title">פעילות הרשמת משתמשים</h5>
+			<div class="chart-container" style="position: relative; min-height: 500px; width: 100%;">
+			  <canvas id="usersActivityChart" style="width: 100%; height: 100%;"></canvas>
+			</div>
+		  </div>
+		</div>
+	  </div>
+	</div>
+  </div>
+  
+  <!-- User Management Grid -->
+  <div class="container-fluid">
+	<div class="row g-4">
+	  <!-- Create User Card -->
+	  <div class="col-lg-4">
+		<div class="card shadow-whatsapp">
+		  <div class="card-body">
+			<h5 class="card-title mb-4">
+			  <i class="bi bi-person-circle me-2" style="color: var(--whatsapp-teal)"></i>
+			  יצירת משתמש חדש
+			</h5>
+			<form th:action="@{/admin/create-user}" method="post">
+			  <div class="mb-3">
+				<label for="newEmail" class="form-label">דוא״ל</label>
+				<input type="email" class="form-control" id="newEmail" name="email" required>
+			  </div>
+			  <div class="mb-3">
+				<label for="newPhone" class="form-label">טלפון</label>
+				<input type="tel" class="form-control" id="newPhone" name="phone" required>
+			  </div>
+			  <div class="mb-3">
+				<label for="newRole" class="form-label">תפקיד</label>
+				<select class="form-select" id="newRole" name="role" required>
+				  <option value="" selected disabled>בחר תפקיד</option>
+				  <option th:each="role : ${T(com.organizer.platform.model.User.UserRole).values()}"
+						  th:value="${role}"
+						  th:text="${role}">
+				  </option>
+				</select>
+			  </div>
+			  <button type="submit" class="btn btn-success w-100">
+				<i class="bi bi-plus-lg me-2"></i>צור משתמש
+			  </button>
+			</form>
+		  </div>
+		</div>
+	  </div>
+	  
+	  <!-- Manage Users Card -->
+	  <div class="col-lg-8">
+		<div class="card shadow-whatsapp">
+		  <div class="card-body">
+			<h5 class="card-title mb-4">
+			  <i class="bi bi-people me-2" style="color: var(--whatsapp-teal)"></i>
+			  ניהול משתמשים קיימים
+			</h5>
+			<div class="table-responsive">
+			  <table class="table">
+				<thead>
+				<tr>
+				  <th>שם</th>
+				  <th>תמונה</th>
+				  <th>נוצר בתאריך</th>
+				  <th>טלפון</th>
+				  <th>דוא״ל</th>
+				  <th>תפקיד</th>
+				  <th>סטטוס</th>
+				  <th>הודעות לפי חודש</th>
+				  <th>פעולות</th>
+				</tr>
+				</thead>
+				<tbody>
+				<tr th:each="user : ${users}">
+				  <td th:text="${user.getName()}">שם</td>
+				  <td>
+					<img src="" th:attr="src=${user.getPictureUrl()}"
+						 alt="תמונה של המשתמש"
+						 class="rounded-circle"
+						 width="48"
+						 height="48" />
+					</td>
+				  <td th:text="${user.getCreatedAt()}">נוצר ב</td>
+				  <td th:text="${user.getWhatsappNumber()}">טלפון</td>
+				  <td th:text="${user.getEmail()}">email@example.com</td>
+				  <td th:text="${user.getRole()}">USER</td>
+				  <td>
+					<span th:if="${user.isAuthorized()}"
+						  class="badge bg-success">מורשה</span>
+					<span th:unless="${user.isAuthorized()}"
+						  class="badge bg-danger">לא מורשה</span>
+				  </td>
+				  <td>
+					<div class="dropdown">
+					  <button class="btn btn-profile dropdown-toggle"
+							  type="button"
+							  data-bs-toggle="dropdown"
+							  aria-expanded="false">
+						<i class="bi bi-eye"></i>
+						צפה בנתונים
+					  </button>
+					  <ul class="dropdown-menu shadow">
+						<li th:each="monthly : ${messageCountsByMonth.get(user.id)}">
+						  <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#">
+							<i class="bi bi-calendar-event text-primary"></i>
+							<span th:text="${monthly.key}"></span>:
+							<span class="fw-semibold" th:text="${monthly.value}"></span>
+							<span>הודעות</span>
+						  </a>
+						</li>
+					  </ul>
+					</div>
+				  </td>
+				  <td>
+					<div class="btn-group gap-2">
+					  <form th:action="@{/admin/change-role}"
+							method="post"
+							class="d-inline">
+						<input type="hidden" name="userId" th:value="${user.getId()}">
+						<select name="newRole"
+								class="form-select form-select-sm d-inline-block px-2 py-2"
+								style="width: auto;"
+								onchange="this.form.submit()">
+						  <option th:value="${user.getRole()}"
+								  selected>[[${user.getRole()}]]</option>
+						  <option th:each="role : ${T(com.organizer.platform.model.User.UserRole).values()}"
+								  th:if="${role != user.getRole()}"
+								  th:value="${role}"
+								  th:text="${role}">
+						  </option>
+						</select>
+					  </form>
+					  <form th:if="${user.isAuthorized()}"
+							th:action="@{/admin/deauthorize-user}"
+							method="post"
+							class="me-2">
+						<input type="hidden" name="userId" th:value="${user.getId()}">
+						<button type="submit" class="btn btn-warning px-3 py-2">
+						  <i class="bi bi-lock fs-5"></i>
+						</button>
+					  </form>
+					  <form th:unless="${user.isAuthorized()}"
+							th:action="@{/admin/authorize-user}"
+							method="post"
+							class="me-2">
+						<input type="hidden" name="userId" th:value="${user.getId()}">
+						<button type="submit" class="btn btn-success px-3 py-2">
+						  <i class="bi bi-unlock fs-5"></i>
+						</button>
+					  </form>
+					  <form th:action="@{/admin/delete-user}"
+							method="post"
+							class="ms-2"
+							onsubmit="return confirm('האם אתה בטוח שברצונך למחוק משתמש זה?');">
+						<input type="hidden" name="userId" th:value="${user.getId()}">
+						<button type="submit" class="btn btn-danger px-3 py-2">
+						  <i class="bi bi-trash fs-5"></i>
+						</button>
+					  </form>
+					</div>
+				  </td>
+				</tr>
+				</tbody>
+			  </table>
+			</div>
+		  </div>
+		</div>
+	  </div>
+	</div>
+  </div>
+</div>
+</body>
+</html>

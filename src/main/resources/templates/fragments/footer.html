@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="he" dir="rtl">
+<body>
+<footer th:fragment="footer" class="footer mt-auto py-4 nav-whatsapp">
+  <div class="container">
+	<!-- Main Footer Content -->
+	<div class="row g-4">
+	  <!-- About Section -->
+	  <div class="col-12 col-md-6 col-lg-4 mb-4 mb-lg-0">
+		<h5 class="text-white mb-3 fw-bold">WhatsApp Organizer</h5>
+		<p class="text-white-50 mb-3">
+		  מערכת חכמה לניהול וארגון התכתובות שלך בוואטסאפ
+		</p>
+		<div class="social-links d-flex gap-3">
+		  <a href="https://www.facebook.com/guy.borenstein/"
+			 class="text-white-50 text-decoration-none transition-hover">
+			<i class="fab fa-facebook fa-lg"></i>
+		  </a>
+		  <a href="https://github.com/GuyBernstein?tab=repositories"
+			 class="text-white-50 text-decoration-none transition-hover">
+			<i class="fab fa-github fa-lg"></i>
+		  </a>
+		  <a href="https://www.instagram.com/guybernstein75/"
+			 class="text-white-50 text-decoration-none transition-hover">
+			<i class="fab fa-instagram fa-lg"></i>
+		  </a>
+		  <a href="https://www.linkedin.com/in/guy-gavriel-berenstien-3bb039304"
+			 class="text-white-50 text-decoration-none transition-hover">
+			<i class="fab fa-linkedin fa-lg"></i>
+		  </a>
+		</div>
+	  </div>
+	  
+	  <!-- Quick Links -->
+	  <div class="col-12 col-md-6 col-lg-4 mb-4 mb-lg-0">
+		<h5 class="text-white mb-3 fw-bold">קישורים מהירים</h5>
+		<div class="row">
+		  <div class="col-6">
+			<ul class="list-unstyled">
+			  <li class="mb-2">
+				<a data-bs-toggle="modal" data-bs-target="#aboutModal"
+				   class="text-white-50 text-decoration-none transition-hover" role="button">
+				  <i class="bi bi-arrow-left-short"></i>
+				  אודות
+				</a>
+			  </li>
+			</ul>
+		  </div>
+		  
+		  <div class="col-6">
+			<ul class="list-unstyled">
+			  <li class="mb-2">
+				<a data-bs-toggle="modal" data-bs-target="#faqModal"
+				   class="text-white-50 text-decoration-none transition-hover" role="button">
+				  <i class="bi bi-arrow-left-short"></i>
+				  שאלות נפוצות
+				</a>
+			  </li>
+			</ul>
+		  </div>
+		</div>
+	  </div>
+	  
+	  <!-- About Modal -->
+	  <div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true" dir="rtl">
+		<div class="modal-dialog modal-fullscreen-sm-down modal-lg modal-dialog-centered modal-dialog-scrollable">
+		  <div class="modal-content">
+			<div class="modal-header border-bottom-0">
+			  <h5 class="modal-title fw-bold" id="aboutModalLabel">אודות WhatsApp Organizer</h5>
+			  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body p-3">
+			  <!-- Introduction Section -->
+			  <div class="mb-5">
+				<p class="text-xl mb-4">
+				  ברוכים הבאים ל-WhatsApp Organizer,
+				  <br>
+				  הכלי האולטימטיבי לניהול וארגון ההודעות ששלחתם לעצמכם ב-WhatsApp!
+				</p>
+				
+				<p class="mb-4">
+				  אפליקציה זו פותחה במיוחד עבור משתמשים השולחים הודעות לעצמם ב-WhatsApp
+				  <br>
+				  כדרך לשמור מידע חשוב, תזכורות ורעיונות.
+				</p>
+				
+				<div class="mb-4">
+				  <p class="mb-2">באמצעות:</p>
+				  <ul class="list-unstyled pe-4">
+					<li class="mb-2">
+					  <i class="bi bi-dot ms-2"></i>
+					  בינה מלאכותית מתקדמת
+					</li>
+					<li class="mb-2">
+					  <i class="bi bi-dot ms-2"></i>
+					  כלים חכמים
+					</li>
+					<li class="mb-2">
+					  <i class="bi bi-dot ms-2"></i>
+					  ממשק משתמש ידידותי
+					</li>
+				  </ul>
+				</div>
+				
+				<p class="mb-4">
+				  תוכלו לנהל ולארגן את כל התוכן האישי שלכם בצורה מסודרת ויעילה.
+				</p>
+			  </div>
+			  
+			  <!-- Features Section -->
+			  <div class="mb-5">
+				<h5 class="fw-bold mb-3">תכונות עיקריות:</h5>
+				<ul class="list-unstyled pe-4">
+				  <li class="mb-3">
+					<i class="bi bi-dot ms-2"></i>
+					סידור שיחות לפי קטגוריות ותתי-קטגוריות ועוד
+				  </li>
+				  <li class="mb-3">
+					<i class="bi bi-dot ms-2"></i>
+					תיוג חכם של הודעות והוספת צעדים הבאים
+				  </li>
+				  <li class="mb-3">
+					<i class="bi bi-dot ms-2"></i>
+					קטלוג מטרת ההודעה וסוגה
+				  </li>
+				  <li class="mb-3">
+					<i class="bi bi-dot ms-2"></i>
+					חיפוש מתקדם בהודעות
+				  </li>
+				  <li class="mb-3">
+					<i class="bi bi-dot ms-2"></i>
+					גיבוי חכם של שיחות חשובות
+				  </li>
+				</ul>
+			  </div>
+			  
+			  <!-- Privacy Section -->
+			  <div class="mb-5">
+				<h5 class="fw-bold mb-3">פרטיות ואבטחה</h5>
+				<p>
+				  אנו מחויבים להגנה על פרטיותכם. כל המידע מאובטח, ונשמר אך ורק במשתמש שלכם, ללא גישה לתוכן של משתמשים אחרים.
+				</p>
+			  </div>
+			  
+			  <!-- Support Section -->
+			  <div class="mb-5">
+				<h5 class="fw-bold mb-3">תמיכה טכנית</h5>
+				<p class="mb-2">
+				  לשאלות, הצעות או דיווח על תקלות, אנא צרו קשר:
+				</p>
+				<a href="mailto:guyu669@gmail.com" class="text-primary text-decoration-none d-block py-2">
+				  <i class="bi bi-envelope ms-1"></i>
+				  guyu669@gmail.com
+				</a>
+			  </div>
+			  
+			  <!-- Footer -->
+			  <div class="border-top pt-3">
+				<p class="text-muted small mb-0">
+				  © 2024 כל הזכויות שמורות
+				</p>
+			  </div>
+			</div>
+			<div class="modal-footer border-top-0">
+			  <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="modal">סגור</button>
+			</div>
+		  </div>
+		</div>
+	  </div>
+	  
+	  <!-- FAQ Modal -->
+	  <div class="modal fade" id="faqModal" tabindex="-1" aria-labelledby="faqModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+		  <div class="modal-content">
+			<div class="modal-header border-bottom-0">
+			  <h5 class="modal-title fw-bold" id="faqModalLabel">שאלות נפוצות</h5>
+			  <button type="button" class="btn-close ms-0 me-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body p-4">
+			  <!-- FAQ Accordion -->
+			  <div class="accordion" id="faqAccordion">
+				<!-- Question 1 -->
+				<div class="accordion-item border rounded mb-3 shadow-sm">
+				  <h2 class="accordion-header">
+					<button class="accordion-button fw-semibold" type="button" data-bs-toggle="collapse"
+							data-bs-target="#faq1">
+					  <i class="bi bi-question-circle-fill me-2"></i>
+					  איך מתחילים להשתמש באפליקציה?
+					</button>
+				  </h2>
+				  <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+					<div class="accordion-body bg-light">
+					  <div class="container p-3">
+						<div class="row">
+						  <div class="col-12">
+							<h6 class="mb-3">
+							  כדי להתחיל להשתמש באפליקציה, עליכם לבצע את השלבים הבאים:
+							</h6>
+							
+							<div class="card mb-3">
+							  <div class="card-body d-flex align-items-center">
+								<span class="badge bg-primary rounded-circle p-2 me-3">1</span>
+								<div class="d-flex align-items-center">
+								  <i class="bi bi-google me-2 text-primary"></i>
+								  התחברו באמצעות חשבון Google שלכם
+								</div>
+							  </div>
+							</div>
+							
+							<div class="card mb-3">
+							  <div class="card-body d-flex align-items-center">
+								<span class="badge bg-primary rounded-circle p-2 me-3">2</span>
+								<div class="d-flex align-items-center">
+								  <i class="bi bi-envelope-fill me-2 text-primary"></i>
+								  בקשו הרשאת גישה מ-guyu669@gmail.com
+								</div>
+							  </div>
+							</div>
+							
+							<div class="card mb-3">
+							  <div class="card-body d-flex align-items-center">
+								<span class="badge bg-primary rounded-circle p-2 me-3">3</span>
+								<div>
+								  <div class="d-flex align-items-center mb-2">
+									<i class="bi bi-whatsapp me-2 text-success"></i>
+									שלחו הודעות באמצעות WhatsApp למספר הייעודי
+								  </div>
+								  <div class="text-muted small">
+									או הזינו הודעות ידנית דרך ממשק המשתמש. בשלב זה תוכלו להתחיל לארגן את ההודעות שלכם.
+								  </div>
+								</div>
+							  </div>
+							</div>
+						  </div>
+						</div>
+					  </div>
+					</div>
+				  </div>
+				</div>
+				
+				<!-- Question 2 -->
+				<div class="accordion-item border rounded mb-3 shadow-sm">
+				  <h2 class="accordion-header">
+					<button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse"
+							data-bs-target="#faq2">
+					  <i class="bi bi-question-circle-fill me-2"></i>
+					  האם המידע שלי מאובטח?
+					</button>
+				  </h2>
+				  <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+					<div class="accordion-body bg-light">
+					  <div class="container p-3">
+						<div class="row">
+						  <div class="col-12">
+							<h6 class="mb-3">
+							  כן, האבטחה שלכם היא בראש סדר העדיפויות שלנו! הנה כמה נקודות חשובות על אבטחת המידע שלכם:
+							</h6>
+							
+							<div class="card mb-3">
+							  <div class="card-body d-flex align-items-center">
+								<span class="badge bg-primary rounded-circle p-2 me-3">1</span>
+								<div>
+								  <div class="d-flex align-items-center">
+									<i class="bi bi-database-fill me-2 text-primary"></i>
+									<strong>אחסון מידע בסיסי:</strong>
+								  </div>
+								  <div class="text-muted small mt-1">
+									התוכן מאוחסן בבסיס הנתונים. הודעות טקסט ישמרו כפי שהן, ואילו תמונות, מסמכים והקלטות ישמרו כ-metadata.
+								  </div>
+								</div>
+							  </div>
+							</div>
+							
+							<div class="card mb-3">
+							  <div class="card-body d-flex align-items-center">
+								<span class="badge bg-primary rounded-circle p-2 me-3">2</span>
+								<div>
+								  <div class="d-flex align-items-center">
+									<i class="bi bi-cloud-fill me-2 text-primary"></i>
+									<strong>קבצי מדיה:</strong>
+								  </div>
+								  <div class="text-muted small mt-1">
+									תמונות, מסמכים והקלטות קול מאוחסנים בשירותי Google Cloud המאובטחים.
+								  </div>
+								</div>
+							  </div>
+							</div>
+							
+							<div class="card mb-3">
+							  <div class="card-body d-flex align-items-center">
+								<span class="badge bg-primary rounded-circle p-2 me-3">3</span>
+								<div>
+								  <div class="d-flex align-items-center">
+									<i class="bi bi-shield-lock-fill me-2 text-primary"></i>
+									<strong>גישה פרטית:</strong>
+								  </div>
+								  <div class="text-muted small mt-1">
+									רק אתם יכולים לגשת לתוכן שלכם - לכל משתמש יש גישה אך ורק למידע האישי שלו.
+								  </div>
+								</div>
+							  </div>
+							</div>
+							
+							<div class="card mb-3">
+							  <div class="card-body d-flex align-items-center">
+								<span class="badge bg-primary rounded-circle p-2 me-3">4</span>
+								<div>
+								  <div class="d-flex align-items-center">
+									<i class="bi bi-link-45deg me-2 text-primary"></i>
+									<strong>קישורים מאובטחים:</strong>
+								  </div>
+								  <div class="text-muted small mt-1">
+									כל גישה לקבצים מוגנת באמצעות קישורים זמניים ייחודיים (presigned links), מה שמבטיח שהמידע שלכם נשאר פרטי ומאובטח.
+								  </div>
+								</div>
+							  </div>
+							</div>
+						  </div>
+						</div>
+					  </div>
+					</div>
+				  </div>
+				</div>
+				
+				<!-- Question 3 -->
+				<div class="accordion-item border rounded mb-3 shadow-sm">
+				  <h2 class="accordion-header">
+					<button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+					  <i class="bi bi-tags-fill me-2 text-primary"></i>
+					  כיצד עובדת מערכת התיוג והשלבים הבאים החכמה?
+					</button>
+				  </h2>
+				  <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+					<div class="accordion-body bg-light">
+					  <div class="card border-0 bg-white p-3 shadow-sm">
+						<div class="d-flex align-items-start">
+						  <i class="bi bi-robot fs-4 me-3 text-primary"></i>
+						  <div>
+							<h6 class="mb-3">מערכת התיוג והשלבים הבאים החכמה שלנו פועלת כך:</h6>
+							
+							<div class="d-flex align-items-center mb-2">
+							  <i class="bi bi-chat-text me-2 text-info"></i>
+							  המשתמש מזין הודעה למערכת
+							</div>
+							
+							<div class="d-flex align-items-center mb-2">
+							  <i class="bi bi-cpu me-2 text-success"></i>
+							  הבינה המלאכותית מנתחת את תוכן ההודעה באופן אוטומטי
+							</div>
+							
+							<div class="d-flex align-items-center mb-2">
+							  <i class="bi bi-tags me-2 text-warning"></i>
+							  המערכת מייצרת תגיות חכמות המותאמות לתוכן
+							</div>
+							
+							<div class="d-flex align-items-center mb-2">
+							  <i class="bi bi-list-check me-2 text-danger"></i>
+							  המערכת מזהה ומציעה את השלבים הבאים הרלוונטיים
+							</div>
+							
+							<div class="d-flex align-items-center mb-2">
+							  <i class="bi bi-pencil-square me-2 text-primary"></i>
+							  באפשרותך לבחור בין:
+							  <ul class="list-unstyled ms-4 mb-0">
+								<li><i class="bi bi-check-circle-fill me-2 text-success"></i>עריכה חכמה - אישור אוטומטי של התגיות והשלבים המוצעים</li>
+								<li><i class="bi bi-pencil-fill me-2 text-info"></i>עריכה ידנית - התאמה אישית של התגיות והשלבים</li>
+							  </ul>
+							</div>
+						  </div>
+						</div>
+					  </div>
+					</div>
+				  </div>
+				</div>
+				
+				<!-- Question 4 -->
+				<div class="accordion-item border rounded mb-3 shadow-sm">
+				  <h2 class="accordion-header">
+					<button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+					  <i class="bi bi-cloud-download me-2 text-primary"></i>
+					  האם ניתן לגבות את המידע המאורגן?
+					</button>
+				  </h2>
+				  <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+					<div class="accordion-body bg-light">
+					  <div class="card border-0 bg-white p-3 shadow-sm">
+						<h6 class="mb-3">
+						  המידע שלכם נשמר באופן אוטומטי במסד הנתונים של המערכת
+						</h6>
+						<div class="d-flex flex-column">
+						  <div class="d-flex align-items-center mb-2">
+							<i class="bi bi-shield-lock me-2 text-success"></i>
+							גיבוי מאובטח של כל המידע המאורגן
+						  </div>
+						  <div class="d-flex align-items-center mb-2">
+							<i class="bi bi-file-excel me-2 text-success"></i>
+							ייצוא לקובץ Excel הכולל את כל המידע החכם - תגיות, שלבים הבאים וקטגוריות
+						  </div>
+						  <div class="d-flex align-items-center">
+							<i class="bi bi-arrow-down-circle me-2 text-primary"></i>
+							לייצוא - לחצו על התפריט בצד שמאל למעלה ובחרו באפשרות "ייצוא נתונים"
+						  </div>
+						</div>
+					  </div>
+					</div>
+				  </div>
+				</div>
+				
+				<!-- Question 5 -->
+				<div class="accordion-item border rounded mb-3 shadow-sm">
+				  <h2 class="accordion-header">
+					<button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+					  <i class="bi bi-question-circle me-2 text-primary"></i>
+					  מה עושים אם נתקלים בבעיה טכנית?
+					</button>
+				  </h2>
+				  <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+					<div class="accordion-body bg-light">
+					  <div class="card border-0 bg-white p-3 shadow-sm">
+						<h6 class="mb-3">
+						  זמן תגובה ממוצע: עד 24 שעות
+						</h6>
+						<div class="d-flex align-items-center">
+						  <i class="bi bi-envelope-fill fs-4 me-3 text-primary"></i>
+						  <div>
+							<div class="fw-semibold mb-1">צרו קשר עם התמיכה הטכנית:</div>
+							<a href="mailto:guyu669@gmail.com" class="text-decoration-none">
+							  <i class="bi bi-envelope me-1"></i>
+							  guyu669@gmail.com
+							</a>
+						  </div>
+						</div>
+					  </div>
+					</div>
+				  </div>
+				</div>
+			  </div>
+			</div>
+			<div class="modal-footer border-top-0">
+			  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">סגור</button>
+			</div>
+		  </div>
+		</div>
+	  </div>
+	  
+	  <!-- Terms of Service Modal -->
+	  <div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true" dir="rtl">
+		<div class="modal-dialog modal-fullscreen-sm-down modal-lg modal-dialog-scrollable">
+		  <div class="modal-content">
+			<div class="modal-header border-bottom-0 sticky-top bg-white">
+			  <h5 class="modal-title fw-bold fs-6" id="termsModalLabel">תנאי שימוש - WhatsApp Organizer</h5>
+			  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body p-3">
+			  <div class="mb-3">
+				<h5 class="fw-bold mb-2 fs-6">1. כללי</h5>
+				<p>ברוכים הבאים ל-WhatsApp Organizer ("השירות"). בשימוש בשירות זה, אתם מסכימים לתנאי השימוש המפורטים
+				  להלן. אנא קראו אותם בעיון.</p>
+			  </div>
+			  
+			  <div class="mb-4">
+				<h5 class="fw-bold mb-2 fs-6">2. תיאור השירות</h5>
+				<p>WhatsApp Organizer הוא כלי לניהול וארגון הודעות WhatsApp אישיות, המאפשר למשתמשים לארגן, לתייג ולנהל
+				  את ההודעות ששלחו לעצמם באמצעות WhatsApp.</p>
+			  </div>
+			  
+			  <div class="mb-4">
+				<h5 class="fw-bold mb-2 fs-6">3. תנאי שימוש בסיסיים</h5>
+				<ul class="list-unstyled pe-3">
+				  <li class="mb-2"><i class="bi bi-dot ms-2"></i>השירות מיועד למשתמשים מגיל 7 ומעלה</li>
+				  <li class="mb-2"><i class="bi bi-dot ms-2"></i>עדיף חשבון WhatsApp פעיל לשימוש בשירות</li>
+				  <li class="mb-2"><i class="bi bi-dot ms-2"></i>כל משתמש רשאי להחזיק חשבון אחד בלבד</li>
+				  <li class="mb-2"><i class="bi bi-dot ms-2"></i>אסור להשתמש בשירות למטרות בלתי חוקיות</li>
+				</ul>
+			  </div>
+			  
+			  <div class="mb-4">
+				<h5 class="fw-bold mb-2 fs-6">4. פרטיות ואבטחת מידע</h5>
+				<div class="mb-3">
+				  <h6 class="fw-bold mb-2">4.1 איסוף מידע</h6>
+				  <ul class="list-unstyled pe-3">
+					<li class="mb-2"><i class="bi bi-dot ms-2"></i>השירות אוסף ומאחסן את תוכן ההודעות שהמשתמש בוחר לנהל
+					</li>
+					<li class="mb-2"><i class="bi bi-dot ms-2"></i>מידע בסיסי נשמר במסד הנתונים</li>
+					<li class="mb-2"><i class="bi bi-dot ms-2"></i>קבצי מדיה מאוחסנים בשירותי Google Cloud</li>
+				  </ul>
+				</div>
+				<div class="mb-3">
+				  <h6 class="fw-bold mb-2">4.2 אבטחת מידע</h6>
+				  <ul class="list-unstyled pe-3">
+					<li class="mb-2"><i class="bi bi-dot ms-2"></i>הגישה למידע מוגבלת למשתמש בלבד</li>
+					<li class="mb-2"><i class="bi bi-dot ms-2"></i>קישורים לקבצים מוגנים באמצעות קישורים זמניים ייחודיים
+					</li>
+					<li class="mb-2"><i class="bi bi-dot ms-2"></i>המשתמש יוכל לגשת למידע שלו ורק שלו</li>
+				  </ul>
+				</div>
+			  </div>
+			  
+			  <div class="mb-4">
+				<h5 class="fw-bold mb-2 fs-6">5. זכויות וחובות המשתמש</h5>
+				<div class="mb-3">
+				  <h6 class="fw-bold mb-2">5.1 המשתמש רשאי:</h6>
+				  <ul class="list-unstyled pe-3">
+					<li class="mb-2"><i class="bi bi-dot ms-2"></i>לארגן ולנהל את ההודעות האישיות שלו</li>
+					<li class="mb-2"><i class="bi bi-dot ms-2"></i>להשתמש בכל הכלים והתכונות המוצעים בשירות</li>
+					<li class="mb-2"><i class="bi bi-dot ms-2"></i>לייצא את המידע שלו</li>
+					<li class="mb-2"><i class="bi bi-dot ms-2"></i>לבטל את חשבונו בכל עת</li>
+				  </ul>
+				</div>
+				<div class="mb-3">
+				  <h6 class="fw-bold mb-2">5.2 המשתמש מתחייב:</h6>
+				  <ul class="list-unstyled pe-3">
+					<li class="mb-2"><i class="bi bi-dot ms-2"></i>לא להפיץ מידע מזיק או בלתי חוקי</li>
+					<li class="mb-2"><i class="bi bi-dot ms-2"></i>לא לנסות לפרוץ או לעקוף את מערכות האבטחה</li>
+					<li class="mb-2"><i class="bi bi-dot ms-2"></i>לא להשתמש בשירות באופן שעלול לפגוע במשתמשים אחרים
+					</li>
+					<li class="mb-2"><i class="bi bi-dot ms-2"></i>לשמור על סודיות פרטי הגישה לחשבון</li>
+				  </ul>
+				</div>
+			  </div>
+			  
+			  <div class="mb-4">
+				<h5 class="fw-bold mb-2 fs-6">6. הגבלת אחריות</h5>
+				<ul class="list-unstyled pe-3">
+				  <li class="mb-2"><i class="bi bi-dot ms-2"></i>השירות מסופק "כפי שהוא" (AS IS)</li>
+				  <li class="mb-2"><i class="bi bi-dot ms-2"></i>איננו מתחייבים לזמינות רציפה של השירות</li>
+				  <li class="mb-2"><i class="bi bi-dot ms-2"></i>אנו לא אחראים לנזקים עקיפים או תוצאתיים</li>
+				  <li class="mb-2"><i class="bi bi-dot ms-2"></i>המשתמש אחראי לגיבוי המידע שלו</li>
+				</ul>
+			  </div>
+			  
+			  <div class="mb-4">
+				<h5 class="fw-bold mb-2 fs-6">7. קניין רוחני</h5>
+				<ul class="list-unstyled pe-3">
+				  <li class="mb-2"><i class="bi bi-dot ms-2"></i>כל זכויות הקניין הרוחני בשירות שייכות ל-WhatsApp
+					Organizer
+				  </li>
+				  <li class="mb-2"><i class="bi bi-dot ms-2"></i>המשתמש שומר על הזכויות בתוכן שהוא מעלה לשירות</li>
+				</ul>
+			  </div>
+			  
+			  <div class="mb-4">
+				<h5 class="fw-bold mb-2 fs-6">8. שינויים בשירות</h5>
+				<ul class="list-unstyled pe-3">
+				  <li class="mb-2"><i class="bi bi-dot ms-2"></i>אנו רשאים לשנות או להפסיק את השירות בכל עת</li>
+				  <li class="mb-2"><i class="bi bi-dot ms-2"></i>שינויים בתנאי השימוש יפורסמו בחלק הזה</li>
+				  <li class="mb-2"><i class="bi bi-dot ms-2"></i>המשך השימוש בשירות לאחר שינוי התנאים מהווה הסכמה לתנאים
+					החדשים
+				  </li>
+				</ul>
+			  </div>
+			  
+			  <div class="mb-4">
+				<h5 class="fw-bold mb-2 fs-6">9. סיום השירות</h5>
+				<ul class="list-unstyled pe-3">
+				  <li class="mb-2"><i class="bi bi-dot ms-2"></i>המשתמש רשאי להפסיק את השימוש בשירות בכל עת</li>
+				  <li class="mb-2"><i class="bi bi-dot ms-2"></i>אנו רשאים להשעות או לסיים את השירות למשתמש שמפר את
+					התנאים
+				  </li>
+				  <li class="mb-2"><i class="bi bi-dot ms-2"></i>בסיום השירות, המשתמש יוכל לייצא את המידע שלו תוך 30 יום
+				  </li>
+				</ul>
+			  </div>
+			  
+			  <div class="mb-4">
+				<h5 class="fw-bold mb-2 fs-6">10. יצירת קשר</h5>
+				<p>לשאלות או בירורים בנוגע לתנאי השימוש, ניתן ליצור קשר בכתובת:</p>
+				<a href="mailto:guyu669@gmail.com" class="text-primary text-decoration-none">
+				  <i class="bi bi-envelope ms-1"></i>guyu669@gmail.com
+				</a>
+			  </div>
+			  
+			  <div class="mb-4">
+				<h5 class="fw-bold mb-2 fs-6">11. שונות</h5>
+				<ul class="list-unstyled pe-3">
+				  <li class="mb-2"><i class="bi bi-dot ms-2"></i>אם סעיף כלשהו בתנאים אלו יימצא בלתי תקף, שאר הסעיפים
+					יישארו בתוקף
+				  </li>
+				  <li class="mb-2"><i class="bi bi-dot ms-2"></i>אי-אכיפת זכות כלשהי לא תהווה ויתור עליה</li>
+				</ul>
+			  </div>
+			  
+			  <div class="border-top pt-3">
+				<p class="text-muted small mb-0">
+				  עדכון אחרון: דצמבר 2024
+				</p>
+			  </div>
+			</div>
+			<div class="modal-footer border-top-0">
+			  <button type="button" class="btn btn-secondary px-4 py-2" data-bs-dismiss="modal">סגור</button>
+			</div>
+		  </div>
+		</div>
+	  </div>
+	  
+	  <!-- Privacy Policy Modal -->
+	  <div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true" dir="rtl">
+		<div class="modal-dialog modal-lg modal-dialog-centered modal-fullscreen-sm-down">
+		  <div class="modal-content">
+			<div class="modal-header border-bottom-0">
+			  <h5 class="modal-title fs-5 fs-sm-6 fw-bold" id="privacyModalLabel">מדיניות פרטיות - WhatsApp Organizer</h5>
+			  <button type="button" class="btn-close p-3" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body p-4 p-sm-3">
+			  <div class="mb-4">
+				<h5 class="fs-5 fw-bold mb-3">1. מבוא</h5>
+				<p>אנו ב-WhatsApp Organizer מחויבים להגן על פרטיותכם. מדיניות זו מפרטת כיצד אנו אוספים, משתמשים ומגנים על המידע שלכם.</p>
+			  </div>
+			  
+			  <div class="mb-4">
+				<h5 class="fs-5 fw-bold mb-3">2. איסוף מידע</h5>
+				<div class="mb-3">
+				  <h6 class="fs-6 fw-bold mb-2">2.1 מידע שאתם מספקים</h6>
+				  <ul class="list-unstyled pe-3">
+					<li class="mb-2 py-2"><i class="bi bi-dot ms-2"></i>הודעות טקסט שאתם שולחים לעצמכם</li>
+					<li class="mb-2 py-2"><i class="bi bi-dot ms-2"></i>קבצי מדיה (תמונות, מסמכים, הקלטות)</li>
+					<li class="mb-2 py-2"><i class="bi bi-dot ms-2"></i>תגיות וקטגוריות שאתם יוצרים</li>
+				  </ul>
+				</div>
+				<div class="mb-3">
+				  <h6 class="fs-6 fw-bold mb-2">2.2 מידע שנאסף אוטומטית</h6>
+				  <ul class="list-unstyled pe-3">
+					<li class="mb-2 py-2"><i class="bi bi-dot ms-2"></i>מטא-דאטה של קבצים</li>
+					<li class="mb-2 py-2"><i class="bi bi-dot ms-2"></i>נתוני שימוש בסיסיים</li>
+					<li class="mb-2 py-2"><i class="bi bi-dot ms-2"></i>התפלגות סטטיסטית של הודעותיכם</li>
+				  </ul>
+				</div>
+			  </div>
+			  
+			  <div class="mb-4">
+				<h5 class="fs-5 fw-bold mb-3">3. שימוש במידע</h5>
+				<ul class="list-unstyled pe-3">
+				  <li class="mb-2 py-2"><i class="bi bi-dot ms-2"></i>ארגון וניהול ההודעות שלכם</li>
+				  <li class="mb-2 py-2"><i class="bi bi-dot ms-2"></i>שיפור השירות והממשק</li>
+				  <li class="mb-2 py-2"><i class="bi bi-dot ms-2"></i>אבטחת המידע שלכם</li>
+				  <li class="mb-2 py-2"><i class="bi bi-dot ms-2"></i>תמיכה טכנית</li>
+				</ul>
+			  </div>
+			  
+			  <div class="mb-4">
+				<h5 class="fs-5 fw-bold mb-3">4. אחסון ואבטחת מידע</h5>
+				<div class="mb-3">
+				  <h6 class="fs-6 fw-bold mb-2">4.1 אחסון</h6>
+				  <ul class="list-unstyled pe-3">
+					<li class="mb-2 py-2"><i class="bi bi-dot ms-2"></i>הודעות טקסט נשמרות במסד הנתונים שלנו</li>
+					<li class="mb-2 py-2"><i class="bi bi-dot ms-2"></i>קבצי מדיה מאוחסנים ב-Google Cloud</li>
+					<li class="mb-2 py-2"><i class="bi bi-dot ms-2"></i>גיבויים מאובטחים נשמרים באופן קבוע</li>
+				  </ul>
+				</div>
+				<div class="mb-3">
+				  <h6 class="fs-6 fw-bold mb-2">4.2 אמצעי אבטחה</h6>
+				  <ul class="list-unstyled pe-3">
+					<li class="mb-2 py-2"><i class="bi bi-dot ms-2"></i>גישה מוגבלת למידע אישי</li>
+					<li class="mb-2 py-2"><i class="bi bi-dot ms-2"></i>קישורים מאובטחים לקבצים</li>
+				  </ul>
+				</div>
+			  </div>
+			  
+			  <div class="mb-4">
+				<h5 class="fs-5 fw-bold mb-3">5. שיתוף מידע</h5>
+				<p>אנחנו לא משתפים את המידע האישי שלכם עם צדדים שלישיים, למעט במקרים הבאים:</p>
+				<ul class="list-unstyled pe-3">
+				  <li class="mb-2 py-2"><i class="bi bi-dot ms-2"></i>כאשר נדרש על פי חוק</li>
+				  <li class="mb-2 py-2"><i class="bi bi-dot ms-2"></i>להגנה על זכויותינו המשפטיות</li>
+				  <li class="mb-2 py-2"><i class="bi bi-dot ms-2"></i>במקרה של מיזוג או רכישה של החברה</li>
+				</ul>
+			  </div>
+			  
+			  <div class="mb-4">
+				<h5 class="fs-5 fw-bold mb-3">6. זכויות המשתמש</h5>
+				<ul class="list-unstyled pe-3">
+				  <li class="mb-2 py-2"><i class="bi bi-dot ms-2"></i>גישה למידע האישי שלכם</li>
+				  <li class="mb-2 py-2"><i class="bi bi-dot ms-2"></i>תיקון מידע לא מדויק</li>
+				  <li class="mb-2 py-2"><i class="bi bi-dot ms-2"></i>מחיקת המידע שלכם</li>
+				  <li class="mb-2 py-2"><i class="bi bi-dot ms-2"></i>ייצוא המידע שלכם</li>
+				</ul>
+			  </div>
+			  
+			  <div class="mb-4">
+				<h5 class="fs-5 fw-bold mb-3">7. יצירת קשר בנושאי פרטיות</h5>
+				<p>לשאלות או בקשות בנוגע למדיניות הפרטיות, אנא צרו קשר:</p>
+				<a href="mailto:guyu669@gmail.com" class="text-primary text-decoration-none d-inline-block py-2">
+				  <i class="bi bi-envelope ms-1"></i>guyu669@gmail.com
+				</a>
+			  </div>
+			  
+			  <div class="border-top pt-3">
+				<p class="text-muted small mb-0">
+				  עדכון אחרון: דצמבר 2024
+				</p>
+			  </div>
+			</div>
+			<div class="modal-footer border-top-0">
+			  <button type="button" class="btn btn-secondary px-4 py-2" data-bs-dismiss="modal">סגור</button>
+			</div>
+		  </div>
+		</div>
+	  </div>
+	  
+	  <!-- Contact Info -->
+	  <div class="col-lg-4">
+		<h5 class="text-white mb-3">צור קשר</h5>
+		<ul class="list-unstyled">
+		  <li class="mb-2 text-white-50">
+			<a href="/images/cv.pdf" class="text-white-50 text-decoration-none transition-hover">
+			  <i class="bi bi-file-earmark-person-fill me-2"></i>
+			  קורות חיים
+			</a>
+		  </li>
+		  <li class="mb-2">
+			<a href="mailto:info@whatsapp-organizer.com" class="text-white-50 text-decoration-none transition-hover">
+			  <i class="bi bi-envelope-fill me-2"></i>
+			  guyu669@gmail.com
+			</a>
+		  </li>
+		  <li class="mb-2">
+			<a href="tel:+972123456789" class="text-white-50 text-decoration-none transition-hover">
+			  <i class="bi bi-telephone-fill me-2"></i>
+			  0509603888
+			</a>
+		  </li>
+		</ul>
+	  </div>
+	</div>
+	
+	<!-- Copyright Bar -->
+	<div class="row mt-4 pt-3 border-top border-secondary">
+	  <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
+		<span class="text-white-50">© 2024 WhatsApp Organizer. כל הזכויות שמורות.</span>
+	  </div>
+	  <div class="col-md-6 text-center text-md-end">
+		<a role="button" data-bs-toggle="modal" data-bs-target="#termsModal"
+		   class="text-white-50 text-decoration-none me-3 transition-hover">תנאי שימוש</a>
+		<a role="button" data-bs-toggle="modal" data-bs-target="#privacyModal"
+		   class="text-white-50 text-decoration-none transition-hover">מדיניות פרטיות</a>
+	  </div>
+	</div>
+  </div>
+</footer>
+</body>
+</html>
