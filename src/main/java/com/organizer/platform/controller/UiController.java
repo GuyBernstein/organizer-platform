@@ -158,6 +158,8 @@ public class UiController {
             @RequestParam String messageContent,
             @RequestParam String tags,
             @RequestParam String nextSteps,
+            @RequestParam String category,
+            @RequestParam String subCategory,
             @AuthenticationPrincipal OAuth2User principal,
             Model model,
             RedirectAttributes redirectAttributes) {
@@ -186,8 +188,8 @@ public class UiController {
                     .messageContent(messageContent)
                     .type(type)
                     .purpose(purpose)
-                    .category(message.get().getCategory())
-                    .subCategory(message.get().getSubCategory())
+                    .category(category)
+                    .subCategory(subCategory)
                     .tags(commaSeparatedTags)
                     .nextSteps(commaSeparatedNextSteps)
                     .build();

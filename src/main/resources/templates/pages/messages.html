@@ -337,6 +337,20 @@
 					</div>
 				  </div>
 				  
+				  <!-- Category and SubCategory -->
+				  <div class="row mb-3">
+					<div class="col-6">
+					  <label class="form-label">קטגוריה:</label>
+					  <input type="text" class="form-control" name="category"
+							 th:value="${message.category}" required>
+					</div>
+					<div class="col-6">
+					  <label class="form-label">תת קטגוריה:</label>
+					  <input type="text" class="form-control" name="subCategory"
+							 th:value="${message.subCategory}" required>
+					</div>
+				  </div>
+				  
 				  <!-- Message Content -->
 				  <div class="mb-3">
 					<label class="form-label">תוכן:</label>

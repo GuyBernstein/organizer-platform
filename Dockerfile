@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 openjdk:11
+FROM  openjdk:11
 # --platform=linux/amd64
 COPY target/organizer-platform*.jar /usr/src/organizer-platform.jar
 COPY src/main/resources/application.properties /opt/conf/application.properties

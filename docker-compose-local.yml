@@ -3,7 +3,7 @@ services:
   appserver:
     container_name: server
     hostname: localhost
-    image:  shakshukayahoo/organizer-platform:guy-001
+    image:  shakshukayahoo/organizer-platform:guy-016
     ports:
       - "8080:8080"
 
