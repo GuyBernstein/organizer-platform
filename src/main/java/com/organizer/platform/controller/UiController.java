@@ -691,13 +691,25 @@ public class UiController {
 
 
     private void setupMessagesPage(Model model, AppUser appUser, boolean isFiltered) {
+        Map<String, Map<String, List<MessageDTO>>> organizedMessages = null;
         if(!isFiltered) {
-            Map<String, Map<String, List<MessageDTO>>> organizedMessages =
-                    messageService.findMessageContentsByFromNumberGroupedByCategoryAndGroupedBySubCategory(appUser.getWhatsappNumber());
+            organizedMessages = messageService.findMessageContentsByFromNumberGroupedByCategoryAndGroupedBySubCategory(appUser.getWhatsappNumber());
             model.addAttribute("categories", organizedMessages); // resets the filter option
         }
-        model.addAttribute("totalTags", messageService.getAllTagsByPhoneNumber(appUser.getWhatsappNumber()));
 
+        // Extract and set category and subcategory lists
+        assert organizedMessages != null;
+        List<String> categories = new ArrayList<>(organizedMessages.keySet());
+
+        Set<String> subcategoriesSet = new HashSet<>();
+        for (Map<String, List<MessageDTO>> innerMap : organizedMessages.values()) {
+            subcategoriesSet.addAll(innerMap.keySet());
+        }
+        List<String> subcategories = new ArrayList<>(subcategoriesSet);
+
+        model.addAttribute("categoryList", categories);
+        model.addAttribute("subcategoryList", subcategories);
+        model.addAttribute("totalTags", messageService.getAllTagsByPhoneNumber(appUser.getWhatsappNumber()));
     }
 
 }

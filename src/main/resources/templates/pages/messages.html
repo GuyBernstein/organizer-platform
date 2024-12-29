@@ -337,17 +337,29 @@
 					</div>
 				  </div>
 				  
-				  <!-- Category and SubCategory -->
+				  <!-- Category with Dropdown -->
 				  <div class="row mb-3">
 					<div class="col-6">
 					  <label class="form-label">קטגוריה:</label>
-					  <input type="text" class="form-control" name="category"
-							 th:value="${message.category}" required>
+					  <select class="form-select" name="category" required>
+						<option value="" disabled>בחר קטגוריה</option>
+						<option th:each="cat : ${categoryList}"
+								th:value="${cat}"
+								th:text="${cat}"
+								th:selected="${cat == message.category}">
+						</option>
+					  </select>
 					</div>
 					<div class="col-6">
 					  <label class="form-label">תת קטגוריה:</label>
-					  <input type="text" class="form-control" name="subCategory"
-							 th:value="${message.subCategory}" required>
+					  <select class="form-select" name="subCategory" required>
+						<option value="" disabled>בחר תת קטגוריה</option>
+						<option th:each="subcat : ${subcategoryList}"
+								th:value="${subcat}"
+								th:text="${subcat}"
+								th:selected="${subcat == message.subCategory}">
+						</option>
+					  </select>
 					</div>
 				  </div>
 				  

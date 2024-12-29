@@ -534,3 +534,4 @@ function initUserActivityChart(datesGlobal, countsGlobal) {
     }
   })
 }
+
