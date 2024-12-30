@@ -337,29 +337,94 @@
 					</div>
 				  </div>
 				  
-				  <!-- Category with Dropdown -->
+				  <!-- Category Selection Section -->
 				  <div class="row mb-3">
 					<div class="col-6">
-					  <label class="form-label">קטגוריה:</label>
-					  <select class="form-select" name="category" required>
-						<option value="" disabled>בחר קטגוריה</option>
-						<option th:each="cat : ${categoryList}"
-								th:value="${cat}"
-								th:text="${cat}"
-								th:selected="${cat == message.category}">
-						</option>
-					  </select>
+					  <!-- Category Buttons -->
+					  <div class="d-flex gap-2 mb-2">
+						<button class="btn btn-primary" type="button" data-bs-toggle="collapse"
+								data-bs-target="#categoryTextInput" aria-expanded="false">
+						  הזן קטגוריה
+						</button>
+						<button class="btn btn-primary" type="button" data-bs-toggle="collapse"
+								data-bs-target="#categorySelectInput" aria-expanded="false">
+						  בחר קטגוריה
+						</button>
+					  </div>
+					  
+					  <!-- Hidden input to store the final category value -->
+					  <input type="hidden" name="category" th:value="${message.category}">
+					  
+					  <!-- Category Text Input Collapse -->
+					  <div class="collapse mb-2" id="categoryTextInput">
+						<div class="input-group">
+						  <input type="text" class="form-control"
+								 th:value="${message.category}"
+								 onchange="this.form.category.value = this.value"
+								 placeholder="הזן קטגוריה">
+						  <button class="btn btn-outline-primary" type="submit">אישור</button>
+						</div>
+					  </div>
+					  
+					  <!-- Category Select Input Collapse -->
+					  <div class="collapse mb-2" id="categorySelectInput">
+						<div class="input-group">
+						  <select class="form-select"
+								  onchange="this.form.category.value = this.value">
+							<option value="" disabled>בחר קטגוריה</option>
+							<option th:each="cat : ${categoryList}"
+									th:value="${cat}"
+									th:text="${cat}"
+									th:selected="${cat == message.category}">
+							</option>
+						  </select>
+						  <button class="btn btn-outline-primary" type="submit">אישור</button>
+						</div>
+					  </div>
 					</div>
+					
 					<div class="col-6">
-					  <label class="form-label">תת קטגוריה:</label>
-					  <select class="form-select" name="subCategory" required>
-						<option value="" disabled>בחר תת קטגוריה</option>
-						<option th:each="subcat : ${subcategoryList}"
-								th:value="${subcat}"
-								th:text="${subcat}"
-								th:selected="${subcat == message.subCategory}">
-						</option>
-					  </select>
+					  <!-- Subcategory Buttons -->
+					  <div class="d-flex gap-2 mb-2">
+						<button class="btn btn-primary" type="button" data-bs-toggle="collapse"
+								data-bs-target="#subcategoryTextInput" aria-expanded="false">
+						  הזן תת קטגוריה
+						</button>
+						<button class="btn btn-primary" type="button" data-bs-toggle="collapse"
+								data-bs-target="#subcategorySelectInput" aria-expanded="false">
+						  בחר תת קטגוריה
+						</button>
+					  </div>
+					  
+					  <!-- Hidden input to store the final subcategory value -->
+					  <input type="hidden" name="subCategory" th:value="${message.subCategory}">
+					  
+					  <!-- Subcategory Text Input Collapse -->
+					  <div class="collapse mb-2" id="subcategoryTextInput">
+						<div class="input-group">
+						  <input type="text" class="form-control"
+								 th:value="${message.subCategory}"
+								 onchange="this.form.subCategory.value = this.value"
+								 placeholder="הזן תת קטגוריה">
+						  <button class="btn btn-outline-primary" type="submit">אישור</button>
+						</div>
+					  </div>
+					  
+					  <!-- Subcategory Select Input Collapse -->
+					  <div class="collapse mb-2" id="subcategorySelectInput">
+						<div class="input-group">
+						  <select class="form-select"
+								  onchange="this.form.subCategory.value = this.value">
+							<option value="" disabled>בחר תת קטגוריה</option>
+							<option th:each="subcat : ${subcategoryList}"
+									th:value="${subcat}"
+									th:text="${subcat}"
+									th:selected="${subcat == message.subCategory}">
+							</option>
+						  </select>
+						  <button class="btn btn-outline-primary" type="submit">אישור</button>
+						</div>
+					  </div>
 					</div>
 				  </div>
 				  
