@@ -79,7 +79,7 @@ public class UiController {
                                       @AuthenticationPrincipal OAuth2User principal,
                                       Exception ex) {
         // Add error information to the model
-        model.addAttribute("errorMessage", " אופס! משהו השתבש");
+        model.addAttribute("errorMessage", "\nאופס! משהו השתבש" + ex.getMessage());
         if (principal == null) {
             model.addAttribute("content", "pages/auth/login");
         }
