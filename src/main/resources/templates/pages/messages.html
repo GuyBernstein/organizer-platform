@@ -321,7 +321,6 @@
 				<!-- Regular Edit Mode -->
 				<form class="edit-mode d-none" th:action="@{/messages/update}" method="post">
 				  <input type="hidden" name="messageId" th:value="${message.id}" />
-				  <input type="hidden" name="editMode" value="regular" />
 				  
 				  <!-- Type and Purpose -->
 				  <div class="row mb-3">
@@ -459,7 +458,6 @@
 				<!-- Smart Edit Mode -->
 				<form class="smart-edit-mode d-none" th:action="@{/messages/smartUpdate}" method="post">
 				  <input type="hidden" name="messageId" th:value="${message.id}" />
-				  <input type="hidden" name="editMode" value="smart" />
 				  
 				  <!-- Only Message Content is Editable -->
 				  <div class="mb-3">
