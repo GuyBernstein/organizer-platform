@@ -32,7 +32,7 @@ public class AppUser implements Serializable {
     }
 
     @NotEmpty
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String email;
 
     @Column(length = 15)

@@ -186,3 +186,31 @@ h1, h2, h3, h4, h5, h6 {
     max-width: 100%;
     max-height: 100%;
 }
+.alert-enhanced {
+    padding: 1.5rem;
+    margin: 1rem 0;
+    line-height: 1.6;
+    font-size: 1.1rem;
+}
+
+.alert-enhanced .error-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.alert-enhanced .error-icon {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+.alert-enhanced .error-text {
+    flex-grow: 1;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.alert-enhanced .btn-close {
+    padding: 1.5rem;
+    margin: -1rem -1rem -1rem auto;
+}

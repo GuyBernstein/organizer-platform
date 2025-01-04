@@ -4,9 +4,13 @@
 <body>
 <div th:fragment="content">
   <div class="container py-4">
-	<div th:if="${errorMessage != null && !errorMessage.isEmpty()}" class="alert alert-danger alert-dismissible fade show" role="alert">
-	  <i class="bi bi-exclamation-triangle-fill me-2"></i>
-	  <span th:text="${errorMessage}">אופס! משהו השתבש</span>
+	<div th:if="${errorMessage != null && !errorMessage.isEmpty()}"
+		 class="alert alert-danger alert-dismissible fade show alert-enhanced"
+		 role="alert">
+	  <div class="error-content">
+		<i class="bi bi-exclamation-triangle-fill error-icon"></i>
+		<span class="error-text" th:text="${errorMessage}">אופס! משהו השתבש</span>
+	  </div>
 	  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="סגור"></button>
 	</div>
 	<div class="text-center mb-5">

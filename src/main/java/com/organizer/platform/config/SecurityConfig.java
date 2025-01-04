@@ -1,31 +1,16 @@
 package com.organizer.platform.config;
 
-import com.organizer.platform.service.Google.CustomOAuth2UserService;
-import com.organizer.platform.service.User.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-    private final ClientRegistrationRepository clientRegistrationRepository;
-    private final CustomOAuth2UserService customOAuth2UserService;
-
-    @Autowired
-    public SecurityConfig(
-            ClientRegistrationRepository clientRegistrationRepository,
-            CustomOAuth2UserService customOAuth2UserService) {
-        this.clientRegistrationRepository = clientRegistrationRepository;
-        this.customOAuth2UserService = customOAuth2UserService;
-    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -58,13 +43,10 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .oauth2Login(oauth2 -> oauth2
-                        .clientRegistrationRepository(clientRegistrationRepository)
-                        .userInfoEndpoint(userInfo -> userInfo
-                                .userService(customOAuth2UserService))
+                .oauth2Login()
                         .loginPage("/login")
                         .defaultSuccessUrl("/login", true)
-                )
+                .and()
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login?logout=true")
                         .invalidateHttpSession(true)

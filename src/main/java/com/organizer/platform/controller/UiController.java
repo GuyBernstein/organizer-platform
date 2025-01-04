@@ -15,10 +15,12 @@ import com.organizer.platform.service.User.ExportService;
 import com.organizer.platform.service.User.UserService;
 import com.organizer.platform.service.WhatsApp.WhatsAppMessageService;
 import com.organizer.platform.util.Dates;
+import org.hibernate.exception.SQLGrammarException;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -78,13 +80,43 @@ public class UiController {
     public String handleAllExceptions(Model model,
                                       @AuthenticationPrincipal OAuth2User principal,
                                       Exception ex) {
+
         // Add error information to the model
-        model.addAttribute("errorMessage", "\nאופס! משהו השתבש" + ex.getMessage());
+//        model.addAttribute("errorMessage", "\nאופס! משהו השתבש" + ex.getMessage());
+        // Get detailed error information
+        String errorMessage = buildDetailedErrorMessage(ex);
+        model.addAttribute("errorMessage", errorMessage);
         if (principal == null) {
             model.addAttribute("content", "pages/auth/login");
         }
         model.addAttribute("content", "pages/home");
         return "layout/base";
+    }
+
+    private String buildDetailedErrorMessage(Exception ex) {
+        StringBuilder message = new StringBuilder();
+
+        if (ex instanceof SQLGrammarException) {
+            SQLGrammarException sqlEx = (SQLGrammarException) ex;
+            message.append("Database error occurred: ")
+                    .append(sqlEx.getSQLException().getMessage())
+                    .append(" | SQL State: ")
+                    .append(sqlEx.getSQLException().getSQLState());
+        } else if (ex instanceof DataAccessException) {
+            message.append("Data access error: ")
+                    .append(ex.getMessage());
+        } else {
+            message.append("An unexpected error occurred: ")
+                    .append(ex.getMessage());
+        }
+
+        // Add cause if present
+        if (ex.getCause() != null) {
+            message.append(" | Caused by: ")
+                    .append(ex.getCause().getMessage());
+        }
+
+        return message.toString();
     }
 
 

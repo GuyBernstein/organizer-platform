@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,9 +26,9 @@ public class UserService {
     @Autowired
     public UserService(UserRepository repository) {
         this.repository = repository;
-        initializeAdmin();
     }
 
+    @PostConstruct
     private AppUser initializeAdmin() {
         return repository.findByEmail(ADMIN_EMAIL).orElseGet(() -> {
             AppUser admin = anUser()
