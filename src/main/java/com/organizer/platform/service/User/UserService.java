@@ -15,10 +15,10 @@ import static com.organizer.platform.model.User.AppUser.UserBuilder.anUser;
 
 @Service
 public class UserService {
-    public static final String ADMIN_EMAIL = "guyu669@gmail.com";
-    private static final String ADMIN_WHATSAPP = "972509603888";
-    private static final String ADMIN_PICTURE = "https://lh3.googleusercontent.com/a/ACg8ocJRoPwngyQ0tZOZ7ObgSXVLwkEAnWKs5HbapL8uA-Kh5V7_hoU=s96-c";
-    private static final String ADMIN_NAME = "Guy Bernstein";
+    public static final String ADMIN_EMAIL = "your@gmail.com";
+    private static final String ADMIN_WHATSAPP = "9725-yourphone";
+    private static final String ADMIN_PICTURE = "url-to-picture";
+    private static final String ADMIN_NAME = "your-name";
     private static final boolean ADMIN_AUTHORIZED = true;
     private final UserRepository repository;
 
