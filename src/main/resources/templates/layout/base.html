@@ -1,0 +1,186 @@
+<!-- Base template that serves as the foundation for all pages -->
+<!-- Note: This template uses Thymeleaf templating engine with RTL (Right-to-Left) support for Hebrew -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" dir="rtl" lang="he">
+<head>
+  <!-- Basic meta tags for proper character encoding and responsive design -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- Theme color for browser UI elements -->
+  <meta name="theme-color" content="#ffc107">
+  <!-- Dynamic title using Thymeleaf -->
+  <title th:text="${title}">Default Title</title>
+  
+  <!-- External CSS Dependencies -->
+  <!-- Bootstrap RTL version for right-to-left language support -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  
+  <!-- Google Fonts - Rubik (commonly used for Hebrew text) -->
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome for additional icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Application-specific stylesheets -->
+  <link th:href="@{/css/home.css}" rel="stylesheet">
+  <link th:href="@{/css/navbar.css}" rel="stylesheet">
+</head>
+
+<!-- Body with flex column layout to ensure footer stays at bottom -->
+<body class="d-flex flex-column min-vh-100">
+  <!-- Navigation bar fragment -->
+  <nav th:replace="~{fragments/navbar :: navbar}"></nav>
+  
+  <!-- Main content area -->
+  <main class="flex-shrink-0" role="main">
+	<div class="container-fluid px-0">
+	  <!-- Dynamic content insertion point -->
+	  <!-- Uses Thymeleaf fragment replacement to insert page-specific content -->
+	  <div th:replace="~{${content} :: content}">
+		<!-- Content will be inserted here, each page would be something different -->
+	  </div>
+	</div>
+  </main>
+  
+  <!-- Footer fragment -->
+  <footer class="footer mt-auto py-3" th:replace="~{fragments/footer :: footer}"></footer>
+  
+  <!-- JavaScript Section -->
+  <script th:inline="javascript">
+	// Global variables for admin dashboard charts
+	// User activity data
+	window.userCountsByDate = [[${ userCountsByDate }]]
+	window.cumulativeCountsByDate = [[${ cumulativeCountsByDate }]]
+	
+	// User authorization status data
+	window.authorizedUsers = [[${ authorizedUsers }]]
+	window.adminUsers = [[${ adminUsers }]]
+	window.unauthorizedUsers = [[${ unauthorizedUsers }]]
+	
+	// Category hierarchy data for index page
+	window.categoriesHierarchyData = [[${ categoriesHierarchy }]]
+	
+	// Sample treemap data with Hebrew categories for homepage visualization
+	window.miniCategoriesData = [
+	  {
+		name: 'אומנות גוף',
+		value: 2,
+		children: [
+		  {
+			name: 'קעקועים מינימליסטיים',
+			value: 2
+			
+		  },
+		  {
+			name: 'קעקועים יפים',
+			value: 1
+		  }
+		]
+	  },
+	  {
+		name: 'ביוגרפיה',
+		value: 1,
+		children: [
+		  {
+			name: 'דמות ציבורית דתית',
+			value: 1
+		  }
+		]
+	  },
+	  {
+		name: 'דוגמה טכנולוגית',
+		value: 3,
+		children: [
+		  {
+			name: 'תכנות בסיסי',
+			value: 5
+		  },
+		  {
+			name: 'מדריך פשוט',
+			value: 2
+		  },
+		  {
+			name: 'התקנת מחשב',
+			value: 2
+		  }
+		]
+	  },
+	  {
+		name: 'אקדמי',
+		value: 1,
+		children: [
+		  {
+			name: 'אישור תכנית לימודים',
+			value: 2
+		  }
+		]
+	  }
+	]
+	
+	
+	// Configuration for TreeMap chart
+	window.treeMapOptions = {
+	  plugins: {
+		// Title configuration
+		title: {
+		  display: true,
+		  text: 'התפלגות הודעות לפי קטגוריה(דוגמא)',
+		  font: {
+			size: 18,
+			weight: 'bold'
+		  },
+		  padding: {
+			top: 10
+		  }
+		},
+		// Hide legend
+		legend: {
+		  display: false
+		},
+		// Tooltip configuration with RTL support
+		tooltip: {
+		  titleFont: {
+			size: 16
+		  },
+		  bodyFont: {
+			size: 16
+		  },
+		  callbacks: {
+			title(items) {
+			  if (!items[0] || !items[0].raw) return ''
+			  const item = window.miniCategoriesData[items[0].dataIndex]
+			  return item ? item.name : ''
+			},
+			label(context) {
+			  if (!context.raw) return ''
+			  const item = window.miniCategoriesData[context.dataIndex]
+			  return `מספר הודעות: ${item.value}`
+			}
+		  },
+		  rtl: true,
+		  textDirection: 'rtl'
+		}
+	  },
+	  // Animation settings
+	  animation: {
+		duration: 500
+	  },
+	  maintainAspectRatio: false
+	}
+  </script>
+  <!-- External JavaScript Dependencies -->
+  <!-- Bootstrap Bundle (includes Popper) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Chart.js and its plugins -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-treemap"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script>
+  
+  <!-- Application's main JavaScript file -->
+  <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

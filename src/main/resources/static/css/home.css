@@ -1,0 +1,261 @@
+/* ==========================================================================
+   WhatsApp Theme Variables
+   Define core color scheme and brand colors for consistent styling
+   ========================================================================== */
+:root {
+    --whatsapp-green: #25D366;    /* Primary brand color used for key elements */
+    --whatsapp-light-green: #DCF8C6;  /* Used for backgrounds and hover states */
+    --whatsapp-dark: #075E54;     /* Used for headers and important text */
+    --whatsapp-teal: #128C7E;     /* Secondary brand color for buttons and accents */
+    --whatsapp-gray: #ECE5DD;     /* Background color for messages */
+    --whatsapp-light-gray: #F5F5F5;   /* Used for subtle backgrounds */
+    --whatsapp-footer-dark: #1a1a1a;  /* Dark background for footer */
+}
+
+/* ==========================================================================
+   Typography Settings
+   Establishes base font settings and line height for better readability
+   ========================================================================== */
+body {
+    font-family: 'Rubik', sans-serif;
+    line-height: 1.6;
+}
+
+/* Right-to-left language support */
+html[dir="rtl"] {
+    text-align: right;
+}
+
+/* Heading styles with consistent branding */
+.display-4,
+.h1, .h2, .h3, .h4, .h5, .h6,
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Rubik', sans-serif;
+    font-weight: 600;
+    color: var(--whatsapp-dark);
+}
+
+/* ==========================================================================
+   Brand Colors and Utility Classes
+   Provides reusable color classes for text and backgrounds
+   ========================================================================== */
+.text-whatsapp {
+    color: var(--whatsapp-green) !important;
+}
+
+.bg-whatsapp {
+    background-color: var(--whatsapp-green) !important;
+}
+
+.bg-whatsapp-light {
+    background-color: var(--whatsapp-light-green) !important;
+}
+
+/* ==========================================================================
+   Button Styles
+   Custom button variants matching WhatsApp's design language
+   ========================================================================== */
+/* Primary WhatsApp button with hover effect */
+.btn-whatsapp {
+    background-color: var(--whatsapp-teal);
+    border: none;
+    color: white;
+    transition: background-color 0.3s ease;
+}
+
+.btn-whatsapp:hover {
+    background-color: var(--whatsapp-dark);
+    color: white;
+}
+
+/* Outlined variant of WhatsApp button */
+.btn-whatsapp-outline {
+    border: 2px solid var(--whatsapp-teal);
+    color: var(--whatsapp-teal);
+    background: transparent;
+    transition: all 0.3s ease;
+}
+
+.btn-whatsapp-outline:hover {
+    background-color: var(--whatsapp-teal);
+    color: white;
+}
+
+/* ==========================================================================
+   Feature Section Components
+   Styles for feature highlighting sections with hover animations
+   ========================================================================== */
+/* Icon container with hover effect */
+.feature-icon {
+    background: var(--whatsapp-light-green);
+    min-height: 200px;
+    border-radius: 10px;
+    transition: transform 0.3s ease;
+}
+
+.feature-icon:hover {
+    transform: translateY(-5px);
+}
+
+/* Feature card with shadow and hover effect */
+.feature-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+}
+
+/* ==========================================================================
+   Footer Styling
+   Dark themed footer with social links and hover effects
+   ========================================================================== */
+.footer {
+    background-color: var(--whatsapp-footer-dark);
+}
+
+.footer a {
+    text-decoration: none;
+}
+
+/* Smooth color transition for footer links */
+.transition-hover {
+    transition: color 0.3s ease-in-out;
+}
+
+.transition-hover:hover {
+    color: var(--whatsapp-green) !important;
+}
+
+/* Social media link styling */
+.social-links a {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.social-links a:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-3px);
+}
+
+/* ==========================================================================
+   Responsive Design Adjustments
+   Mobile-first approach with specific adjustments for smaller screens
+   ========================================================================== */
+@media (max-width: 768px) {
+    .display-4 {
+        font-size: calc(1.375rem + 1.5vw);
+    }
+
+    .feature-icon {
+        min-height: 150px;
+    }
+
+    .footer .row > div {
+        text-align: center;
+    }
+
+    .footer .social-links {
+        justify-content: center;
+    }
+
+    .footer .list-unstyled {
+        margin-bottom: 2rem;
+    }
+}
+
+/* ==========================================================================
+   Animation and Interactive Elements
+   Custom animations and hover effects for enhanced user experience
+   ========================================================================== */
+.hover-grow {
+    transition: transform 0.3s ease;
+}
+
+.hover-grow:hover {
+    transform: scale(1.05);
+}
+
+/* Material Design inspired shadows */
+.shadow-whatsapp {
+    box-shadow: 0 2px 5px rgba(37, 211, 102, 0.1);
+    transition: box-shadow 0.3s ease;
+}
+
+.shadow-whatsapp:hover {
+    box-shadow: 0 5px 15px rgba(37, 211, 102, 0.2);
+}
+
+/* ==========================================================================
+   Form Elements
+   Custom styling for form controls with WhatsApp branding
+   ========================================================================== */
+.form-control:focus {
+    border-color: var(--whatsapp-teal);
+    box-shadow: 0 0 0 0.25rem rgba(37, 211, 102, 0.25);
+}
+
+/* ==========================================================================
+   Statistics and Chart Components
+   Styling for data visualization elements
+   ========================================================================== */
+.stat-card {
+    border-radius: 15px;
+    min-height: 140px;
+}
+
+.message-type-card {
+    border-radius: 15px;
+    background: linear-gradient(145deg, #ffffff, #f8f9fa);
+}
+
+.chart-container {
+    position: relative;
+    margin: auto;
+}
+
+.chart-container canvas {
+    max-width: 100%;
+    max-height: 100%;
+}
+
+/* ==========================================================================
+   Alert Components
+   Enhanced alert styling with icons and improved readability
+   ========================================================================== */
+.alert-enhanced {
+    padding: 1.5rem;
+    margin: 1rem 0;
+    line-height: 1.6;
+    font-size: 1.1rem;
+}
+
+.alert-enhanced .error-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.alert-enhanced .error-icon {
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+.alert-enhanced .error-text {
+    flex-grow: 1;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.alert-enhanced .btn-close {
+    padding: 1.5rem;
+    margin: -1rem -1rem -1rem auto;
+}
