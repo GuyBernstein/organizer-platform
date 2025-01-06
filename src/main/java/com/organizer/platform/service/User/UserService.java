@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,21 +27,6 @@ public class UserService {
         this.repository = repository;
     }
 
-    @PostConstruct
-    private AppUser initializeAdmin() {
-        return repository.findByEmail(ADMIN_EMAIL).orElseGet(() -> {
-            AppUser admin = anUser()
-                    .name(ADMIN_NAME)
-                    .pictureUrl(ADMIN_PICTURE)
-                    .email(ADMIN_EMAIL)
-                    .whatsappNumber(ADMIN_WHATSAPP)
-                    .role(UserRole.ADMIN)
-                    .authorized(ADMIN_AUTHORIZED)
-                    .build();
-
-            return repository.save(admin);
-        });
-    }
 
     public void createUserFromEmail(String email, UserRole role, String phone) {
         repository.findByEmail(email)
@@ -82,11 +66,6 @@ public class UserService {
                 .role(UserRole.UNAUTHORIZED)
                 .authorized(false)
                 .build();
-    }
-
-
-    public AppUser restoreAdmin() {
-        return initializeAdmin();
     }
 
 
@@ -166,7 +145,32 @@ public class UserService {
 
     public void ensureUserExists(OAuth2User principal) {
         String email = principal.getAttribute("email");
-        findByEmail(email)
-                .orElseGet(() -> save(createUser(principal)));
+
+        if (ADMIN_EMAIL.equals(email)) {
+            repository.findByEmail(ADMIN_EMAIL).orElseGet(() -> {
+                AppUser admin = anUser()
+                        .name(ADMIN_NAME)
+                        .pictureUrl(ADMIN_PICTURE)
+                        .email(ADMIN_EMAIL)
+                        .whatsappNumber(ADMIN_WHATSAPP)
+                        .role(UserRole.ADMIN)
+                        .authorized(ADMIN_AUTHORIZED)
+                        .build();
+
+                return repository.save(admin);
+            });
+        } else {
+            repository.findByEmail(email).orElseGet(() -> {
+                AppUser user = anUser()
+                        .name(principal.getAttribute("name"))
+                        .pictureUrl(principal.getAttribute("picture"))
+                        .email(email)
+                        .role(UserRole.USER)
+                        .authorized(false)
+                        .build();
+
+                return repository.save(user);
+            });
+        }
     }
 }

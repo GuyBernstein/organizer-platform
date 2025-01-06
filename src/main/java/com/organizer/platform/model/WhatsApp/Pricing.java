@@ -6,6 +6,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Manages pricing information for messages, enabling cost tracking and billing features.
+ * This information is crucial for maintaining proper business operations and implementing
+ * usage-based pricing models.
+ */
 @Data
 @Builder
 @NoArgsConstructor

@@ -15,12 +15,10 @@ import com.organizer.platform.service.User.ExportService;
 import com.organizer.platform.service.User.UserService;
 import com.organizer.platform.service.WhatsApp.WhatsAppMessageService;
 import com.organizer.platform.util.Dates;
-import org.hibernate.exception.SQLGrammarException;
 import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -43,9 +41,16 @@ import static com.organizer.platform.controller.AppController.storedMediaName;
 import static com.organizer.platform.model.User.AppUser.UserBuilder.anUser;
 import static com.organizer.platform.model.organizedDTO.WhatsAppMessage.WhatsAppMessageBuilder.aWhatsAppMessage;
 
+/**
+ * Controller handling UI operations for the WhatsApp message organization platform.
+ * This controller manages user authentication, message handling, and administrative functions.
+ * It provides endpoints for viewing, creating, updating, and managing WhatsApp messages,
+ * as well as user management and authentication flows.
+ */
 @Controller
 @RequestMapping({"/"})
 public class UiController {
+    // Core service dependencies
     private final UserService userService;
     private final WhatsAppMessageService messageService;
     private final WebContentScraperService scraperService;
@@ -68,6 +73,21 @@ public class UiController {
     }
 
 
+    /*
+      Main page endpoints and authentication handlers
+     */
+
+    /**
+     * Handles the application's root endpoint, serving as the entry point for all users.
+     * This method provides differentiated access based on authentication status to ensure
+     * proper security and user experience - anonymous users see a public home page while
+     * authenticated users get personalized content. This separation is crucial for
+     * maintaining security boundaries while still providing public access to basic site info.
+     *
+     * @param principal The authenticated user info, null for anonymous users
+     * @param model The Spring MVC model for view rendering
+     * @return The appropriate view name based on authentication status
+     */
     @GetMapping
     public String home(@AuthenticationPrincipal OAuth2User principal, Model model) {
         if (principal == null) {
@@ -76,16 +96,29 @@ public class UiController {
         return handleAuthorizedAccess(principal, model, "דף הבית", "pages/home", false);
     }
 
+    /**
+     * Global exception handler for the UI controller that provides a consistent error
+     * handling strategy across all endpoints. This centralized approach ensures:
+     * - Users always get meaningful feedback when errors occur
+     * - The application maintains a consistent look and feel even during errors
+     * - Error messages are properly localized (in Hebrew)
+     * - Authentication state is preserved during error handling
+     * <p>
+     * This is particularly important for maintaining a good user experience even
+     * when things go wrong.
+     *
+     * @param model For passing error details to the view
+     * @param principal Current user's authentication info
+     * @param ex The caught exception
+     * @return The error view name
+     */
     @ExceptionHandler(Exception.class)
     public String handleAllExceptions(Model model,
                                       @AuthenticationPrincipal OAuth2User principal,
                                       Exception ex) {
 
         // Add error information to the model
-//        model.addAttribute("errorMessage", "\nאופס! משהו השתבש" + ex.getMessage());
-        // Get detailed error information
-        String errorMessage = buildDetailedErrorMessage(ex);
-        model.addAttribute("errorMessage", errorMessage);
+        model.addAttribute("errorMessage", "\nאופס! משהו השתבש" + ex.getMessage());
         if (principal == null) {
             model.addAttribute("content", "pages/auth/login");
         }
@@ -93,33 +126,18 @@ public class UiController {
         return "layout/base";
     }
 
-    private String buildDetailedErrorMessage(Exception ex) {
-        StringBuilder message = new StringBuilder();
 
-        if (ex instanceof SQLGrammarException) {
-            SQLGrammarException sqlEx = (SQLGrammarException) ex;
-            message.append("Database error occurred: ")
-                    .append(sqlEx.getSQLException().getMessage())
-                    .append(" | SQL State: ")
-                    .append(sqlEx.getSQLException().getSQLState());
-        } else if (ex instanceof DataAccessException) {
-            message.append("Data access error: ")
-                    .append(ex.getMessage());
-        } else {
-            message.append("An unexpected error occurred: ")
-                    .append(ex.getMessage());
-        }
-
-        // Add cause if present
-        if (ex.getCause() != null) {
-            message.append(" | Caused by: ")
-                    .append(ex.getCause().getMessage());
-        }
-
-        return message.toString();
-    }
-
-
+    /**
+     * Provides access to the user's dashboard, which serves as the main control center
+     * for authenticated users. This endpoint is authentication-gated to ensure that
+     * sensitive user data and controls are only available to logged-in users, redirecting
+     * anonymous users to the login page for security. The dashboard is critical as it's
+     * the primary interface for users to manage their platform experience.
+     *
+     * @param principal The authenticated user's information
+     * @param model The Spring MVC model for view rendering
+     * @return The appropriate view based on authentication status
+     */
     @GetMapping("/dashboard")
     public String dashboard(@AuthenticationPrincipal OAuth2User principal, Model model) {
         if (principal == null) {
@@ -128,6 +146,17 @@ public class UiController {
         return handleAuthorizedAccess(principal, model, "לוח בקרה", "pages/index", false);
     }
 
+    /**
+     * Handles access to the message management interface, enforcing authentication
+     * to protect user message privacy. This endpoint is crucial for the platform's
+     * core functionality as it provides users with their primary workspace for
+     * viewing and managing their WhatsApp messages. Authentication checking here
+     * ensures that users can only access their own messages.
+     *
+     * @param principal The authenticated user's information
+     * @param model The Spring MVC model for view rendering
+     * @return The messages view or login redirect as appropriate
+     */
     @GetMapping("/messages")
     public String messages(@AuthenticationPrincipal OAuth2User principal, Model model) {
         if (principal == null) {
@@ -136,6 +165,17 @@ public class UiController {
         return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", false);
     }
 
+    /**
+     * Provides access to administrative functions, with strict authentication controls.
+     * This endpoint is particularly sensitive as it exposes platform management capabilities,
+     * requiring both authentication and proper authorization (admin role) for access.
+     * The admin interface is essential for platform governance, allowing privileged users
+     * to manage user accounts, monitor system usage, and maintain platform health.
+     *
+     * @param principal The authenticated user's information
+     * @param model The Spring MVC model for view rendering
+     * @return The admin panel view or appropriate redirect
+     */
     @GetMapping("/admin")
     public String admin(@AuthenticationPrincipal OAuth2User principal, Model model) {
         if (principal == null) {
@@ -144,6 +184,23 @@ public class UiController {
         return handleAuthorizedAccess(principal, model, "ניהול", "pages/admin", false);
     }
 
+    /**
+     * Manages the OAuth2 login flow and post-login user provisioning. This method serves
+     * multiple critical purposes:
+     * - Handles initial login attempts
+     * - Processes logout confirmations
+     * - Ensures new users are properly registered in the system
+     * - Manages the transition from authentication to authorized access
+     * <p>
+     * The method is essential for maintaining security while providing a smooth
+     * onboarding experience, automatically creating user records for new OAuth2 users
+     * while ensuring existing users are properly recognized.
+     *
+     * @param principal The authenticated user's information
+     * @param logout Optional logout parameter
+     * @param model The Spring MVC model for view rendering
+     * @return Appropriate view based on authentication state and user status
+     */
     @GetMapping("/login")
     public String login(@AuthenticationPrincipal OAuth2User principal,
                         @RequestParam(required = false) String logout,
@@ -163,6 +220,24 @@ public class UiController {
 
 
 
+    /*
+      Message Management endpoints
+     */
+
+    /**
+     * Handles message deletion requests with proper authorization checks.
+     * <p>
+     * This endpoint exists to allow users to remove outdated or irrelevant messages
+     * from their history while maintaining data integrity. The deletion is permanent
+     * to comply with data minimization principles and user privacy requests.
+     * <p>
+     * Authorization is enforced at two levels:
+     * 1. Through Spring Security's @AuthenticationPrincipal
+     * 2. Through the messageService's internal checks
+     * <p>
+     * Success/failure feedback is provided to users via redirect attributes
+     * to maintain a consistent user experience across page refreshes.
+     */
     @PostMapping("/messages/delete")
     public String deleteMessage(@RequestParam Long messageId,
                                 @AuthenticationPrincipal OAuth2User principal,
@@ -182,6 +257,24 @@ public class UiController {
         return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", false);
     }
 
+    /**
+     * Enables manual message updates with fine-grained control over all message attributes.
+     * <p>
+     * This endpoint supports detailed message curation by allowing users to:
+     * - Recategorize messages for better organization
+     * - Update message metadata (tags, next steps) for improved searchability
+     * - Correct or enhance message content while preserving the original context
+     * <p>
+     * The manual update approach is chosen here to:
+     * 1. Give users direct control over message organization
+     * 2. Allow for human judgment in categorization
+     * 3. Support bulk updates of related fields
+     * <p>
+     * Tags and next steps are handled as comma-separated values to support:
+     * - Multiple value input through a simple text interface
+     * - Easy parsing and validation
+     * - Flexible tag management without complex UI requirements
+     */
     @PostMapping("/messages/update")
     public String editTextMessage(
             @RequestParam Long messageId,
@@ -236,6 +329,27 @@ public class UiController {
         return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", false);
     }
 
+    /**
+     * Provides intelligent message updating with automated content analysis and categorization.
+     * <p>
+     * This endpoint exists to automate message organization by:
+     * 1. Analyzing message content for embedded URLs and rich content
+     * 2. Processing content through ML/AI for smart categorization
+     * 3. Queuing updates for asynchronous processing to handle high loads
+     * <p>
+     * The "smart" update process involves:
+     * 1. Content extraction and URL scraping for enhanced context
+     * 2. Clearing existing relationships to prevent stale categorizations
+     * 3. Async processing via JMS queue to handle long-running operations
+     * <p>
+     * This approach is particularly useful for:
+     * - Bulk message reorganization
+     * - Processing messages with complex content (URLs, media)
+     * - Maintaining system responsiveness under load
+     * <p>
+     * Note: Messages are processed asynchronously to prevent UI blocking
+     * and enable scalable processing of large message volumes.
+     */
     @PostMapping("/messages/smartUpdate")
     public String smartEditTextMessage(
             @RequestParam Long messageId,
@@ -283,6 +397,20 @@ public class UiController {
         return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", false);
     }
 
+    /**
+     * Handles creation of text-based messages with URL content processing capabilities.
+     * <p>
+     * This endpoint serves as the entry point for manual message creation, primarily used for:
+     * - Testing purposes during development and debugging
+     * - Recovery scenarios where messages need to be manually re-added
+     * - Supporting direct user input through the platform interface
+     * <p>
+     * The method implements asynchronous processing by:
+     * 1. Detecting and processing any URLs in the message content
+     * 2. Queuing, using JMS, the message for AI-driven categorization and analysis
+     * This async approach prevents user interface blocking during potentially
+     * time-consuming web scraping and analysis operations.
+     */
     @PostMapping("/messages/text")
     public String createTextMessage(
             @RequestParam String content,
@@ -320,6 +448,22 @@ public class UiController {
         return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", false);
     }
 
+    /**
+     * Manages the upload and storage of media files (images and documents) as messages.
+     * <p>
+     * This endpoint is critical for:
+     * - Maintaining a complete archive of all communication types
+     * - Supporting rich media content analysis
+     * - Ensuring proper file organization by user/phone number
+     * <p>
+     * The method employs a multi-stage approach:
+     * 1. Content type detection to properly categorize and store different media types
+     * 2. Secure cloud storage with user-specific paths for data isolation
+     * 3. Asynchronous processing queue integration for metadata extraction and analysis
+     * <p>
+     * This architecture enables scalable media handling while maintaining
+     * consistent message processing workflows across all content types.
+     */
     @PostMapping("/messages/media")
     public String createMediaMessage(
             @RequestParam MultipartFile file,
@@ -380,6 +524,22 @@ public class UiController {
         return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", false);
     }
 
+    /**
+     * Provides filtered message views based on user-selected tags.
+     * <p>
+     * This endpoint is essential for:
+     * - Enabling efficient message retrieval in large datasets
+     * - Supporting contextual message organization
+     * - Facilitating task and topic-based workflow management
+     * <p>
+     * The filtering system uses tag-based navigation because:
+     * - Tags provide flexible, user-defined categorization
+     * - Multiple tags enable multidimensional classification
+     * - Tag filtering supports both broad and narrow content discovery
+     * <p>
+     * The method maintains consistent view rendering whether filtered or unfiltered,
+     * ensuring a seamless user experience during navigation.
+     */
     @GetMapping("/messages/filter")
     public String filterMessagesByTags(@RequestParam(name = "selectedTags", required = false) Set<String> tagNames,
                                        @RequestParam String phoneNumber,
@@ -398,6 +558,23 @@ public class UiController {
         return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", true);
     }
 
+    /**
+     * Provides full-text search capabilities across messages for a specific phone number.
+     * This endpoint exists to help users quickly find relevant information without having
+     * to navigate through category hierarchies or tag filters. Rather than using database-level
+     * search, it filters pre-organized messages in memory to maintain consistency with the
+     * existing category/subcategory structure.
+     * <p>
+     * The search is performed across the already-organized message structure to ensure that
+     * results maintain their hierarchical context, making it easier for users to understand
+     * where found messages fit within their overall organizational system.
+     * <p>
+     * @param content Search text to find in messages
+     * @param phoneNumber User's phone number to scope the search
+     * @param principal OAuth user information for authentication
+     * @param model Spring MVC model for view rendering
+     * @return View name for rendering search results
+     */
     @GetMapping("/messages/search")
     public String searchMessages(@RequestParam String content,
                                  @RequestParam String phoneNumber,
@@ -421,6 +598,25 @@ public class UiController {
         return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", true);
     }
 
+    /**
+     * Provides secure access to media files stored in cloud storage.
+     * Rather than exposing direct cloud storage URLs, this endpoint acts as a security
+     * gateway that:
+     * 1. Verifies user authentication before allowing access
+     * 2. Generates short-lived signed URLs for media access
+     * 3. Maintains abstraction over the actual storage location
+     * <p>
+     * The redirect approach is used instead of direct streaming to:
+     * - Reduce server load by letting the cloud provider handle the actual file transfer
+     * - Enable CDN caching and optimization
+     * - Allow for future changes in storage backend without affecting clients
+     * <p>
+     * @param type Media type (document/image/audio) to determine storage bucket
+     * @param content Metadata containing file reference
+     * @param phone User phone number for scoping access
+     * @param principal OAuth user information for authentication
+     * @return Redirect to signed cloud storage URL
+     */
     @GetMapping("/messages/getMedia")
     public RedirectView getMediaMessages(@RequestParam String type,
                                  @RequestParam String content,
@@ -443,6 +639,23 @@ public class UiController {
         }
     }
 
+    /**
+     * Enables data portability by allowing users to export their messages in Excel format.
+     * This functionality is crucial for:
+     * - Backup purposes
+     * - Offline analysis
+     * - Integration with other tools
+     * - Compliance with data portability regulations
+     * <p>
+     * The export is streamed as bytes rather than saved to disk to:
+     * - Reduce server storage requirements
+     * - Minimize security risks from stored files
+     * - Ensure users always get fresh data
+     * - Handle concurrent exports efficiently
+     * <p>
+     * @param phoneNumber User's phone number to scope the export
+     * @return ResponseEntity containing Excel file as byte array
+     */
     @GetMapping("/export")
     public ResponseEntity<byte[]> export(@RequestParam String phoneNumber) {
         List<MessageDTO> messagesToExport = messageService.findMessagesFromNumber(phoneNumber)
@@ -462,6 +675,18 @@ public class UiController {
                 .body(fileContent);
     }
 
+    /*
+      User Management endpoints
+     */
+
+    /**
+     * Revokes user access to the platform while preserving their account data.
+     * This is preferable to deletion when:
+     * - Temporarily suspending user access
+     * - Investigating suspicious activity
+     * - Handling expired subscriptions/permissions
+     * - Maintaining audit trails while preventing new actions
+     */
     @PostMapping("/admin/deauthorize-user")
     public String deauthorize(@RequestParam Long userId,
                               @AuthenticationPrincipal OAuth2User principal,
@@ -472,6 +697,15 @@ public class UiController {
         userService.deauthorize(userId);
         return handleAuthorizedAccess(principal, model, "ניהול", "pages/admin", true);
     }
+
+    /**
+     * Restores user access to the platform after verification or suspension period.
+     * Essential for:
+     * - Completing user verification process
+     * - Restoring access after temporary suspension
+     * - Re-enabling accounts after payment/compliance issues resolved
+     * - Implementing graduated access control
+     */
     @PostMapping("/admin/authorize-user")
     public String authorize(@RequestParam Long userId,
                             @AuthenticationPrincipal OAuth2User principal,
@@ -482,6 +716,16 @@ public class UiController {
         userService.authorize(userId);
         return handleAuthorizedAccess(principal, model, "ניהול", "pages/admin", true);
     }
+
+    /**
+     * Permanently removes a user and their associated data from the system.
+     * Critical for:
+     * - Complying with data protection regulations (GDPR right to be forgotten)
+     * - Removing spam/fake accounts
+     * - Handling account termination requests
+     * - Maintaining system hygiene by removing obsolete accounts
+     * Note: Consider soft deletion or deauthorization for temporary measures
+     */
     @PostMapping("/admin/delete-user")
     public String deleteUser(@RequestParam Long userId,
                             @AuthenticationPrincipal OAuth2User principal,
@@ -492,6 +736,16 @@ public class UiController {
         userService.deleteById(userId);
         return handleAuthorizedAccess(principal, model, "ניהול", "pages/admin", true);
     }
+
+    /**
+     * Updates user's system privileges and access levels.
+     * Essential for role-based access control (RBAC):
+     * - Promoting users to admin roles
+     * - Adjusting access levels based on user responsibility
+     * - Managing dynamic permission changes
+     * - Implementing principle of least privilege
+     * Security Note: This operation should be logged for audit purposes
+     */
     @PostMapping("/admin/change-role")
     public String changeRole(@RequestParam Long userId,
                              @RequestParam UserRole newRole,
@@ -504,6 +758,15 @@ public class UiController {
         return handleAuthorizedAccess(principal, model, "ניהול", "pages/admin", true);
     }
 
+    /**
+     * Provisions new user accounts in the system with specified parameters.
+     * Key for controlled user onboarding:
+     * - Supporting admin-driven account creation
+     * - Implementing organizational user management
+     * - Ensuring proper initial role assignment
+     * - Facilitating bulk user provisioning
+     * Security Note: Ensure proper validation of email and phone formats
+     */
     @PostMapping("/admin/create-user")
     public String createUser(@RequestParam String email,
                              @RequestParam String phone,
@@ -517,6 +780,21 @@ public class UiController {
         return handleAuthorizedAccess(principal, model, "ניהול", "pages/admin", true);
     }
 
+    /**
+     * Extracts the actual filename from a metadata string for media files stored in cloud storage.
+     * <p>
+     * This method is necessary because media files (images, documents, etc.) are stored with
+     * additional metadata information for tracking and management purposes. When we need to
+     * retrieve these files, we need to parse out just the filename portion.
+     * <p>
+     * The metadata string includes information like MIME type, file size, and the actual GCS path.
+     * For security and organization, files are stored in user-specific prefixes (phone numbers)
+     * to maintain data isolation between users.
+     * <p>
+     * @param metadata The full metadata string containing file information
+     * @param prefix The user-specific prefix (typically phone number) used for file organization
+     * @return The extracted filename, or null if the pattern isn't found
+     */
     private String extractNameFromMetadata(String metadata, String prefix) {
         // Example input: "MIME Type: image/png, Size: 2614 KB, GCS File: 972509603888/35fd8df1-78c4-40d1-ab48-1fba8648d82c.png"
         if (metadata == null || metadata.isEmpty()) {
@@ -533,7 +811,26 @@ public class UiController {
         return null;
     }
 
-
+    /**
+     * Central authorization and access control method for the application.
+     * <p>
+     * This method serves as a gateway for all authorized access attempts, implementing
+     * a consistent authorization workflow across different pages. It's designed to:
+     * 1. Verify user existence and authorization status
+     * 2. Set up appropriate view models based on authorization level
+     * 3. Maintain security by preventing unauthorized access to protected pages
+     * <p>
+     * The method supports filtered views (e.g., for search results) while maintaining
+     * the same security and authorization checks, ensuring consistent user experience
+     * regardless of how the page is accessed.
+     * <p>
+     * @param principal The OAuth2 user principal from the current session
+     * @param model The Spring MVC model for view rendering
+     * @param title The page title to display
+     * @param contentPage The target content page to render
+     * @param isFiltered Whether this is a filtered view (affects data loading)
+     * @return The name of the template to render
+     */
     private String handleAuthorizedAccess(OAuth2User principal, Model model, String title, String contentPage, boolean isFiltered) {
         String email = principal.getAttribute("email");
         Optional<AppUser> appUser = userService.findByEmail(email);
@@ -547,6 +844,26 @@ public class UiController {
         return "layout/base";
     }
 
+    /**
+     * Prepares the view model for unauthenticated visitors to public pages.
+     * <p>
+     * This method serves as the default entry point for all public-facing pages,
+     * implementing a consistent, minimalist view for users who haven't yet
+     * authenticated. It's designed to:
+     * 1. Provide a clean, unburdened interface for first-time visitors
+     * 2. Act as a security boundary, ensuring unauthenticated users only see
+     *    appropriate content
+     * 3. Maintain a consistent look and feel across all public pages while
+     *    stripping out any personalized or protected elements
+     * <p>
+     * The method deliberately avoids loading user-specific data or sensitive
+     * information, making it both secure and performant for public access.
+     *
+     * @param model The Spring MVC model
+     * @param title The page title to display
+     * @param contentPage The public page content to render
+     * @return The name of the template to render
+     */
     private String setupAnonymousPage(Model model, String title, String contentPage) {
         model.addAttribute("title", title + " - Organizer Platform");
         model.addAttribute("content", contentPage);
@@ -554,6 +871,22 @@ public class UiController {
         return "layout/base";
     }
 
+    /**
+     * Prepares the view model for unauthorized users or users awaiting authorization.
+     * <p>
+     * This method handles the special case of users who have authenticated but aren't
+     * yet authorized to use the system. It's crucial for:
+     * 1. Providing feedback to users about their authorization status
+     * 2. Maintaining security by restricting access to authorized features
+     * 3. Creating a welcoming experience for new users while they wait for approval
+     * <p>
+     * The method sets up a limited view with just enough information to let users know
+     * their status without exposing any protected functionality.
+     *
+     * @param model The Spring MVC model
+     * @param principal The OAuth2 user information
+     * @param appUser The application user entity (may be unauthorized)
+     */
     private void setupUnauthorizedModel(Model model, OAuth2User principal, AppUser appUser) {
         String name = principal.getAttribute("name");
         String picture = principal.getAttribute("picture");
@@ -568,6 +901,25 @@ public class UiController {
         model.addAttribute("isAuthorized", appUser != null && appUser.isAuthorized());
     }
 
+    /**
+     * Configures the view model for authorized users based on their access context.
+     * <p>
+     * This method is the central point for preparing page-specific data and permissions.
+     * It's designed to:
+     * 1. Support different page types (messages, index, admin) with specific data needs
+     * 2. Maintain consistent UI elements across all authorized pages
+     * 3. Handle filtered views without duplicating setup logic
+     * <p>
+     * The method uses a strategy pattern through the switch statement to delegate
+     * page-specific setup to specialized methods, keeping the code organized and
+     * maintainable as new pages are added.
+     *
+     * @param model The Spring MVC model
+     * @param appUser The authorized application user
+     * @param title The page title
+     * @param contentPage The specific page being requested
+     * @param isFiltered Whether this is a filtered view
+     */
     private void setupAuthorizedModel(Model model, AppUser appUser,
                                       String title, String contentPage, boolean isFiltered) {
         setupCommonAttributes(model, appUser, title, contentPage);
@@ -585,19 +937,34 @@ public class UiController {
         }
     }
 
+    /**
+     * Prepares the admin dashboard view with comprehensive user analytics and metrics.
+     * This method aggregates user registration trends, message activity patterns, and
+     * user role distributions to enable administrators to:
+     * - Track platform growth through user registration timeline
+     * - Monitor user engagement via message activity
+     * - Maintain oversight of user authorization status and role distribution
+     * <p>
+     * The data is organized chronologically to show growth patterns and identify
+     * usage trends over time.
+     * <p>
+     * @param model Spring MVC Model to populate admin-dashboard data
+     */
     private void setupAdminPage(Model model) {
         List<AppUser> users = userService.findAll();
 
-        // Create a TreeMap to maintain date order
+        // Track daily user registration patterns to identify peak signup periods
+        // and measure the effectiveness of marketing/outreach efforts
         Map<LocalDateTime, Long> userCountsByDate = users.stream()
                 .map(user -> Dates.atLocalTime(user.getCreatedAt()))  // Convert to LocalDate
                 .collect(Collectors.groupingBy(
                         date -> date,
-                        TreeMap::new,  // Use TreeMap to sort by date
+                        TreeMap::new,  // TreeMap ensures chronological ordering for trend analysis
                         Collectors.counting()
                 ));
 
-        // Create cumulative count map
+        // Calculate cumulative growth to visualize platform adoption rate
+        // and identify periods of accelerated or decelerated growth
         Map<LocalDateTime, Long> cumulativeCountsByDate = new TreeMap<>();
         long runningTotal = 0;
         for (Map.Entry<LocalDateTime, Long> entry : userCountsByDate.entrySet()) {
@@ -605,12 +972,16 @@ public class UiController {
             cumulativeCountsByDate.put(entry.getKey(), runningTotal);
         }
 
+        // Generate per-user activity metrics to identify power users
+        // and spot engagement patterns across the user base
         Map<Long, UserActivityDTO> activityDataMap = users.stream()
                 .map(user -> {
                     List<WhatsAppMessage> messages = messageService.findMessagesFromNumber(user.getWhatsappNumber());
                     return UserActivityDTO.builder()
                             .userId(user.getId())
                             .username(user.getName())
+                            // Aggregate messages by month to smooth out daily variations
+                            // and provide a clearer view of sustained engagement
                             .messageCountByDate(messages.stream()
                                     .collect(Collectors.groupingBy(
                                             msg -> Dates.atLocalTime(msg.getCreatedAt())
@@ -628,6 +999,8 @@ public class UiController {
                         activity -> activity
                 ));
 
+        // Create monthly message volume breakdown to identify seasonal patterns
+        // and correlate message activity with business cycles
         Map<Long, Map<String, Long>> userMonthlyMessageCounts = users.stream()
                 .collect(Collectors.toMap(
                         AppUser::getId,
@@ -649,55 +1022,80 @@ public class UiController {
                 ));
 
 
-
+        // Make all analytics data available to the view for rendering
         model.addAttribute("users", users);
         model.addAttribute("userCountsByDate", userCountsByDate);
         model.addAttribute("cumulativeCountsByDate", cumulativeCountsByDate);
         model.addAttribute("messageCountsByMonth", userMonthlyMessageCounts);
 
+        // Track user role distribution to monitor platform access patterns
+        // and ensure proper authorization management
         model.addAttribute("authorizedUsers", users.stream().filter(AppUser::isNormalUser).count());
         model.addAttribute("unauthorizedUsers", users.stream().filter(AppUser::isUNAUTHORIZEDUser).count());
         model.addAttribute("adminUsers", users.stream().filter(AppUser::isAdmin).count());
 
     }
 
+    /**
+     * Prepares the dashboard view with analytics and metrics for user engagement.
+     * This method aggregates various metrics to give users a comprehensive overview
+     * of their message organization system, including:
+     * - Tag usage to show content categorization effectiveness
+     * - Message volume to indicate system utilization
+     * - Category/subcategory counts to show organizational structure depth
+     * - Next steps count to track actionable items
+     * - Message type distribution to understand content patterns
+     * - Category hierarchy to visualize content organization
+     * <p>
+     * This data helps users understand how they're using the platform and identify
+     * areas that might need better organization or attention.
+     */
     private void setupIndexPage(Model model, AppUser appUser) {
+        // Fetch all tags to help users understand their content classification coverage
         model.addAttribute("totalTags", messageService.getAllTagsByPhoneNumber(appUser.getWhatsappNumber()));
+
+        // Cache messages to avoid multiple database calls in subsequent operations
         List<WhatsAppMessage> messages = messageService.findMessagesFromNumber(appUser.getWhatsappNumber());
         model.addAttribute("totalMessages", messages.size());
 
-        // Filter out null categories before counting
+        // Count unique categories while handling potential null values
+        // This shows how well the user is utilizing the primary classification system
         long totalCategories = messages
                 .stream()
                 .map(WhatsAppMessage::getCategory)
                 .filter(Objects::nonNull)
                 .distinct()
                 .count();
-
         model.addAttribute("categoriesCount", totalCategories);
 
-        // Filter out null subcategories before counting
+        // Track subcategory usage to measure classification depth
+        // High subcategory count might indicate need for category reorganization
         long totalSubCategories = messages
                 .stream()
                 .map(WhatsAppMessage::getSubCategory)
                 .filter(Objects::nonNull)
                 .distinct()
                 .count();
-
         model.addAttribute("subCategoriesCount", totalSubCategories);
 
+        // Sum all next steps to gauge pending actions
+        // This helps users track their follow-up items across all messages
         long totalNextSteps = messages
                 .stream()
                 .map(WhatsAppMessage::getNextSteps)
                 .filter(Objects::nonNull)
                 .mapToLong(Set::size)
                 .sum();
-
         model.addAttribute("nextStepsCount", totalNextSteps);
 
+        // Get message type distribution to understand content patterns
+        // This helps users see what kinds of content they're managing most
         List<MessageTypeCount> messageTypes = messageService.getMessageTypesByPhoneNumber(appUser.getWhatsappNumber());
         model.addAttribute("messageTypes", messageTypes);
 
+        // Build category hierarchy with fallback for uncategorized items
+        // This creates a tree structure showing how content is distributed
+        // across categories and subcategories
         Map<String, Map<String, Long>> hierarchy = messages.stream()
                 .collect(Collectors.groupingBy(
                         msg -> msg.getCategory() != null ? msg.getCategory() : "UNCATEGORIZED",
@@ -709,6 +1107,22 @@ public class UiController {
         model.addAttribute("categoriesHierarchy", hierarchy);
     }
 
+    /**
+     * Sets up essential user interface elements shared across different views.
+     * This method ensures consistent presentation of user-specific information and
+     * access control indicators throughout the application by:
+     * - Maintaining consistent page titling conventions
+     * - Displaying user identification and profile elements
+     * - Exposing appropriate authorization flags for UI permission control
+     * <p>
+     * This centralized approach helps maintain UI consistency and simplifies
+     * permission-based feature toggling in the views.
+     *
+     * @param model Spring MVC Model to populate with common attributes
+     * @param appUser Current authenticated user
+     * @param title Page-specific title
+     * @param contentPage Template path for the main content
+     */
     private void setupCommonAttributes(Model model, AppUser appUser,
                                        String title, String contentPage) {
         model.addAttribute("title", title + " - Organizer Platform");
@@ -721,7 +1135,26 @@ public class UiController {
         model.addAttribute("isAdmin", appUser.isAdmin());
     }
 
-
+    /**
+     * Prepares the message management view with organized content and filtering capabilities.
+     * This method serves two key purposes:
+     * 1. For regular views (isFiltered=false):
+     *    - Organizes messages hierarchically by category and subcategory to maintain
+     *      a clean, structured view of all content
+     *    - Extracts available categories and subcategories to power the UI's
+     *      filtering and organization features
+     * <p>
+     * 2. For filtered views (isFiltered=true):
+     *    - Preserves the filtered results while still providing access to the full
+     *      set of categories and tags for further filtering
+     * <p>
+     * The method ensures users can both browse their complete message hierarchy
+     * and apply complex filters while maintaining context of their full content
+     * organization structure.
+     * <p>
+     * @param isFiltered Indicates whether the current view is showing filtered results
+     *                   to prevent overwriting filtered content with unfiltered data
+     */
     private void setupMessagesPage(Model model, AppUser appUser, boolean isFiltered) {
         Map<String, Map<String, List<MessageDTO>>> organizedMessages = null;
         if(!isFiltered) {

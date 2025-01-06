@@ -5,8 +5,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-// Result class to hold both original content and scraped content
-@Data
+/**
+ * Container for both original and processed content.
+ * Used to track transformations and maintain reference to original data.
+ */@Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

@@ -6,6 +6,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Stores WhatsApp contact information, crucial for maintaining user context and enabling
+ * proper message routing. The WhatsApp ID (waId) is particularly important as it serves
+ * as a stable identifier for user tracking across conversations.
+ */
 @Data
 @Builder
 @NoArgsConstructor

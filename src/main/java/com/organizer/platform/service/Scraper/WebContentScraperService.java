@@ -11,22 +11,52 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Service responsible for scraping and extracting content from websites.
+ * Uses JSoup library to parse HTML and extract various components including
+ * text, metadata, scripts, styles, lists, tables, and forms.
+ */
 @Service
 public class WebContentScraperService {
+
+    /**
+     * Main entry point for scraping a website.
+     * Connects to the URL and extracts all relevant content.
+     *
+     * @param url The URL of the website to scrape
+     * @return WebsiteContent object containing all extracted content
+     * @throws IOException If connection fails or content cannot be retrieved
+     */
     public WebsiteContent scrapeWebsite(String url) throws IOException {
         Document doc = connectToWebsite(url);
         return extractWebsiteContent(doc);
     }
 
+    /**
+     * Establishes connection to the website with configured parameters.
+     * Sets up user agent, timeout, and other connection settings.
+     *
+     * @param url The URL to connect to
+     * @return JSoup Document object representing the webpage
+     * @throws IOException If connection fails
+     */
     private Document connectToWebsite(String url) throws IOException {
         return Jsoup.connect(url)
                 .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
                 .timeout(15000)
                 .followRedirects(true)
-                .maxBodySize(0) // unlimited
+                .maxBodySize(0) // unlimited size
                 .get();
     }
 
+    /**
+     * Extracts all content components from the webpage.
+     * Coordinates the extraction of various elements including metadata,
+     * text blocks, scripts, styles, lists, tables, and forms.
+     *
+     * @param doc The JSoup Document to extract content from
+     * @return WebsiteContent containing all extracted components
+     */
     private WebsiteContent extractWebsiteContent(Document doc) {
         return WebsiteContent.builder()
                 .title(doc.title())
@@ -41,11 +71,24 @@ public class WebContentScraperService {
                 .build();
     }
 
+    /**
+     * Extracts meta description from the webpage.
+     *
+     * @param doc The Document to extract from
+     * @return The meta description content or empty string if not found
+     */
     private String getMetaDescription(Document doc) {
         Element descriptionMeta = doc.select("meta[name=description]").first();
         return descriptionMeta != null ? descriptionMeta.attr("content") : "";
     }
 
+    /**
+     * Extracts all metadata tags from the webpage.
+     * Includes both 'name' and 'property' based meta tags.
+     *
+     * @param doc The Document to extract from
+     * @return Map of metadata key-value pairs
+     */
     private Map<String, String> extractMetadata(Document doc) {
         Map<String, String> metadata = new HashMap<>();
         doc.select("meta").forEach(meta -> {
@@ -62,10 +105,18 @@ public class WebContentScraperService {
         return metadata;
     }
 
+    /**
+     * Extracts visible text blocks from the webpage.
+     * Filters out script, style, and other non-content elements.
+     * Includes information about element hierarchy and visibility.
+     *
+     * @param doc The Document to extract from
+     * @return List of TextBlock objects containing text content and metadata
+     */
     private List<TextBlock> extractTextBlocks(Document doc) {
         List<TextBlock> blocks = new ArrayList<>();
 
-        // Remove invisible elements
+        // Remove invisible/non-content elements
         doc.select("script, style, meta, link, noscript").remove();
 
         // Process remaining elements
@@ -89,6 +140,12 @@ public class WebContentScraperService {
         return blocks;
     }
 
+    /**
+     * Calculates the depth of an element in the DOM tree.
+     *
+     * @param element The element to calculate depth for
+     * @return The depth of the element (number of parent elements)
+     */
     private int getElementDepth(Element element) {
         int depth = 0;
         Element parent = element.parent();
@@ -99,6 +156,12 @@ public class WebContentScraperService {
         return depth;
     }
 
+    /**
+     * Builds a string representing the hierarchy of parent tags.
+     *
+     * @param element The element to get parent tags for
+     * @return String of parent tags joined by " > "
+     */
     private String getParentTags(Element element) {
         List<String> parentTags = new ArrayList<>();
         Element parent = element.parent();
@@ -109,6 +172,12 @@ public class WebContentScraperService {
         return String.join(" > ", parentTags);
     }
 
+    /**
+     * Extracts all script content from the webpage.
+     *
+     * @param doc The Document to extract from
+     * @return List of script contents (excluding empty scripts)
+     */
     private List<String> extractScripts(Document doc) {
         return doc.select("script").stream()
                 .map(script -> script.html().trim())
@@ -116,6 +185,12 @@ public class WebContentScraperService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Extracts all style content from the webpage.
+     *
+     * @param doc The Document to extract from
+     * @return List of style contents (excluding empty styles)
+     */
     private List<String> extractStyles(Document doc) {
         return doc.select("style").stream()
                 .map(style -> style.html().trim())
@@ -123,6 +198,13 @@ public class WebContentScraperService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Extracts all ordered and unordered lists from the webpage.
+     * Generates unique identifiers for lists without IDs.
+     *
+     * @param doc The Document to extract from
+     * @return Map of list identifiers to list items
+     */
     private Map<String, List<String>> extractLists(Document doc) {
         Map<String, List<String>> lists = new HashMap<>();
 
@@ -145,6 +227,13 @@ public class WebContentScraperService {
         return lists;
     }
 
+    /**
+     * Extracts all tables from the webpage.
+     * Includes headers, rows, and captions.
+     *
+     * @param doc The Document to extract from
+     * @return List of TableInfo objects containing table structure and content
+     */
     private List<TableInfo> extractTables(Document doc) {
         return doc.select("table").stream()
                 .map(table -> {
@@ -173,6 +262,13 @@ public class WebContentScraperService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Extracts all forms from the webpage.
+     * Includes form attributes and field information.
+     *
+     * @param doc The Document to extract from
+     * @return List of FormInfo objects containing form structure and fields
+     */
     private List<FormInfo> extractForms(Document doc) {
         return doc.select("form").stream()
                 .map(form -> FormInfo.builder()
@@ -184,6 +280,13 @@ public class WebContentScraperService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Extracts field information from a form element.
+     * Includes input, textarea, and select elements.
+     *
+     * @param form The form element to extract fields from
+     * @return List of FormField objects containing field properties
+     */
     private List<FormField> extractFormFields(Element form) {
         return form.select("input, textarea, select").stream()
                 .map(field -> FormField.builder()

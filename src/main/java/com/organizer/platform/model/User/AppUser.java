@@ -12,6 +12,10 @@ import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Date;
 
+/**
+ * AppUser represents the core user entity in the platform.
+ * It handles user authentication, authorization, and stores basic user profile information.
+ */
 @Entity
 @Table(name = "app_user")
 public class AppUser implements Serializable {
@@ -21,34 +25,42 @@ public class AppUser implements Serializable {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    // Tracks when the user account was created, stored in UTC
     @NotNull
     @Column(nullable = false, updatable = false)
     private Date createdAt = Dates.nowUTC();
 
+    // Formats the creation timestamp for API responses
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     @JsonProperty("createdAt")
     public LocalDateTime calcCreatedAt() {
         return Dates.atLocalTime(createdAt);
     }
 
+    // Primary identifier for the user, used for authentication
     @NotEmpty
     @Column(nullable = false)
     private String email;
 
+    // contact information for organizing messages
     @Column(length = 15)
     private String whatsappNumber;
 
+    // User's permission level in the system
+    // Defaults to UNAUTHORIZED until explicitly granted access
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private UserRole role = UserRole.UNAUTHORIZED;
 
+    // Flag indicating if the user has been approved to access the system
     @Column(nullable = false)
     private boolean authorized = false;
 
+    // User's display name in the application
     @Column(length = 100)
     private String name;
 
-    // For storing URL/path
+    // Profile picture storage reference
     @Column(length = 255)
     private String pictureUrl;
 

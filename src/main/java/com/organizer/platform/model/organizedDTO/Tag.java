@@ -8,6 +8,11 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Tag represents categorization labels that can be applied to WhatsApp messages.
+ * Implements a many-to-many relationship with WhatsAppMessage, allowing flexible
+ * message categorization and searching capabilities across the platform.
+ */
 @Entity
 @Table(name = "tags")
 public class Tag implements Serializable {

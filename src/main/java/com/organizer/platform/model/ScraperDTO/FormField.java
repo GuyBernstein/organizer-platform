@@ -5,6 +5,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Represents an individual form field with its properties.
+ * Captures the essential attributes needed for form interaction.
+ */
 @Data
 @Builder
 @NoArgsConstructor

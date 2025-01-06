@@ -1,5 +1,8 @@
 package com.organizer.platform.model.organizedDTO;
 
+/**
+ * DTO for transferring message type statistics to the view layer.
+ */
 public class MessageTypeCount {
     private final String name;
     private final String icon;
@@ -11,13 +14,14 @@ public class MessageTypeCount {
         this.count = count;
     }
 
-    // Getters
+    // Basic getters
     public String getName() { return getHebrewName(name); }
     public String getIcon() { return icon; }
     public Long getCount() { return count; }
 
-
-    // Helper method for icon mapping
+    /**
+     * Maps message types to Bootstrap icons.
+     */
     public static String getIconForType(String type) {
         String typeStr = type.toLowerCase();
         switch (typeStr) {
@@ -34,7 +38,9 @@ public class MessageTypeCount {
         }
     }
 
-    // Helper method for Hebrew names
+    /**
+     * Provides Hebrew translations for message types.
+     */
     private static String getHebrewName(String type) {
         String typeStr = type.toLowerCase();
         switch (typeStr) {

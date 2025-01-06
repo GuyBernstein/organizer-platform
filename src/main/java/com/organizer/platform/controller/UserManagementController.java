@@ -14,6 +14,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+/**
+ * REST Controller for managing user operations in the platform.
+ * This controller provides endpoints for user management operations like authorization,
+ * deauthorization, searching, and statistics.
+ * <p>
+ * These endpoints are documented and testable through Swagger UI at /swagger-ui.html
+ * which allows for easy testing and validation of the API endpoints before
+ * implementing the actual UI with Thymeleaf and Bootstrap.
+ * <p>
+ * Access to all endpoints is restricted to administrators only for security purposes.
+ */
 @RestController
 @RequestMapping("/api/users")
 public class UserManagementController {
@@ -24,12 +35,25 @@ public class UserManagementController {
         this.userService = userService;
     }
 
+    /**
+     * Validates whether the current user has administrative privileges.
+     * This method is crucial for maintaining security across all endpoints
+     * by ensuring that only administrators can perform user management operations.
+     * It extracts the email from OAuth2 authentication to verify admin status.
+     */
     private boolean isAdminUser(Authentication authentication) {
         OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
         String email = oauth2User.getAttribute("email");
         return userService.isAdmin(email);
     }
 
+    /**
+     * Retrieves all users in the system regardless of their authorization status.
+     * This endpoint is necessary for administrators to have a complete overview
+     * of the user base, which is essential for effective user management and
+     * monitoring system growth. The response includes both the total count and
+     * the detailed user information for reporting purposes.
+     */
     @GetMapping("/all")
     public ResponseEntity<?> getAllUsers(Authentication authentication) {
         if (!isAdminUser(authentication)) {
@@ -45,6 +69,12 @@ public class UserManagementController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Retrieves only the authorized users who have been approved to use the system.
+     * This endpoint helps administrators monitor active users and ensure
+     * system access is properly controlled. It's particularly useful for
+     * generating reports about active user engagement and system utilization.
+     */
     @GetMapping("/authorized")
     public ResponseEntity<?> getAuthorizedUsers(Authentication authentication) {
         if (!isAdminUser(authentication)) {
@@ -60,6 +90,16 @@ public class UserManagementController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Retrieves all unauthorized users for admin review and approval.
+     * This endpoint helps administrators manage the user onboarding process
+     * by providing visibility into new or suspended users who need access
+     * authorization. This is crucial for maintaining platform security
+     * and ensuring proper access control.
+     *
+     * @param authentication Current user's authentication details
+     * @return ResponseEntity containing list of unauthorized users or error message
+     */
     @GetMapping("/unauthorized")
     public ResponseEntity<?> getUnauthorizedUsers(Authentication authentication) {
         if (!isAdminUser(authentication)) {
@@ -75,6 +115,17 @@ public class UserManagementController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Grants platform access to a user by setting their status to authorized
+     * and assigning the standard USER role. This is a key part of the user
+     * onboarding workflow, allowing admins to verify and approve new users
+     * before they can access protected resources. This helps maintain platform
+     * security and ensures proper user verification.
+     *
+     * @param userId ID of the user to authorize
+     * @param authentication Current user's authentication details
+     * @return ResponseEntity with updated user details or error message
+     */
     @PostMapping("/{userId}/authorize")
     public ResponseEntity<?> authorizeUser(
             @PathVariable Long userId,
@@ -94,6 +145,19 @@ public class UserManagementController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    /**
+     * Revokes a user's platform access by setting their status to unauthorized
+     * and downgrading their role. This is essential for handling various
+     * security scenarios such as:
+     * - Suspending potentially compromised accounts
+     * - Handling user offboarding
+     * - Managing temporary access revocation
+     * The user's account remains in the system but cannot access protected resources.
+     *
+     * @param userId ID of the user to deauthorize
+     * @param authentication Current user's authentication details
+     * @return ResponseEntity with updated user details or error message
+     */
     @PostMapping("/{userId}/deauthorize")
     public ResponseEntity<?> deauthorizeUser(
             @PathVariable Long userId,
@@ -113,6 +177,20 @@ public class UserManagementController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    /**
+     * Provides flexible user search functionality for administrators using
+     * either email or WhatsApp number as identifiers. This endpoint supports:
+     * - User support and troubleshooting
+     * - Account verification
+     * - User management tasks
+     * The search is exclusive (either email OR WhatsApp) to ensure precise
+     * user identification and prevent ambiguous results.
+     *
+     * @param email User's email address (optional)
+     * @param whatsappNumber User's WhatsApp number (optional)
+     * @param authentication Current user's authentication details
+     * @return ResponseEntity with matching user details or appropriate error message
+     */
     @GetMapping("/search")
     public ResponseEntity<?> searchUsers(
             @RequestParam(required = false) String email,
@@ -139,6 +217,17 @@ public class UserManagementController {
                 .body("Either email or whatsappNumber parameter is required");
     }
 
+    /**
+     * Provides high-level statistics about user demographics in the platform
+     * to help administrators make informed decisions about:
+     * - User growth and adoption rates
+     * - Authorization workflow effectiveness
+     * - Administrative resource allocation
+     *
+     * This aggregated view helps identify trends and potential issues
+     * in the user management process without having to manually count
+     * or filter through individual user records.
+     */
     @GetMapping("/stats")
     public ResponseEntity<?> getUserStats(Authentication authentication) {
         if (!isAdminUser(authentication)) {
@@ -159,6 +248,20 @@ public class UserManagementController {
         return ResponseEntity.ok(stats);
     }
 
+    /**
+     * Links a WhatsApp number to a user while handling complex migration scenarios.
+     * This method supports two key business cases:
+     * 1. Normal linking of WhatsApp numbers to existing users
+     * 2. Migration of temporary users' data when they finally create a full account
+     * <p>
+     * The temporary user migration is crucial for preserving user data when
+     * users start interacting via WhatsApp before creating a full platform account.
+     * This ensures no user data is lost during the transition from temporary
+     * to permanent user status.
+     * <p>
+     * Security Note: Only administrators can perform this operation to prevent
+     * unauthorized linking of WhatsApp numbers and potential impersonation.
+     */
     @PostMapping("/{userId}/link-whatsapp")
     public ResponseEntity<?> linkWhatsAppNumber(
             @PathVariable Long userId,
@@ -192,6 +295,18 @@ public class UserManagementController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    /**
+     * Permanently removes a user from the system. This is a critical operation used for:
+     * - Complying with data deletion requests (e.g., GDPR requirements)
+     * - Removing spam or malicious accounts
+     * - Cleaning up test or temporary accounts
+     * <p>
+     * This operation is restricted to administrators due to its irreversible nature
+     * and the potential impact on system integrity and user data.
+     * <p>
+     * Note: Consider implementing soft delete if maintaining historical records
+     * becomes a requirement in the future.
+     */
     @DeleteMapping("/{userId}")
     public ResponseEntity<?> deleteUser(
             @PathVariable Long userId,

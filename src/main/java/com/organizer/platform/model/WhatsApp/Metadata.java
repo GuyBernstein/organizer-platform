@@ -6,6 +6,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Stores essential phone number information for message routing and display.
+ * Separating display and ID numbers allows for proper handling of different phone
+ * number formats and maintains clean separation between user-facing and system-internal identifiers.
+ */
 @Data
 @Builder
 @NoArgsConstructor

@@ -7,6 +7,10 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * Represents an HTML form with its fields and attributes.
+ * Used for capturing interactive elements that might need to be processed or filled.
+ */
 @Data
 @Builder
 @NoArgsConstructor

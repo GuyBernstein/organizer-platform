@@ -1,7 +1,7 @@
 package com.organizer.platform.service.WhatsApp;
 
 import com.organizer.platform.model.WhatsApp.Audio;
-import com.organizer.platform.model.WhatsApp.MediaResponse;
+import com.organizer.platform.model.organizedDTO.MediaResponse;
 import com.organizer.platform.service.Google.CloudStorageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -11,6 +11,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * Service responsible for handling WhatsApp audio messages.
+ * This service downloads audio files from WhatsApp's servers and uploads them to Google Cloud Storage.
+ */
 @Service
 public class WhatsAppAudioService {
     private final CloudStorageService cloudStorageService;
@@ -22,6 +26,15 @@ public class WhatsAppAudioService {
         this.restTemplate = restTemplate;
     }
 
+    /**
+     * Processes an audio message from WhatsApp and uploads it to Google Cloud Storage.
+     *
+     * @param from The sender's WhatsApp number
+     * @param whatsAppAudio The audio message data from WhatsApp
+     * @param whatsAppToken The authentication token for WhatsApp's API
+     * @return The filename/path where the audio was stored in Cloud Storage
+     * @throws RuntimeException if download or upload fails
+     */
     public String processAndUploadAudio(String from, Audio whatsAppAudio, String whatsAppToken) {
         // Download document from WhatsApp servers using their Media API
         byte[] audioData = downloadAudioFromWhatsApp(whatsAppAudio.getId(), whatsAppToken);
@@ -39,6 +52,17 @@ public class WhatsAppAudioService {
         );
     }
 
+    /**
+     * Downloads audio file from WhatsApp's servers using their Media API.
+     * This is a two-step process:
+     * 1. Get the media URL using the media ID
+     * 2. Download the actual audio file from the retrieved URL
+     *
+     * @param mediaId The ID of the media to download
+     * @param token WhatsApp API authentication token
+     * @return The downloaded audio file as a byte array
+     * @throws RuntimeException if the download fails
+     */
     private byte[] downloadAudioFromWhatsApp(String mediaId, String token) {
         try {
             // First, get the audio URL using the media ID
@@ -75,6 +99,12 @@ public class WhatsAppAudioService {
         }
     }
 
+    /**
+     * Determines the appropriate file extension based on the MIME type.
+     *
+     * @param mimeType The MIME type of the audio file
+     * @return The corresponding file extension
+     */
     private String getExtensionFromMimeType(String mimeType) {
         // Extract the main MIME type without parameters
         String baseMimeType = mimeType.split(";")[0].trim().toLowerCase();

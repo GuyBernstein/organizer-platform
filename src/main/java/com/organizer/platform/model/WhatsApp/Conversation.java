@@ -6,6 +6,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Manages conversation metadata and lifecycle, helping track conversation expiration
+ * and origin. This is essential for implementing conversation timeouts and maintaining
+ * compliance with WhatsApp's conversation window requirements.
+ */
 @Data
 @Builder
 @NoArgsConstructor

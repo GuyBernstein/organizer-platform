@@ -13,6 +13,12 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * WhatsAppMessage is the core entity representing a message in the organization platform.
+ * It stores the message content along with various categorization fields (category, type, purpose)
+ * and maintains relationships with Tags and NextSteps for advanced organization and tracking.
+ * Messages can be processed and categorized for better searchability and management.
+ */
 @Entity
 @Table(name="whatsapp_message")
 public class WhatsAppMessage implements Serializable {

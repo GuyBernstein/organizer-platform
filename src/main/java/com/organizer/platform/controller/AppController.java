@@ -31,6 +31,20 @@ import static com.organizer.platform.model.organizedDTO.WhatsAppMessage.WhatsApp
 import static com.organizer.platform.util.PhoneNumberValidator.validateAndCheckAccess;
 import static com.organizer.platform.util.PhoneNumberValidator.validatePhoneNumber;
 
+/**
+ * Controller class handling all content management operations for the platform.
+ * This class provides RESTful endpoints for managing WhatsApp messages, files,
+ * and related content processing operations.
+ * <p>
+ * Key features:
+ * - Message management and organization
+ * - File handling (images, documents, audio)
+ * - Content processing and categorization
+ * - Access control and user authentication
+ * - Related content discovery
+ * <p>
+ * All endpoints require OAuth2 authentication and appropriate user authorization.
+ */
 @RestController
 @RequestMapping("/api/content")
 @Api(tags = "Content Management API")
@@ -54,6 +68,18 @@ public class AppController {
         this.scraperService = scraperService;
     }
 
+    /**
+     * Deletes all messages from the database. This operation is restricted to admin users only.
+     *
+     * @param authentication The OAuth2 authentication object containing user credentials
+     * @return ResponseEntity<?> Returns:
+     *         - 200 OK if deletion is successful
+     *         - 401 UNAUTHORIZED if user is not authenticated
+     *         - 403 FORBIDDEN if user is not an admin
+     *
+     * @apiNote This is a dangerous operation that should be used with caution
+     * @see UserService#isAdmin(String)
+     */
     @DeleteMapping("/all")
     public ResponseEntity<?> deleteAll(Authentication authentication) {
         OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
@@ -70,6 +96,24 @@ public class AppController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * Retrieves messages that share tags with a specified message, organized by category
+     * and subcategory. Messages are considered related if they share at least the specified
+     * minimum number of tags.
+     *
+     * @param messageId The ID of the reference message to find related content for
+     * @param minimumSharedTags Minimum number of shared tags required for messages to be considered related (default: 1)
+     * @param authentication The OAuth2 authentication object containing user credentials
+     * @return ResponseEntity<?> Returns:
+     *         - 200 OK with map of related messages grouped by category and subcategory
+     *         - 204 NO_CONTENT if no related messages are found
+     *         - 401 UNAUTHORIZED if user is not authenticated
+     *         - 403 FORBIDDEN if user doesn't have access to the message
+     *         - 404 NOT_FOUND if the reference message doesn't exist
+     *
+     * @throws EntityNotFoundException if the specified message is not found
+     * @see WhatsAppMessageService#findRelatedMessagesWithMinimumSharedTags
+     */
     @GetMapping("/{messageId}/related")
     @ApiOperation(value = "Get related messages by shared tags",
             notes = "Retrieves all messages that share tags with the specified message, organized by category and subcategory")
@@ -98,6 +142,18 @@ public class AppController {
         return new ResponseEntity<>(relatedMessages, HttpStatus.OK);
     }
 
+    /**
+     * Retrieves and organizes messages by phone number while ensuring proper access control.
+     * <p>
+     * Why this implementation:
+     * - Phone number validation is critical as it's the primary key for message retrieval and security
+     * - Messages are organized by category and subcategory to provide a structured view of user's content
+     *   which helps in better content navigation and organization
+     * - Uses access control checking to ensure users can only access their own messages, maintaining
+     *   data privacy and security
+     * - Returns empty response instead of error for no content to simplify client-side handling
+     * - Supports both local and international phone number formats to improve user experience
+     */
     @GetMapping("/messages/{phoneNumber}")
     @ApiOperation(value = "Get message contents by phone number",
             notes = "Retrieves all message contents sent from a specific phone number. Accepts formats: 0509603888 or 972509603888")
@@ -131,6 +187,18 @@ public class AppController {
         return new ResponseEntity<>(organizedMessages, HttpStatus.OK);
     }
 
+    /**
+     * Generates temporary secure URLs for accessing images stored in cloud storage.
+     * <p>
+     * Why this implementation:
+     * - Uses pre-signed URLs to provide temporary, secure access to private cloud storage
+     *   without exposing permanent public URLs
+     * - Includes both URL and filename in response to help clients with display and download functionality
+     * - Implements phone number validation to maintain data isolation between users
+     * - Returns detailed error messages to help debug cloud storage access issues
+     * - Access control ensures users can only access images associated with their phone number
+     *   even if they know the image name
+     */
     @GetMapping("/image/url")
     public ResponseEntity<?> getImagePreSignedUrl(
             @RequestParam String imageName,
@@ -162,6 +230,24 @@ public class AppController {
         }
     }
 
+    /**
+     * Generates a pre-signed URL for secure document access while maintaining data privacy and security.
+     * <p>
+     * Why this method exists:
+     * 1. Security & Privacy: Instead of exposing direct document URLs, pre-signed URLs provide temporary,
+     *    authenticated access to documents stored in cloud storage.
+     * 2. Access Control: Ensures documents are only accessible by authorized users who own the associated
+     *    phone number or have admin privileges.
+     * 3. User Experience: Provides additional metadata like file type to help frontend applications
+     *    handle different document types appropriately.
+     * 4. Resource Management: By generating temporary URLs, we maintain control over document access
+     *    while allowing direct downloads from cloud storage, reducing server load.
+     *
+     * @param documentName Name of the document to access
+     * @param phoneNumber Associated phone number for access control
+     * @param authentication Current user's authentication details
+     * @return ResponseEntity containing the pre-signed URL and metadata, or error details
+     */
     @GetMapping("/document/url")
     public ResponseEntity<?> getDocumentPreSignedUrl(
             @RequestParam() String documentName,
@@ -204,6 +290,26 @@ public class AppController {
         }
     }
 
+    /**
+     * Generates a pre-signed URL for secure audio file access with media-specific handling.
+     * <p>
+     * Why this method exists:
+     * 1. Media Streaming Support: Provides content-type information necessary for proper audio
+     *    playback in web browsers and mobile applications.
+     * 2. Bandwidth Optimization: Direct cloud storage access allows for efficient streaming and
+     *    download of potentially large audio files without proxying through the application server.
+     * 3. Format Compatibility: Includes audio-specific metadata and content types to help client
+     *    applications choose appropriate playback methods and codecs.
+     * 4. Security & Privacy: Protects sensitive audio content through temporary, authenticated
+     *    access while maintaining user privacy.
+     * 5. Access Control Integration: Ensures audio files are only accessible by the message owner
+     *    or administrators, protecting user privacy.
+     *
+     * @param audioName Name of the audio file to access
+     * @param phoneNumber Associated phone number for access control
+     * @param authentication Current user's authentication details
+     * @return ResponseEntity containing the pre-signed URL and audio metadata, or error details
+     */
     @GetMapping("/audio/url")
     @ApiOperation(value = "Get pre-signed URL for audio file",
             notes = "Retrieves a pre-signed URL for accessing an audio file stored in Cloud Storage")
@@ -254,6 +360,21 @@ public class AppController {
         }
     }
 
+    /**
+     * Provides a traditional update mechanism for WhatsApp messages that preserves existing data structure.
+     * <p>
+     * Why this method exists:
+     * - Allows for selective updates without requiring all fields to be present
+     * - Maintains data integrity by preserving existing relationships and metadata
+     * - Useful for simple content updates where AI reprocessing isn't needed
+     * - Provides immediate feedback as updates are processed synchronously
+     * <p>
+     * This approach is ideal when:
+     * - Only specific fields need to be updated
+     * - The existing tags and relationships should be preserved
+     * - Real-time confirmation of the update is required
+     * - The update doesn't warrant re-analysis of content
+     */
     @PutMapping("/messages/{messageId}")
     @ApiOperation(value = "Update message content and metadata",
             notes = "Updates only the provided non-null fields of the message, preserving existing values for null fields")
@@ -288,6 +409,27 @@ public class AppController {
         }
     }
 
+    /**
+     * Provides an AI-driven update mechanism that completely reprocesses the message content.
+     * <p>
+     * Why this method exists:
+     * - Enables complete content reanalysis when message meaning/context changes significantly
+     * - Maintains data freshness by regenerating all AI-derived fields
+     * - Ensures consistency between content and its metadata through complete reprocessing
+     * - Handles content updates that may affect related items or categorization
+     * <p>
+     * This approach is ideal when:
+     * - The content change affects the message's meaning or context
+     * - Tags and relationships need to be recalculated
+     * - URLs in the content need fresh scraping
+     * - Asynchronous processing is acceptable (uses JMS queue)
+     * <p>
+     * Key differences from regular update:
+     * - Deletes existing tags and relationships instead of preserving them
+     * - Re-scrapes URLs and updates purpose field
+     * - Processes updates asynchronously through message queue
+     * - Regenerates all AI-derived fields rather than updating selectively
+     */
     @PutMapping("/messages/{messageId}/content")
     @ApiOperation(value = "Smart Update message content and metadata",
             notes = "Updates only the provided content of the message, while regenerating values for other fields")
@@ -346,6 +488,26 @@ public class AppController {
         }
     }
 
+    /**
+     * Creates a new text-based message entry from user input while ensuring proper organization and processing.
+     * <p>
+     * Why this method exists:
+     * - Provides a streamlined way to create text entries without requiring full message object creation
+     * - Handles automatic URL content extraction to enrich message metadata
+     * - Ensures proper access control and phone number validation before processing
+     * - Delegates heavy processing to background queue to maintain responsive API
+     * <p>
+     * Processing flow:
+     * 1. Validates user access and phone number format
+     * 2. Extracts and processes any URLs in the content to gather additional context
+     * 3. Creates a minimal message object with essential fields
+     * 4. Offloads organization and classification to async queue for better performance
+     *
+     * @param content Raw text content to be processed and organized
+     * @param phoneNumber User's phone number for authentication and message association
+     * @param authentication User's authentication details for access control
+     * @return Response entity containing processing status or error details
+     */
     @PostMapping("/messages/text/")
     @ApiOperation(value = "Create an organized content from text",
             notes = "Get input only the provided text content of the message, while generating values for other fields")
@@ -411,6 +573,33 @@ public class AppController {
         }
     }
 
+    /**
+     * Handles image upload and creates a new message entry with proper storage and metadata.
+     * <p>
+     * Why this method exists:
+     * - Provides secure and organized storage of user-uploaded images
+     * - Ensures proper file type validation to maintain system integrity
+     * - Creates standardized metadata for consistent image retrieval
+     * - Integrates with cloud storage for scalable image management
+     * <p>
+     * Processing flow:
+     * 1. Validates image file format and user access rights
+     * 2. Uploads image to cloud storage with proper organization
+     * 3. Creates metadata including MIME type, size, and storage location
+     * 4. Initiates async processing for message organization
+     * <p>
+     * The method uses cloud storage instead of direct database storage because:
+     * - Enables efficient handling of large files
+     * - Provides better scalability for growing storage needs
+     * - Allows for secure access control through pre-signed URLs
+     * - Reduces database load and storage costs
+     *
+     * @param image MultipartFile containing the image to be uploaded
+     * @param phoneNumber User's phone number for authentication and message association
+     * @param authentication User's authentication details for access control
+     * @return Response entity containing processing status or error details
+     * @throws IOException If there are issues handling the file upload
+     */
     @PostMapping("/messages/image")
     @ApiOperation(value = "Create message with image content and metadata",
             notes = "Handles image file upload and creates a WhatsApp message with image content")
@@ -464,6 +653,20 @@ public class AppController {
         return sendToJMS(message);
     }
 
+    /**
+     * Handles document upload requests by validating, storing, and queuing them for processing.
+     * <p>
+     * Why this exists:
+     * - Provides a standardized entry point for document uploads that ensures:
+     *   1. Security: Validates file types to prevent malicious uploads
+     *   2. Access Control: Ensures users can only upload to their own accounts
+     *   3. Consistency: Maintains a uniform document storage structure in cloud storage
+     * <p>
+     * Design decisions:
+     * - Uses MultipartFile to handle large document uploads efficiently
+     * - Separates storage (immediate) from processing (async via JMS) to improve responsiveness
+     * - Enforces strict MIME type validation to maintain system security and data integrity
+     */
     @PostMapping("/messages/document")
     @ApiOperation(value = "Create message with document content and metadata",
             notes = "Handles document file upload and creates a WhatsApp message with document content")
@@ -518,6 +721,20 @@ public class AppController {
         return sendToJMS(message);
     }
 
+    /**
+     * Handles asynchronous message processing by serializing and sending messages to JMS queue.
+     * <p>
+     * Why this exists:
+     * - Decouples message creation from processing to:
+     *   1. Improve system responsiveness by handling heavy processing asynchronously
+     *   2. Enable better scalability by distributing processing load
+     *   3. Provide resilience through message persistence and retry capabilities
+     * <p>
+     * Design decisions:
+     * - Uses JSON serialization for maximum compatibility and flexibility
+     * - Returns immediate feedback while processing continues asynchronously
+     * - Centralizes JMS sending logic to maintain consistent error handling
+     */
     private ResponseEntity<?> sendToJMS(WhatsAppMessage message) {
         try {
             // Serialize the WhatsAppMessage to JSON string
@@ -538,6 +755,20 @@ public class AppController {
         }
     }
 
+    /**
+     * Generates standardized metadata string for stored media files.
+     * <p>
+     * Why this exists:
+     * - Provides a consistent way to:
+     *   1. Track file metadata across the system
+     *   2. Clean up storage path prefixes for better readability
+     *   3. Maintain uniform media information format for all stored files
+     * <p>
+     * Design decisions:
+     * - Stores MIME type for proper file handling
+     * - Includes file size for client-side optimization
+     * - Removes storage prefixes to abstract storage implementation details
+     */
     public static String storedMediaName(String mediaPrefix, MultipartFile document, String storedFileName) {
         // Create document metadata and GCS filename
         String cleanFileName = storedFileName.startsWith(mediaPrefix)
@@ -549,6 +780,18 @@ public class AppController {
                 cleanFileName);
     }
 
+    /**
+     * Validates document MIME types to ensure security and compatibility.
+     * <p>
+     * Why this exists:
+     * - Prevents upload of potentially malicious files by restricting to known safe formats
+     * - Ensures uploaded documents can be properly processed by the system
+     * - Maintains consistency in supported document types across the application
+     * - Makes document type validation centralized and reusable
+     *
+     * @param contentType The MIME type of the uploaded document
+     * @return boolean indicating if the document type is supported
+     */
     private boolean isValidDocumentType(String contentType) {
         Set<String> validTypes = Set.of(
                 "application/pdf",
@@ -561,6 +804,18 @@ public class AppController {
         return validTypes.contains(contentType.toLowerCase());
     }
 
+    /**
+     * Maps file extensions to their corresponding audio MIME types for proper content serving.
+     * <p>
+     * Why this exists:
+     * - Ensures correct content-type headers when serving audio files
+     * - Enables proper audio playback in web browsers
+     * - Supports a variety of common audio formats for broader compatibility
+     * - Helps clients determine how to handle the audio content
+     *
+     * @param fileExtension The file extension of the audio file
+     * @return The corresponding MIME type or null if not supported
+     */
     private String getAudioContentType(String fileExtension) {
         if (fileExtension == null) return null;
         switch (fileExtension.toLowerCase())
@@ -582,12 +837,46 @@ public class AppController {
         }
     }
 
+    /**
+     * Extracts file extension from filename for content type determination.
+     * <p>
+     * Why this exists:
+     * - Enables dynamic content type detection without relying on client-provided MIME types
+     * - Supports proper file handling and storage organization
+     * - Helps validate file types before processing
+     * - Used for generating appropriate content-type headers when serving files
+     *
+     * @param fileName The complete filename including extension
+     * @return The file extension or null if no extension found
+     */
     private String getFileExtension(String fileName) {
         if (fileName == null) return null;
         int lastDotIndex = fileName.lastIndexOf('.');
         return lastDotIndex > 0 ? fileName.substring(lastDotIndex + 1) : null;
     }
 
+
+    /**
+     * Implements multi-level access control for content access.
+     * <p>
+     * Why this exists:
+     * - Enforces the principle of the least privilege in content access
+     * - Prevents unauthorized access to user data
+     * - Implements role-based access control (admin vs regular users)
+     * - Ensures users can only access their own WhatsApp content
+     * - Handles various authentication edge cases (unauthenticated, unauthorized, unlinked accounts)
+     * <p>
+     * Access Rules:
+     * 1. Admins have universal access
+     * 2. Regular users can only access their own content
+     * 3. Users must be authenticated and authorized
+     * 4. WhatsApp numbers must be linked to accounts
+     * 5. Supports both international and local number formats
+     *
+     * @param authentication The current authentication context
+     * @param phoneNumber The WhatsApp number being accessed
+     * @return AccessControlResponse with the access decision and any error messages
+     */
     private AccessControlResponse checkAccessControl(Authentication authentication, String phoneNumber) {
         // If no authentication, deny access
         if (authentication == null) {

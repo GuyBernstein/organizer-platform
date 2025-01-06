@@ -6,6 +6,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Manages image attachments in messages, similar to Document but specialized for image handling.
+ * The SHA256 hash enables integrity verification and potential caching strategies.
+ */
 @Data
 @Builder
 @NoArgsConstructor

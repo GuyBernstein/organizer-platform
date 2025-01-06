@@ -6,6 +6,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Tracks message delivery and read status, enabling proper message flow monitoring
+ * and implementing retry logic when needed. The conversation and pricing information
+ * help maintain proper business logic and cost tracking.
+ */
 @Data
 @Builder
 @NoArgsConstructor

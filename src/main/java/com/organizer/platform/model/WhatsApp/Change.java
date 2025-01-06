@@ -5,6 +5,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Acts as a container for webhook event changes, allowing the system to track what type of
+ * update occurred (messages, status updates, etc.) and process them accordingly. This separation
+ * helps maintain clean event handling and routing logic.
+ */
 @Data
 @Builder
 @NoArgsConstructor

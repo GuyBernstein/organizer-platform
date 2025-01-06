@@ -12,6 +12,11 @@ import org.joda.time.LocalDateTime;
 import java.util.Date;
 import java.util.Set;
 
+/**
+ * MessageDTO represents the simplified data transfer object for WhatsAppMessage entities.
+ * Used for client-side communication and API responses, containing only the necessary
+ * fields without the JPA relationships and entity-specific properties.
+ */
 @Data
 @Builder
 @NoArgsConstructor

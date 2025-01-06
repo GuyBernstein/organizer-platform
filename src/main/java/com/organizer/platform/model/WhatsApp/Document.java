@@ -6,6 +6,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Handles document attachments in messages, providing structure for file sharing capabilities.
+ * The SHA256 hash is included for security verification and deduplication purposes.
+ */
 @Data
 @Builder
 @NoArgsConstructor

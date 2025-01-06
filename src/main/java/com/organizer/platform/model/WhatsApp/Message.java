@@ -5,6 +5,11 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Central class for message representation, supporting multiple content types and metadata.
+ * This flexible structure allows the system to handle various message formats while maintaining
+ * consistent processing patterns and enabling proper routing based on message type.
+ */
 @Data
 @Builder
 @NoArgsConstructor

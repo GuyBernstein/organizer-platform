@@ -14,12 +14,25 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Enhances AI interactions by automatically processing URLs mentioned in user messages.
+ * Extracts website content to provide AI with context about referenced URLs,
+ * enabling more informed and contextual responses.
+ */
 @RestController
 @RequestMapping("/api/scraper")
 @RequiredArgsConstructor
 public class WebScraperController {
-
     private final WebContentScraperService scraperService;
+
+    /**
+     * Provides structured website content for AI processing.
+     * Captures both visible and hidden elements to give AI complete context
+     * about the referenced webpage's structure and content hierarchy.
+     *
+     * @param url URL mentioned in user's message
+     * @return Structured content for AI context enhancement
+     */
     @GetMapping("/analyze")
     public ResponseEntity<WebsiteContent> analyzeWebsite(@RequestParam String url) {
         try {
@@ -29,6 +42,14 @@ public class WebScraperController {
         }
     }
 
+    /**
+     * Extracts only readable content for simplified AI processing.
+     * Filters to visible text for cases where webpage structure isn't relevant,
+     * optimizing for pure text-based AI analysis.
+     *
+     * @param url URL mentioned in user's message
+     * @return Visible text content for AI context enhancement
+     */
     @GetMapping("/visibleText")
     public ResponseEntity<String> textWebsite(@RequestParam String url) {
         try {

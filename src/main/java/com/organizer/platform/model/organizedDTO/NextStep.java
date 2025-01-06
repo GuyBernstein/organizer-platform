@@ -7,6 +7,11 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
+/**
+ * NextStep represents action items or follow-up tasks associated with a WhatsApp message.
+ * Each message can have multiple next steps, creating a task-like structure for message follow-ups.
+ * Used in conjunction with WhatsAppMessage to track required actions derived from message content.
+ */
 @Entity
 @Table(name = "next_steps")
 public class NextStep implements Serializable {

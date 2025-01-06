@@ -1,7 +1,7 @@
 package com.organizer.platform.service.WhatsApp;
 
 import com.organizer.platform.model.WhatsApp.Image;
-import com.organizer.platform.model.WhatsApp.MediaResponse;
+import com.organizer.platform.model.organizedDTO.MediaResponse;
 import com.organizer.platform.service.Google.CloudStorageService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +10,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * Service responsible for handling WhatsApp image messages.
+ * This service downloads images from WhatsApp's servers and uploads them to Google Cloud Storage.
+ * It includes additional error handling and validation compared to other media services.
+ */
 @Service
 public class WhatsAppImageService {
     private final CloudStorageService cloudStorageService;
@@ -21,6 +26,15 @@ public class WhatsAppImageService {
         this.restTemplate = restTemplate;
     }
 
+    /**
+     * Processes an image message from WhatsApp and uploads it to Google Cloud Storage.
+     *
+     * @param from The sender's WhatsApp number
+     * @param whatsAppImage The image message data from WhatsApp
+     * @param whatsAppToken The authentication token for WhatsApp's API
+     * @return The filename/path where the image was stored in Cloud Storage
+     * @throws RuntimeException if download or upload fails
+     */
     public String processAndUploadImage(String from, Image whatsAppImage, String whatsAppToken) {
         // Download image from WhatsApp servers using their Media API
         byte[] imageData = downloadImageFromWhatsApp(whatsAppImage.getId(), whatsAppToken);
@@ -39,6 +53,16 @@ public class WhatsAppImageService {
         );
     }
 
+    /**
+     * Downloads image from WhatsApp's servers using their Media API.
+     * Includes comprehensive error handling and validation of inputs.
+     *
+     * @param mediaId The ID of the media to download
+     * @param token WhatsApp API authentication token
+     * @return The downloaded image as a byte array
+     * @throws IllegalArgumentException if token or mediaId is empty
+     * @throws RuntimeException for various download failures
+     */
     private byte[] downloadImageFromWhatsApp(String mediaId, String token) {
         if (StringUtils.isEmpty(token)) {
             throw new IllegalArgumentException("WhatsApp API token cannot be empty");
@@ -94,7 +118,12 @@ public class WhatsAppImageService {
         }
     }
 
-
+    /**
+     * Determines the appropriate file extension based on the MIME type.
+     *
+     * @param mimeType The MIME type of the image file
+     * @return The corresponding file extension (defaults to jpg)
+     */
     private String getExtensionFromMimeType(String mimeType) {
         switch (mimeType.toLowerCase()) {
             case "image/png":

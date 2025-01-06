@@ -8,6 +8,10 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Base model for a website's scraped content. Acts as a container for all
+ * extracted elements like text, tables, forms, and metadata from a web page.
+ */
 @Data
 @Builder
 @NoArgsConstructor

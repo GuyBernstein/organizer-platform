@@ -8,6 +8,11 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * Acts as a container for the actual webhook payload, organizing different types of
+ * updates (messages, contacts, statuses) in a structured way. This organization enables
+ * proper event routing and maintains clean separation between different types of updates.
+ */
 @Data
 @Builder
 @NoArgsConstructor

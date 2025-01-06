@@ -5,6 +5,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Represents a block of text content with its HTML context.
+ * Preserves the structural and styling information of text elements for accurate content processing.
+ */
 @Data
 @Builder
 @NoArgsConstructor
