@@ -1,9 +1,12 @@
 <!DOCTYPE html>
+<!-- Hebrew language and RTL (Right-to-Left) direction settings for the page -->
 <html xmlns:th="http://www.thymeleaf.org"
 	  lang="he" dir="rtl">
 <body>
+<!-- Main content fragment that can be included in the other template (base.html) -->
 <div th:fragment="content">
   <div class="container py-4">
+	<!-- Error message display section - shows only when errorMessage exists -->
 	<div th:if="${errorMessage != null && !errorMessage.isEmpty()}"
 		 class="alert alert-danger alert-dismissible fade show alert-enhanced"
 		 role="alert">
@@ -13,6 +16,8 @@
 	  </div>
 	  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="סגור"></button>
 	</div>
+	
+	<!-- Page header section with title and subtitle -->
 	<div class="text-center mb-5">
 	  <h1 id="ברוכים-הבאים-whatsapp-organizer" class="display-4 mb-4">
 		ברוכים הבאים: WhatsApp Organizer
@@ -20,19 +25,23 @@
 	  <p class="lead px-2">נהלו את ההודעות שלכם בצורה חכמה ויעילה</p>
 	</div>
 	
-	<!-- Cards container with responsive grid -->
+	<!-- Main features section - Responsive grid layout -->
 	<div class="row g-4 justify-content-center">
 	  <!-- Card 1: ארגון הודעות חכם -->
 	  <div class="col-12 col-sm-10 col-md-6 col-lg-3">
 		<div class="card h-100 shadow-sm rounded-4">
+		  <!-- Card icon -->
 		  <div class="feature-icon d-flex align-items-center justify-content-center p-4">
 			<i class="fas fa-folder-tree fa-3x text-whatsapp-green"></i>
 		  </div>
+		  
+		  <!-- Card content -->
 		  <div class="card-body d-flex flex-column">
 			<h2 class="h4 mb-3 text-whatsapp-dark">ארגון הודעות חכם</h2>
 			<p class="card-text">צרו וארגנו הודעות באופן אוטומטי - בין אם דרך וואטסאפ או ישירות במערכת. המיון החכם שלנו
 			  מסדר את ההודעות לפי:</p>
 			
+			<!-- Feature list -->
 			<ul class="list-unstyled mb-3 ps-2">
 			  <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>קטגוריות ותת-קטגוריות</li>
 			  <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>תאריך יצירה</li>
@@ -50,13 +59,17 @@
 	  <!-- Card 2: חיפוש מתקדם -->
 	  <div class="col-12 col-sm-10 col-md-6 col-lg-3">
 		<div class="card h-100 shadow-sm rounded-4">
+		  <!-- Card icon -->
 		  <div class="feature-icon d-flex align-items-center justify-content-center p-4">
 			<i class="fas fa-magnifying-glass fa-3x text-whatsapp-green"></i>
 		  </div>
+		  
+		  <!-- Card content -->
 		  <div class="card-body d-flex flex-column">
 			<h2 class="h4 mb-3 text-whatsapp-dark">חיפוש מתקדם</h2>
 			<p class="card-text">מנוע חיפוש חכם המאפשר למצוא כל הודעה במהירות ובקלות. אפשרויות החיפוש כוללות:</p>
 			
+			<!-- Search features list -->
 			<ul class="list-unstyled mb-3 ps-2">
 			  <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>מיון לפי תת-קטגוריות וקטגוריות</li>
 			  <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>סינון לפי תגיות</li>
@@ -71,13 +84,17 @@
 	  <!-- Card 3: עריכת נתונים -->
 	  <div class="col-12 col-sm-10 col-md-6 col-lg-3">
 		<div class="card h-100 shadow-sm rounded-4">
+		  <!-- Card icon -->
 		  <div class="feature-icon d-flex align-items-center justify-content-center p-4">
 			<i class="fas fa-pen-to-square fa-3x text-whatsapp-green"></i>
 		  </div>
+		  
+		  <!-- Card content -->
 		  <div class="card-body d-flex flex-column">
 			<h2 class="h4 mb-3 text-whatsapp-dark">עריכת נתונים</h2>
 			<p class="card-text">שליטה מלאה בארגון המידע שלכם עם אפשרויות עריכה מתקדמות:</p>
 			
+			<!-- Editing features list -->
 			<ul class="list-unstyled mb-3 ps-2">
 			  <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>עריכה ידנית או אוטומטית</li>
 			  <li class="mb-2"><i class="fas fa-check text-whatsapp-green me-2"></i>העתקת התוכן לclipboard</li>
@@ -92,17 +109,22 @@
 	  <!-- Card 4: סטטיסטיקות -->
 	  <div class="col-12 col-sm-10 col-md-6 col-lg-3">
 		<div class="card h-100 shadow-sm rounded-4">
+		  <!-- Card icon -->
 		  <div class="feature-icon d-flex align-items-center justify-content-center p-4">
 			<i class="fas fa-chart-pie fa-3x text-whatsapp-green"></i>
 		  </div>
+		  
+		  <!-- Card content -->
 		  <div class="card-body d-flex flex-column">
 			<h2 class="h4 mb-3 text-whatsapp-dark">סטטיסטיקות מערכת</h2>
 			<p class="card-text">ניתוח מעמיק של נתוני המערכת שלך:</p>
 			
+			<!-- Chart container for data visualization -->
 			<div class="chart-container mb-3" style="position: relative; height: 200px;">
 			  <canvas id="treeMapChart"></canvas>
 			</div>
 			
+			<!-- Statistics summary -->
 			<div class="stats-summary mt-2">
 			  <div class="d-flex justify-content-between mb-2">
 				<span class="text-muted">טקסט:</span>

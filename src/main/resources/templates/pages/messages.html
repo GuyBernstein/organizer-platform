@@ -1,10 +1,16 @@
 <!DOCTYPE html>
+<!--
+  Main template for message management interface
+  Uses Thymeleaf templating engine with RTL (right-to-left) layout for Hebrew
+-->
 <html xmlns:th="http://www.thymeleaf.org" lang="he" dir="rtl">
 <body>
+<!-- Main content fragment that can be included in the other template (base.html) -->
 <div th:fragment="content">
   <div class="container-fluid p-3">
 	
-	<!-- Flash Messages -->
+	<!-- Alert Messages Section -->
+	<!-- Displays success and error notifications to the user -->
 	<div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
 	  <span th:text="${successMessage}"></span>
 	  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -15,7 +21,8 @@
 	  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 	</div>
 	
-	<!-- Main Heading Section -->
+	<!-- Page Header Section -->
+	<!-- Contains main title and action buttons for adding content -->
 	<div class="row g-3">
 	  <!-- Header Section -->
 	  <div class="col-12">
@@ -23,9 +30,11 @@
 		  <h1 class="display-5 fw-bold mb-3">ניהול הודעות</h1>
 		</div>
 		
-		<!-- Action Buttons -->
+		<!-- Action Button Group -->
+		<!-- Quick access buttons for adding documents, images and text messages -->
 		<div class="d-flex justify-content-between align-items-center mb-4">
 		  <div class="btn-group">
+			<!-- Document Upload Button -->
 			<button class="btn btn-outline-primary"
 					data-bs-toggle="modal"
 					data-bs-target="#addDocumentModal"
@@ -34,6 +43,7 @@
 			  <span class="d-none d-sm-inline ms-1">הוסף מסמך</span>
 			</button>
 			
+			<!-- Image Upload Button -->
 			<button class="btn btn-outline-primary"
 					data-bs-toggle="modal"
 					data-bs-target="#addImageModal"
@@ -42,6 +52,7 @@
 			  <span class="d-none d-sm-inline ms-1">הוסף תמונה</span>
 			</button>
 			
+			<!-- Text Message Button -->
 			<button class="btn btn-outline-primary"
 					data-bs-toggle="modal"
 					data-bs-target="#addTextMessageModal"
@@ -51,7 +62,8 @@
 			</button>
 		  </div>
 		  
-		  <!-- Search Toggle Button -->
+		  <!-- Search Toggle -->
+		  <!-- Button to show/hide search and filter options -->
 		  <button class="btn btn-outline-secondary"
 				  type="button"
 				  data-bs-toggle="collapse"
@@ -63,11 +75,13 @@
 		</div>
 	  </div>
 	  
-	  <!-- Collapsible Search and Filter Section -->
+	  <!-- Search and Filter Section -->
+	  <!-- Collapsible section for searching messages and filtering by tags -->
 	  <div class="col-12 collapse" id="searchFilterSection">
 		<div class="card">
 		  <div class="card-body">
 			<!-- Search Form -->
+			<!-- Allows text-based search within message content -->
 			<form th:action="@{/messages/search}" method="GET" class="mb-3">
 			  <input type="hidden" name="phoneNumber" th:value="${phone}" />
 			  <div class="input-group">
@@ -81,7 +95,8 @@
 			  </div>
 			</form>
 			
-			<!-- Tags Filter -->
+			<!-- Tag Filter Section -->
+			<!-- Allows filtering messages by selecting multiple tags -->
 			<form th:action="@{/messages/filter}" method="GET">
 			  <div class="d-flex flex-wrap gap-2 justify-content-center">
 				<th:block th:with="availableTags=${totalTags}">
@@ -111,19 +126,23 @@
 	  </div>
 	</div>
 	
-	<!-- Categories Grid -->
+	<!-- Messages Grid Section -->
+	<!-- Displays messages organized by categories and subcategories -->
 	<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
 	  <!-- Category Cards -->
+	  <!-- Each card represents a message category -->
 	  <div th:each="category : ${categories}" class="col">
 		<div class="card h-100 shadow-sm">
 		  <div class="card-body">
+			<!-- Category Header -->
 			<h5 class="card-title d-flex justify-content-between align-items-center mb-3">
 			  <span th:text="${category.key}">Category Name</span>
 			  <span class="badge bg-primary rounded-pill"
 					th:text="${#maps.size(category.value)}">0</span>
 			</h5>
 			
-			<!-- Subcategories -->
+			<!-- Subcategories List -->
+			<!-- Groups messages within each category by subcategories -->
 			<div class="list-group list-group-flush">
 			  <div th:each="subcategory : ${category.value}" class="list-group-item border-0 px-0">
 				<div class="d-flex justify-content-between align-items-center mb-2">
@@ -132,7 +151,8 @@
 						th:text="${#lists.size(subcategory.value)}">0</span>
 				</div>
 				
-				<!-- Container for Messages -->
+				<!-- Message Items -->
+				<!-- Individual message buttons within each subcategory -->
 				<div class="messages-container">
 				  <div class="d-flex flex-wrap gap-2">
 					<div th:each="message : ${subcategory.value}"
@@ -161,7 +181,8 @@
 	  </div>
 	</div>
 	
-	<!-- Individual Message Modals -->
+	<!-- Message Modal Section -->
+	<!-- Dynamic modals for viewing and editing individual messages -->
 	<div th:each="category : ${categories}">
 	  <div th:each="subcategory : ${category.value}">
 		<div th:each="message : ${subcategory.value}" class="modal fade"
@@ -169,6 +190,8 @@
 			 th:aria-labelledby="'messageLabel-' + ${message.id}" aria-hidden="true">
 		  <div class="modal-dialog modal-dialog-centered">
 			<div class="modal-content">
+			  <!-- Modal Header with Action Buttons -->
+			  <!-- Contains buttons for copying, editing, and deleting messages -->
 			  <div class="modal-header bg-light p-2 border-0">
 				<div class="container-fluid p-0">
 				  <div class="row g-2">
@@ -227,11 +250,13 @@
 				</div>
 			  </div>
 			  
-			  <!-- Modal Body with View/Edit Forms -->
+			  <!-- Modal Body Content -->
+			  <!-- Contains view mode and edit forms for messages -->
 			  <div class="modal-body">
-				<!-- View Mode Content -->
+				<!-- View Mode -->
+				<!-- Displays message details, content, tags, and next steps -->
 				<div class="view-mode">
-				  <!-- Message Details -->
+				  <!-- Message Details Section -->
 				  <div class="message-details mb-4">
 					<div class="row mb-3">
 					  <div class="col-6">
@@ -245,15 +270,18 @@
 					</div>
 				  </div>
 				  
-				  <!-- Message Content -->
+				  <!-- Message Content Section -->
+				  <!-- Displays message content based on mime type -->
 				  <div class="message-content mb-4">
 					<div th:if="${message.mime}" class="mb-3" th:switch="${message.mime.toLowerCase()}">
 					  <strong>תוכן:</strong>
 					  
+					  <!-- Text Content -->
 					  <th:block th:case="'text'">
 						<p class="shadow-whatsapp" th:text="${message.messageContent}">צפה בטקסט</p>
 					  </th:block>
 					  
+					  <!-- Image Content -->
 					  <th:block th:case="'image'">
 						<div>
 						  <form th:action="@{/messages/getMedia}" method="get" class="m-0 d-inline">
@@ -267,6 +295,7 @@
 						</div>
 					  </th:block>
 					  
+					  <!-- Document Content -->
 					  <th:block th:case="'document'">
 						<div>
 						  <form th:action="@{/messages/getMedia}" method="get" class="m-0 d-inline">
@@ -280,6 +309,7 @@
 						</div>
 					  </th:block>
 					  
+					  <!-- Audio Content -->
 					  <th:block th:case="'audio'">
 						<div>
 						  <form th:action="@{/messages/getMedia}" method="get" class="m-0 d-inline">
@@ -318,7 +348,13 @@
 				  </div>
 				</div>
 				
-				<!-- Regular Edit Mode -->
+				<!-- Regular Edit Form
+					 - Allows full editing of all message properties
+					 - Initially hidden with d-none class
+					 - Submits to /messages/update endpoint
+					 - Includes fields for type, purpose, category, subcategory, content, tags, and next steps
+					 - Contains validation and required fields
+				-->
 				<form class="edit-mode d-none" th:action="@{/messages/update}" method="post">
 				  <input type="hidden" name="messageId" th:value="${message.id}" />
 				  
@@ -455,7 +491,13 @@
 				  </div>
 				</form>
 				
-				<!-- Smart Edit Mode -->
+				<!-- Smart Edit Form
+					 - Simplified editing interface focused only on message content
+					 - Initially hidden with d-none class
+					 - Submits to /messages/smartUpdate endpoint
+					 - AI-assisted update that automatically handles categorization and tagging
+					 - Minimizes user input while maintaining message organization
+				-->
 				<form class="smart-edit-mode d-none" th:action="@{/messages/smartUpdate}" method="post">
 				  <input type="hidden" name="messageId" th:value="${message.id}" />
 				  
@@ -491,7 +533,21 @@
 	  </div>
 	</div>
 	
-	<!-- Document Upload Modal -->
+	<!-- Document Upload Modal
+		 - Modal dialog for uploading document files
+		 - Features:
+			 - Drag and drop support
+			 - File input with specific document type restrictions (.pdf, .doc, .docx, .txt)
+			 - File preview functionality
+			 - Form submission handling with multipart/form-data encoding
+		 - Security:
+			 - Includes CSRF protection through Thymeleaf
+			 - File type validation
+		 - UX:
+			 - Centered positioning
+			 - Responsive design
+			 - Clear visual feedback for file selection
+	-->
 	<div class="modal fade" id="addDocumentModal" tabindex="-1" aria-labelledby="addDocumentModalLabel"
 		 aria-hidden="true">
 	  <div class="modal-dialog modal-dialog-centered">

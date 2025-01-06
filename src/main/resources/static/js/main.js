@@ -1,4 +1,10 @@
+/**
+ * The JavaScript file handling UI interactions, charts, and file uploads
+ */
+
+// Wait for DOM to be fully loaded before initializing components
 document.addEventListener('DOMContentLoaded', function() {
+  // Initialize temporary alerts to auto-dismiss after 5 seconds
   const alerts = document.querySelectorAll('.alert')
   alerts.forEach(function(alert) {
     if (!alert.classList.contains('alert-permanent')) {
@@ -6,33 +12,31 @@ document.addEventListener('DOMContentLoaded', function() {
         alert.classList.add('fade')
         setTimeout(function() {
           alert.remove()
-        }, 150)
-      }, 5000)
+        }, 150)  // Fade out duration
+      }, 5000)   // Alert display duration
     }
   })
 
-  // Initialize tooltips
+  // Initialize Bootstrap tooltips
   const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
   tooltipTriggerList.map(function(tooltipTriggerEl) {
     return new bootstrap.Tooltip(tooltipTriggerEl)
   })
 
-  // Initialize copy buttons
+  // Set up clipboard copy functionality for copy buttons
   document.querySelectorAll('.copy-button').forEach(button => {
     button.addEventListener('click', function() {
       const content = this.getAttribute('data-content')
       navigator.clipboard.writeText(content).then(() => {
-        // Create or update tooltip
+        // Get tooltip instance and original text
         const tooltip = bootstrap.Tooltip.getInstance(this)
         const originalTitle = this.getAttribute('data-bs-original-title')
 
-        // Update tooltip content
+        // Show "Copied!" message
         tooltip.setContent({ '.tooltip-inner': 'הועתק!' })
-
-        // Show the updated tooltip
         tooltip.show()
 
-        // Reset tooltip after delay
+        // Reset tooltip text after delay
         setTimeout(() => {
           tooltip.setContent({ '.tooltip-inner': originalTitle })
         }, 1500)
@@ -42,33 +46,36 @@ document.addEventListener('DOMContentLoaded', function() {
     })
   })
 
-  // Initialize all upload zones
+  // Initialize drag and drop zones for file uploads
   document.querySelectorAll('[data-upload-zone]').forEach(zone => {
     initializeDropZone(zone)
   })
 
-  // Initialize file inputs
+  // Set up file input handlers and customize their appearance
   document.querySelectorAll('input[type="file"]').forEach(input => {
     input.addEventListener('change', handleFileSelect)
     customizeFileInputText(input)
   })
 
-  // Access the data through the global variable
+  // Initialize various charts if their data is available
   if (window.categoriesHierarchyData) {
     initializeCategoriesChart(window.categoriesHierarchyData)
   }
 
-  // Initialize the chart when the document is ready
   if(window.miniCategoriesData && window.treeMapOptions){
     initializeTreeMap(window.miniCategoriesData, window.treeMapOptions)
   }
 
-  initializeUsersChart(window.authorizedUsers , window.adminUsers , window.unauthorizedUsers)
+  initializeUsersChart(window.authorizedUsers, window.adminUsers, window.unauthorizedUsers)
 
   initUserActivityChart(window.userCountsByDate, window.cumulativeCountsByDate)
 })
 
-// toggle between view, edit and smart edit mode in the modal
+/**
+ * Toggles between different modal view modes (view, edit, smart edit)
+ * @param {HTMLElement} button - The button that triggered the mode change
+ * @param {string} mode - The mode to switch to ('view', 'edit', or 'smart')
+ */
 function toggleMode(button, mode) {
   const modal = button.closest('.modal')
   const viewMode = modal.querySelector('.view-mode')
@@ -82,11 +89,11 @@ function toggleMode(button, mode) {
   editMode.classList.add('d-none')
   smartEditMode.classList.add('d-none')
 
-  // Reset button texts
+  // Reset button texts to default
   editButton.textContent = 'ערוך'
   smartEditButton.textContent = 'עריכה חכמה'
 
-  // Show selected mode
+  // Show selected mode and update button text
   switch (mode) {
     case 'view':
       viewMode.classList.remove('d-none')
@@ -102,16 +109,20 @@ function toggleMode(button, mode) {
   }
 }
 
+/**
+ * Sets up drag and drop functionality for a file upload zone
+ * @param {HTMLElement} zone - The drop zone element to initialize
+ */
 function initializeDropZone(zone) {
   const input = zone.querySelector('input[type="file"]')
   if (!input) return;
 
-  // Prevent defaults for all drag events
+  // Prevent browser default drag and drop behavior
   ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
     zone.addEventListener(eventName, preventDefaults, false)
   });
 
-  // Add highlighting when dragging over
+  // Add visual feedback when dragging over the zone
   ['dragenter', 'dragover'].forEach(eventName => {
     zone.addEventListener(eventName, () => {
       zone.classList.add('border-primary')
@@ -119,7 +130,7 @@ function initializeDropZone(zone) {
     })
   });
 
-  // Remove highlighting when leaving or dropping
+  // Remove highlighting when leaving drop zone
   ['dragleave', 'drop'].forEach(eventName => {
     zone.addEventListener(eventName, () => {
       zone.classList.remove('border-primary')
@@ -127,21 +138,24 @@ function initializeDropZone(zone) {
     })
   })
 
-  // Handle the actual drop
+  // Handle file drop
   zone.addEventListener('drop', (e) => {
     const dt = e.dataTransfer
     const files = dt.files
 
-    // Update the input's files
+    // Update input files with dropped files
     const dataTransfer = new DataTransfer()
     Array.from(files).forEach(file => dataTransfer.items.add(file))
     input.files = dataTransfer.files
 
-    // Trigger the file select handler
     handleFileSelect({ target: input })
   })
 }
 
+/**
+ * Handles file selection events for file inputs
+ * @param {Event} e - The file input change event
+ */
 function handleFileSelect(e) {
   const input = e.target
   const file = input.files[0]
@@ -150,12 +164,12 @@ function handleFileSelect(e) {
   const dropZone = input.closest('[data-upload-zone]')
   const isImageInput = input.accept.includes('image')
 
-  // Find preview elements within the specific drop zone
+  // Find preview elements
   const preview = dropZone.querySelector('.file-preview')
   const imagePreview = dropZone.querySelector('.image-preview')
   const fileName = dropZone.querySelector('.file-name')
 
-  // Update filename if element exists
+  // Update filename display
   if (fileName) {
     fileName.textContent = file.name
   }
@@ -170,17 +184,25 @@ function handleFileSelect(e) {
     reader.readAsDataURL(file)
   }
 
-  // Show preview container if it exists
+  // Show preview container
   if (preview) {
     preview.classList.remove('d-none')
   }
 }
 
+/**
+ * Prevents default browser behavior for events
+ * @param {Event} e - The event to prevent defaults for
+ */
 function preventDefaults(e) {
   e.preventDefault()
   e.stopPropagation()
 }
 
+/**
+ * Customizes the text displayed on file input labels
+ * @param {HTMLInputElement} input - The file input element
+ */
 function customizeFileInputText(input) {
   const label = input.closest('[data-upload-zone]').querySelector('label')
   if (!label) return
@@ -189,6 +211,10 @@ function customizeFileInputText(input) {
   label.textContent = isImageInput ? 'בחירת תמונה' : 'בחירת קובץ'
 }
 
+/**
+ * Clears a file input and its associated preview elements
+ * @param {string} inputId - The ID of the file input to clear
+ */
 function clearFileInput(inputId) {
   const input = document.getElementById(inputId)
   if (!input) return
@@ -196,10 +222,8 @@ function clearFileInput(inputId) {
   const dropZone = input.closest('[data-upload-zone]')
   if (!dropZone) return
 
-  // Clear the input
+  // Reset input and preview elements
   input.value = ''
-
-  // Reset preview elements
   const preview = dropZone.querySelector('.file-preview')
   const imagePreview = dropZone.querySelector('.image-preview')
   const fileName = dropZone.querySelector('.file-name')
@@ -212,12 +236,16 @@ function clearFileInput(inputId) {
   if (fileName) fileName.textContent = ''
 }
 
+/**
+ * Initializes the categories treemap chart
+ * @param {Object} hierarchyData - Nested object containing category hierarchy data
+ */
 function initializeCategoriesChart(hierarchyData) {
   if (document.getElementById('categoriesChart') === null)
     return
   const ctx = document.getElementById('categoriesChart').getContext('2d')
 
-  // Transform the nested map structure into the required tree format
+  // Transform nested hierarchy into flat array for chart
   const transformedData = [];
   Object.entries(hierarchyData).forEach(([category, subCategories]) => {
     Object.entries(subCategories).forEach(([subCategory, count]) => {
@@ -229,18 +257,18 @@ function initializeCategoriesChart(hierarchyData) {
     });
   });
 
-  // Generate a color palette for a category
+  // Color generator closure for consistent category colors
   const generateCategoryColors = (() => {
     const baseColors = [
-      { r: 78, g: 121, b: 167 },  // Blue
-      { r: 242, g: 142, b: 43 },  // Orange
-      { r: 89, g: 161, b: 79 },   // Green
-      { r: 237, g: 201, b: 72 },  // Yellow
-      { r: 225, g: 87, b: 89 },   // Red
-      { r: 130, g: 183, b: 180 }, // Teal
-      { r: 176, g: 122, b: 161 }, // Purple
-      { r: 255, g: 157, b: 167 }, // Pink
-      { r: 156, g: 117, b: 95 }   // Brown
+      { r: 78, g: 121, b: 167 },   // Blue
+      { r: 242, g: 142, b: 43 },   // Orange
+      { r: 89, g: 161, b: 79 },    // Green
+      { r: 237, g: 201, b: 72 },   // Yellow
+      { r: 225, g: 87, b: 89 },    // Red
+      { r: 130, g: 183, b: 180 },  // Teal
+      { r: 176, g: 122, b: 161 },  // Purple
+      { r: 255, g: 157, b: 167 },  // Pink
+      { r: 156, g: 117, b: 95 }    // Brown
     ];
 
     let colorIndex = 0;
@@ -260,7 +288,7 @@ function initializeCategoriesChart(hierarchyData) {
     };
   })();
 
-  // Create the chart
+  // Create treemap chart with configured options
   new Chart(ctx, {
     type: 'treemap',
     data: {
@@ -295,6 +323,7 @@ function initializeCategoriesChart(hierarchyData) {
             const backgroundColor = ctx.dataset.backgroundColor(ctx);
             const rgb = backgroundColor.match(/\d+/g);
             if (!rgb) return '#000000';
+            // Calculate brightness to determine text color
             const brightness = (parseInt(rgb[0]) * 299 + parseInt(rgb[1]) * 587 + parseInt(rgb[2]) * 114) / 1000;
             return brightness > 128 ? '#000000' : '#FFFFFF';
           }
@@ -331,11 +360,17 @@ function initializeCategoriesChart(hierarchyData) {
   });
 }
 
-// Function to initialize the treemap
+/**
+ * Initializes a simple treemap visualization
+ * @param {Array} data - Array of data points for the treemap
+ * @param {Object} options - Chart configuration options
+ */
 function initializeTreeMap(data, options) {
   if (document.getElementById('treeMapChart') === null)
     return
   const ctx = document.getElementById('treeMapChart').getContext('2d');
+
+  // Create basic treemap with alternating colors
   new Chart(ctx, {
     type: 'treemap',
     data: {
@@ -347,7 +382,6 @@ function initializeTreeMap(data, options) {
         borderWidth: 1,
         borderColor: 'white',
         backgroundColor: function(ctx) {
-          // Generate colors based on the category
           const colors = ['#FF9999', '#99FF99', '#9999FF', '#FFFF99'];
           return colors[ctx.dataIndex % colors.length];
         },
@@ -366,27 +400,39 @@ function initializeTreeMap(data, options) {
   });
 }
 
-function initializeUsersChart(authorizedUsers , adminUsers , unauthorizedUsers){
+/**
+ * Initializes a pie chart showing the distribution of user authorization types
+ *
+ * @param {number} authorizedUsers - Count of regular authorized users
+ * @param {number} adminUsers - Count of admin users
+ * @param {number} unauthorizedUsers - Count of unauthorized users
+ * @returns {void}
+ */
+function initializeUsersChart(authorizedUsers, adminUsers, unauthorizedUsers) {
+  // Exit if chart container doesn't exist in DOM
   if (document.getElementById('authorizationChart') === null)
     return
 
-  // Calculate total for percentages
+  // Calculate total users for percentage calculations
   const total = authorizedUsers + adminUsers + unauthorizedUsers;
 
-  // Get the canvas element
+  // Get the canvas context for drawing
   const ctx = document.getElementById('authorizationChart').getContext('2d');
 
-  // Create the pie chart
+  // Create new Chart.js pie chart
   new Chart(ctx, {
     type: 'pie',
     data: {
+      // Define labels for each user type segment
       labels: ['משתמשים מורשים', 'משתמשי מנהל', 'משתמשים לא מורשים'],
       datasets: [{
+        // Map user counts to data array
         data: [authorizedUsers, adminUsers, unauthorizedUsers],
+        // Define colors for each segment using Bootstrap theme colors
         backgroundColor: [
-          '#198754',  // bg-success color for authorized users
-          '#0dcaf0',  // bg-info color for admin users
-          '#212529'   // bg-dark color for unauthorized users
+          '#198754',  // Success green for authorized users
+          '#0dcaf0',  // Info blue for admin users
+          '#212529'   // Dark gray for unauthorized users
         ],
         borderWidth: 1
       }]
@@ -395,14 +441,14 @@ function initializeUsersChart(authorizedUsers , adminUsers , unauthorizedUsers){
       responsive: true,
       maintainAspectRatio: true,
       plugins: {
+        // Configure legend display
         legend: {
           position: 'bottom',
           labels: {
-            font: {
-              size: 14
-            }
+            font: { size: 14 }
           }
         },
+        // Configure tooltip to show count and percentage
         tooltip: {
           callbacks: {
             label: function(context) {
@@ -412,52 +458,52 @@ function initializeUsersChart(authorizedUsers , adminUsers , unauthorizedUsers){
             }
           }
         },
+        // Configure data labels shown directly on chart segments
         datalabels: {
           color: '#fff',
           font: {
             weight: 'bold',
             size: 18
           },
+          // Only show labels for segments with > 0%
           formatter: function(value, context) {
             const percentage = ((value / total) * 100).toFixed(1);
-            // Only show label if percentage is greater than 0
-            if (percentage > 0) {
-              return `${value}\n(${percentage}%)`;
-            } else {
-              return null;  // This will hide the label
-            }
+            return percentage > 0 ? `${value}\n(${percentage}%)` : null;
           },
           anchor: 'center',
-          align: 'right',   // This aligns the label to the right of the anchor point
-          offset: 20,       // This moves the label 20 pixels to the right from the anchor point
-          padding: {
-            left: 0,
-            right: 0
-          }
+          align: 'right',
+          offset: 20,
+          padding: { left: 0, right: 0 }
         }
       },
       layout: {
-        padding: {
-          top: 10,
-          bottom: 10
-        }
+        padding: { top: 10, bottom: 10 }
       }
     },
+    // Enable Chart.js DataLabels plugin
     plugins: [ChartDataLabels]
   });
 }
 
-
-// Function to initialize user activity chart
+/**
+ * Initializes a line chart showing user activity over time
+ *
+ * @param {Object} datesGlobal - Object containing dates as keys and daily new user counts as values
+ * @param {Object} countsGlobal - Object containing dates as keys and cumulative user counts as values
+ * @returns {void}
+ */
 function initUserActivityChart(datesGlobal, countsGlobal) {
+  // Exit if chart container doesn't exist in DOM
   if (document.getElementById('usersActivityChart') === null)
     return
 
   const ctx = document.getElementById('usersActivityChart')
 
+  // Extract arrays of dates and cumulative counts from input objects
   const dates = Object.keys(datesGlobal)
   const counts = Object.values(countsGlobal)
 
+  // Create new Chart.js line chart
   new Chart(ctx, {
     type: 'line',
     data: {
@@ -465,14 +511,15 @@ function initUserActivityChart(datesGlobal, countsGlobal) {
       datasets: [{
         label: 'סה״כ משתמשים',
         data: counts,
-        borderColor: '#25D366',
-        backgroundColor: 'rgba(37, 211, 102, 0.1)',
-        fill: true
+        borderColor: '#25D366',  // WhatsApp green color
+        backgroundColor: 'rgba(37, 211, 102, 0.1)',  // Transparent green
+        fill: true  // Fill area under the line
       }]
     },
     options: {
       responsive: true,
       scales: {
+        // Configure X axis as time scale
         x: {
           type: 'time',
           time: {
@@ -490,6 +537,7 @@ function initUserActivityChart(datesGlobal, countsGlobal) {
             }
           }
         },
+        // Configure Y axis for user counts
         y: {
           beginAtZero: true,
           title: {
@@ -503,6 +551,7 @@ function initUserActivityChart(datesGlobal, countsGlobal) {
         }
       },
       plugins: {
+        // Configure legend
         legend: {
           labels: {
             font: {
@@ -511,17 +560,15 @@ function initUserActivityChart(datesGlobal, countsGlobal) {
             }
           }
         },
+        // Configure tooltip to show both total and new users
         tooltip: {
-          titleFont: {
-            size: 14
-          },
-          bodyFont: {
-            size: 16
-          },
+          titleFont: { size: 14 },
+          bodyFont: { size: 16 },
           callbacks: {
             label: function(context) {
               const date = context.label
               const totalUsers = context.parsed.y
+              // Get daily new users count from datesGlobal object
               const dailyUsers = window.userCountsByDate[date] || 0
               return [
                 `סה״כ משתמשים: ${totalUsers}`,
@@ -534,4 +581,3 @@ function initUserActivityChart(datesGlobal, countsGlobal) {
     }
   })
 }
-

@@ -1,35 +1,49 @@
 <!DOCTYPE html>
+<!-- Thymeleaf template with Hebrew (RTL) language settings -->
 <html xmlns:th="http://www.thymeleaf.org" lang="he" dir="rtl">
 <body>
+<!-- Main content fragment that can be included in the other template (base.html) -->
 <div th:fragment="content">
+  <!-- Centered container with responsive padding -->
   <div class="d-flex align-items-center justify-content-center p-2">
+	<!-- Main card container with WhatsApp-themed styling -->
 	<div class="card shadow-whatsapp hover-grow w-100 bg-warning" style="max-width: 800px;">
 	  <div class="card-body p-4">
+		<!-- Header section with lock icon and title -->
 		<div class="text-center mb-4">
+		  <!-- Lock icon -->
 		  <div class="text-dark mb-4">
 			<i class="fas fa-lock" style="font-size: 4rem;"></i>
 		  </div>
 		  
+		  <!-- Access denied message -->
 		  <h1 class="display-6 text-whatsapp mb-4">אין לך גישה לתוכן זה</h1>
 		  
+		  <!-- User information card -->
 		  <div class="bg-whatsapp-light p-4 rounded-3 mb-4">
+			<!-- Conditional profile picture display -->
 			<div class="mb-4" th:if="${picture}">
 			  <img th:src="${picture}" alt="Profile Picture"
 				   class="rounded-circle img-fluid"
 				   width="96" height="96"
 				   loading="lazy">
 			</div>
+			
+			<!-- Dynamic user information from Thymeleaf context -->
 			<p class="h3 mb-3" th:text="${name}">שם המשתמש</p>
 			<p class="h5 text-muted" th:text="${email}">אימייל</p>
 			
+			<!-- Access request instructions -->
 			<div class="text-whatsapp-dark">
 			  <p class="lead mb-4">התוכן המבוקש מוגבל למשתמשים מורשים בלבד.</p>
 			  
 			  <hr class="my-4">
 			  
+			  <!-- Instructions for requesting access -->
 			  <div class="text-start mb-4">
 				<p class="h4 mb-3 fw-bold">על מנת לקבל גישה:</p>
 				<ul class="list-unstyled fs-5">
+				  <!-- Email contact information -->
 				  <li class="mb-3">
 					<i class="fas fa-envelope me-2"></i>
 					שלח בקשת גישה למנהל המערכת:
@@ -37,6 +51,7 @@
 					  guyu669@gmail.com
 					</a>
 				  </li>
+				  <!-- Required information for access request -->
 				  <li class="mb-3">
 					<i class="fab fa-whatsapp me-2"></i>
 					ציין בפנייתך:
@@ -49,6 +64,7 @@
 				</ul>
 			  </div>
 			  
+			  <!-- Important notice about manual approval process -->
 			  <div class="bg-warning-subtle p-4 rounded-3">
 				<p class="fs-5 mb-0">
 				  <i class="fas fa-info-circle me-2"></i>
@@ -59,7 +75,7 @@
 		  </div>
 		</div>
 		
-		<!-- Logout Alert -->
+		<!-- Conditional logout success message -->
 		<div th:if="${param.logout}" class="alert bg-whatsapp-light">
 		  <div class="d-flex align-items-center text-whatsapp-dark">
 			<i class="fas fa-check-circle me-2"></i>

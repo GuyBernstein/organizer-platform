@@ -1,26 +1,32 @@
-/* WhatsApp Theme Variables */
+/* ==========================================================================
+   WhatsApp Theme Variables
+   Define core color scheme and brand colors for consistent styling
+   ========================================================================== */
 :root {
-    --whatsapp-green: #25D366;
-    --whatsapp-light-green: #DCF8C6;
-    --whatsapp-dark: #075E54;
-    --whatsapp-teal: #128C7E;
-    --whatsapp-gray: #ECE5DD;
-    --whatsapp-light-gray: #F5F5F5;
-    --whatsapp-footer-dark: #1a1a1a;
+    --whatsapp-green: #25D366;    /* Primary brand color used for key elements */
+    --whatsapp-light-green: #DCF8C6;  /* Used for backgrounds and hover states */
+    --whatsapp-dark: #075E54;     /* Used for headers and important text */
+    --whatsapp-teal: #128C7E;     /* Secondary brand color for buttons and accents */
+    --whatsapp-gray: #ECE5DD;     /* Background color for messages */
+    --whatsapp-light-gray: #F5F5F5;   /* Used for subtle backgrounds */
+    --whatsapp-footer-dark: #1a1a1a;  /* Dark background for footer */
 }
 
-/* Global Typography */
+/* ==========================================================================
+   Typography Settings
+   Establishes base font settings and line height for better readability
+   ========================================================================== */
 body {
     font-family: 'Rubik', sans-serif;
     line-height: 1.6;
 }
 
-/* RTL Support */
+/* Right-to-left language support */
 html[dir="rtl"] {
     text-align: right;
 }
 
-/* Headings */
+/* Heading styles with consistent branding */
 .display-4,
 .h1, .h2, .h3, .h4, .h5, .h6,
 h1, h2, h3, h4, h5, h6 {
@@ -29,7 +35,10 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--whatsapp-dark);
 }
 
-/* Brand Colors and Elements */
+/* ==========================================================================
+   Brand Colors and Utility Classes
+   Provides reusable color classes for text and backgrounds
+   ========================================================================== */
 .text-whatsapp {
     color: var(--whatsapp-green) !important;
 }
@@ -42,7 +51,11 @@ h1, h2, h3, h4, h5, h6 {
     background-color: var(--whatsapp-light-green) !important;
 }
 
-/* Buttons */
+/* ==========================================================================
+   Button Styles
+   Custom button variants matching WhatsApp's design language
+   ========================================================================== */
+/* Primary WhatsApp button with hover effect */
 .btn-whatsapp {
     background-color: var(--whatsapp-teal);
     border: none;
@@ -55,6 +68,7 @@ h1, h2, h3, h4, h5, h6 {
     color: white;
 }
 
+/* Outlined variant of WhatsApp button */
 .btn-whatsapp-outline {
     border: 2px solid var(--whatsapp-teal);
     color: var(--whatsapp-teal);
@@ -67,7 +81,11 @@ h1, h2, h3, h4, h5, h6 {
     color: white;
 }
 
-/* Feature Cards and Icons */
+/* ==========================================================================
+   Feature Section Components
+   Styles for feature highlighting sections with hover animations
+   ========================================================================== */
+/* Icon container with hover effect */
 .feature-icon {
     background: var(--whatsapp-light-green);
     min-height: 200px;
@@ -79,6 +97,7 @@ h1, h2, h3, h4, h5, h6 {
     transform: translateY(-5px);
 }
 
+/* Feature card with shadow and hover effect */
 .feature-card {
     border: none;
     border-radius: 15px;
@@ -90,7 +109,10 @@ h1, h2, h3, h4, h5, h6 {
     transform: translateY(-5px);
 }
 
-/* Footer Styles */
+/* ==========================================================================
+   Footer Styling
+   Dark themed footer with social links and hover effects
+   ========================================================================== */
 .footer {
     background-color: var(--whatsapp-footer-dark);
 }
@@ -99,6 +121,7 @@ h1, h2, h3, h4, h5, h6 {
     text-decoration: none;
 }
 
+/* Smooth color transition for footer links */
 .transition-hover {
     transition: color 0.3s ease-in-out;
 }
@@ -107,6 +130,7 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--whatsapp-green) !important;
 }
 
+/* Social media link styling */
 .social-links a {
     width: 40px;
     height: 40px;
@@ -122,7 +146,10 @@ h1, h2, h3, h4, h5, h6 {
     transform: translateY(-3px);
 }
 
-/* Responsive Adjustments */
+/* ==========================================================================
+   Responsive Design Adjustments
+   Mobile-first approach with specific adjustments for smaller screens
+   ========================================================================== */
 @media (max-width: 768px) {
     .display-4 {
         font-size: calc(1.375rem + 1.5vw);
@@ -145,7 +172,10 @@ h1, h2, h3, h4, h5, h6 {
     }
 }
 
-/* Custom Animations */
+/* ==========================================================================
+   Animation and Interactive Elements
+   Custom animations and hover effects for enhanced user experience
+   ========================================================================== */
 .hover-grow {
     transition: transform 0.3s ease;
 }
@@ -154,7 +184,7 @@ h1, h2, h3, h4, h5, h6 {
     transform: scale(1.05);
 }
 
-/* Material Design inspired card shadows */
+/* Material Design inspired shadows */
 .shadow-whatsapp {
     box-shadow: 0 2px 5px rgba(37, 211, 102, 0.1);
     transition: box-shadow 0.3s ease;
@@ -164,19 +194,29 @@ h1, h2, h3, h4, h5, h6 {
     box-shadow: 0 5px 15px rgba(37, 211, 102, 0.2);
 }
 
-/* Form Elements */
+/* ==========================================================================
+   Form Elements
+   Custom styling for form controls with WhatsApp branding
+   ========================================================================== */
 .form-control:focus {
     border-color: var(--whatsapp-teal);
     box-shadow: 0 0 0 0.25rem rgba(37, 211, 102, 0.25);
 }
+
+/* ==========================================================================
+   Statistics and Chart Components
+   Styling for data visualization elements
+   ========================================================================== */
 .stat-card {
     border-radius: 15px;
     min-height: 140px;
 }
+
 .message-type-card {
     border-radius: 15px;
     background: linear-gradient(145deg, #ffffff, #f8f9fa);
 }
+
 .chart-container {
     position: relative;
     margin: auto;
@@ -186,6 +226,11 @@ h1, h2, h3, h4, h5, h6 {
     max-width: 100%;
     max-height: 100%;
 }
+
+/* ==========================================================================
+   Alert Components
+   Enhanced alert styling with icons and improved readability
+   ========================================================================== */
 .alert-enhanced {
     padding: 1.5rem;
     margin: 1rem 0;

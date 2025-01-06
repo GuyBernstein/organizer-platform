@@ -1,9 +1,16 @@
 <!DOCTYPE html>
+<!--
+  Main admin dashboard template using Thymeleaf templating engine
+  Language: Hebrew (he)
+  Text direction: Right-to-left (rtl)
+-->
 <html xmlns:th="http://www.thymeleaf.org"
 	  lang="he" dir="rtl">
 <body>
+<!-- Main content fragment that can be included in the other template (base.html) -->
 <div th:fragment="content">
-  <!-- Admin Header Section -->
+  <!-- Page Header Section -->
+  <!-- Contains the main title and description for the user management interface -->
   <div class="container-fluid py-4 mb-4">
 	<div class="row">
 	  <div class="col-12">
@@ -17,11 +24,11 @@
 	</div>
   </div>
   
-  <!-- Statistics Dashboard -->
-  <!-- Statistics Dashboard - Adjusted for fuller card usage -->
+  <!-- Statistics Dashboard Section -->
+  <!-- Contains two charts displaying user statistics -->
   <div class="container-fluid mb-5">
 	<div class="row g-4">
-	  <!-- Charts Row -->
+	  <!-- User Permissions Distribution Chart -->
 	  <div class="col-lg-6">
 		<div class="card shadow-whatsapp">
 		  <div class="card-body">
@@ -33,6 +40,7 @@
 		</div>
 	  </div>
 	  
+	  <!-- User Registration Activity Chart -->
 	  <div class="col-lg-6">
 		<div class="card shadow-whatsapp">
 		  <div class="card-body">
@@ -46,10 +54,11 @@
 	</div>
   </div>
   
-  <!-- User Management Grid -->
+  <!-- User Management Section -->
   <div class="container-fluid">
 	<div class="row g-4">
-	  <!-- Create User Card -->
+	  <!-- New User Creation Form -->
+	  <!-- Form for adding new users with email, phone, and role fields -->
 	  <div class="col-lg-4">
 		<div class="card shadow-whatsapp">
 		  <div class="card-body">
@@ -58,14 +67,17 @@
 			  יצירת משתמש חדש
 			</h5>
 			<form th:action="@{/admin/create-user}" method="post">
+			  <!-- Email input field -->
 			  <div class="mb-3">
 				<label for="newEmail" class="form-label">דוא״ל</label>
 				<input type="email" class="form-control" id="newEmail" name="email" required>
 			  </div>
+			  <!-- Phone number input field -->
 			  <div class="mb-3">
 				<label for="newPhone" class="form-label">טלפון</label>
 				<input type="tel" class="form-control" id="newPhone" name="phone" required>
 			  </div>
+			  <!-- Role selection dropdown -->
 			  <div class="mb-3">
 				<label for="newRole" class="form-label">תפקיד</label>
 				<select class="form-select" id="newRole" name="role" required>
@@ -84,7 +96,8 @@
 		</div>
 	  </div>
 	  
-	  <!-- Manage Users Card -->
+	  <!-- Existing Users Management Table -->
+	  <!-- Displays all users with their details and management options -->
 	  <div class="col-lg-8">
 		<div class="card shadow-whatsapp">
 		  <div class="card-body">
@@ -94,6 +107,7 @@
 			</h5>
 			<div class="table-responsive">
 			  <table class="table">
+				<!-- Table headers -->
 				<thead>
 				<tr>
 				  <th>שם</th>
@@ -107,8 +121,11 @@
 				  <th>פעולות</th>
 				</tr>
 				</thead>
+				
+				<!-- Table body - Iterates through users -->
 				<tbody>
 				<tr th:each="user : ${users}">
+				  <!-- User basic information -->
 				  <td th:text="${user.getName()}">שם</td>
 				  <td>
 					<img src="" th:attr="src=${user.getPictureUrl()}"
@@ -122,11 +139,14 @@
 				  <td th:text="${user.getEmail()}">email@example.com</td>
 				  <td th:text="${user.getRole()}">USER</td>
 				  <td>
+					<!-- User authorization status badge -->
 					<span th:if="${user.isAuthorized()}"
 						  class="badge bg-success">מורשה</span>
 					<span th:unless="${user.isAuthorized()}"
 						  class="badge bg-danger">לא מורשה</span>
 				  </td>
+				  
+				  <!-- Monthly message count dropdown -->
 				  <td>
 					<div class="dropdown">
 					  <button class="btn btn-profile dropdown-toggle"
@@ -148,8 +168,11 @@
 					  </ul>
 					</div>
 				  </td>
+				  
+				  <!-- User management actions -->
 				  <td>
 					<div class="btn-group gap-2">
+					  <!-- Role change form -->
 					  <form th:action="@{/admin/change-role}"
 							method="post"
 							class="d-inline">
@@ -167,6 +190,9 @@
 						  </option>
 						</select>
 					  </form>
+					  
+					  <!-- Authorization toggle forms -->
+					  <!-- Deauthorize button for authorized users -->
 					  <form th:if="${user.isAuthorized()}"
 							th:action="@{/admin/deauthorize-user}"
 							method="post"
@@ -176,6 +202,8 @@
 						  <i class="bi bi-lock fs-5"></i>
 						</button>
 					  </form>
+					  
+					  <!-- Authorize button for unauthorized users -->
 					  <form th:unless="${user.isAuthorized()}"
 							th:action="@{/admin/authorize-user}"
 							method="post"
@@ -185,6 +213,8 @@
 						  <i class="bi bi-unlock fs-5"></i>
 						</button>
 					  </form>
+					  
+					  <!-- Delete user form with confirmation -->
 					  <form th:action="@{/admin/delete-user}"
 							method="post"
 							class="ms-2"

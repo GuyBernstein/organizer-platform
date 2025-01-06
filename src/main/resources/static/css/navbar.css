@@ -1,38 +1,63 @@
-/* Additional WhatsApp Navbar Styles */
+/* ==========================================================================
+   WhatsApp Navigation Bar Styles
+   Custom styling for the main navigation component with WhatsApp branding
+   ========================================================================== */
+
+/* Main navbar container */
 .nav-whatsapp {
     background-color: var(--whatsapp-dark);
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+/* ==========================================================================
+   Brand Elements
+   Styling for logo and brand text within the navbar
+   ========================================================================== */
 .nav-whatsapp .navbar-brand {
     color: white;
 }
 
+/* Brand text styling */
 .nav-whatsapp .brand-text {
     font-family: 'Rubik', sans-serif;
     font-weight: 600;
     color: white;
 }
 
+/* ==========================================================================
+   Mobile Toggle Button
+   Hamburger menu styling for mobile views
+   ========================================================================== */
 .nav-whatsapp .navbar-toggler {
     border-color: rgba(255,255,255,0.3);
 }
 
+/* Custom hamburger icon with white strokes */
 .nav-whatsapp .navbar-toggler-icon {
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.7%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
 }
 
+/* ==========================================================================
+   Navigation Links
+   Styling for main navigation items with hover effects
+   ========================================================================== */
 .nav-whatsapp .nav-link {
     color: rgba(255,255,255,0.9);
     padding: 0.5rem 1rem;
     transition: color 0.2s ease-in-out;
 }
 
+/* Hover and active states for nav links */
 .nav-whatsapp .nav-link:hover,
 .nav-whatsapp .nav-link.active {
     color: var(--whatsapp-green);
 }
 
+/* ==========================================================================
+   Authentication Buttons
+   Styling for Google sign-in and profile buttons
+   ========================================================================== */
+/* Google sign-in button */
 .nav-whatsapp .btn-google {
     background-color: white;
     color: #757575;
@@ -47,6 +72,7 @@
     color: #555;
 }
 
+/* User profile button */
 .nav-whatsapp .btn-profile {
     background-color: rgba(255,255,255,0.1);
     color: white;
@@ -58,12 +84,17 @@
     background-color: rgba(255,255,255,0.2);
 }
 
+/* ==========================================================================
+   Dropdown Menu
+   Styling for dropdown components in the navbar
+   ========================================================================== */
 .nav-whatsapp .dropdown-menu {
     background-color: white;
     border: none;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
+/* Dropdown items styling */
 .nav-whatsapp .dropdown-item {
     color: #333;
     padding: 0.75rem 1rem;
@@ -73,13 +104,18 @@
     background-color: var(--whatsapp-light-green);
 }
 
+/* Icons within dropdown items */
 .nav-whatsapp .dropdown-item i {
     width: 1.5rem;
     color: var(--whatsapp-teal);
 }
 
-/* Responsive adjustments */
+/* ==========================================================================
+   Responsive Design
+   Mobile-specific adjustments for navigation elements
+   ========================================================================== */
 @media (max-width: 992px) {
+    /* Authentication buttons container on mobile */
     .nav-whatsapp .nav-auth {
         margin-top: 1rem;
         padding-top: 1rem;

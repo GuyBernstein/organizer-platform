@@ -1,17 +1,21 @@
 <!DOCTYPE html>
+<!-- Document setup with Hebrew (RTL) language support using Thymeleaf templating -->
 <html xmlns:th="http://www.thymeleaf.org" lang="he" dir="rtl">
 <body>
+<!-- Main footer component with WhatsApp theme styling -->
 <footer th:fragment="footer" class="footer mt-auto py-4 nav-whatsapp">
   <div class="container">
-	<!-- Main Footer Content -->
+	<!-- Main content section organized in a grid -->
 	<div class="row g-4">
-	  <!-- About Section -->
+	  <!-- About Section: Contains app description and social media links -->
 	  <div class="col-12 col-md-6 col-lg-4 mb-4 mb-lg-0">
 		<h5 class="text-white mb-3 fw-bold">WhatsApp Organizer</h5>
 		<p class="text-white-50 mb-3">
 		  מערכת חכמה לניהול וארגון התכתובות שלך בוואטסאפ
 		</p>
+		<!-- Social media links with hover effects -->
 		<div class="social-links d-flex gap-3">
+		  <!-- Social media icons with links to developer's profiles -->
 		  <a href="https://www.facebook.com/guy.borenstein/"
 			 class="text-white-50 text-decoration-none transition-hover">
 			<i class="fab fa-facebook fa-lg"></i>
@@ -31,10 +35,11 @@
 		</div>
 	  </div>
 	  
-	  <!-- Quick Links -->
+	  <!-- Quick Links Section: Navigation to modals -->
 	  <div class="col-12 col-md-6 col-lg-4 mb-4 mb-lg-0">
 		<h5 class="text-white mb-3 fw-bold">קישורים מהירים</h5>
 		<div class="row">
+		  <!-- About modal trigger -->
 		  <div class="col-6">
 			<ul class="list-unstyled">
 			  <li class="mb-2">
@@ -47,6 +52,7 @@
 			</ul>
 		  </div>
 		  
+		  <!-- FAQ modal trigger -->
 		  <div class="col-6">
 			<ul class="list-unstyled">
 			  <li class="mb-2">
@@ -61,16 +67,20 @@
 		</div>
 	  </div>
 	  
-	  <!-- About Modal -->
+	  <!-- About Modal: Detailed information about the application -->
 	  <div class="modal fade" id="aboutModal" tabindex="-1" aria-labelledby="aboutModalLabel" aria-hidden="true" dir="rtl">
+		<!-- Modal content structure -->
 		<div class="modal-dialog modal-fullscreen-sm-down modal-lg modal-dialog-centered modal-dialog-scrollable">
+		  <!-- Modal content with responsive design -->
 		  <div class="modal-content">
+			<!-- Modal header with close button -->
 			<div class="modal-header border-bottom-0">
 			  <h5 class="modal-title fw-bold" id="aboutModalLabel">אודות WhatsApp Organizer</h5>
 			  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
+			<!-- Modal body with sections for app description -->
 			<div class="modal-body p-3">
-			  <!-- Introduction Section -->
+			  <!-- Various content sections describing app features and benefits -->
 			  <div class="container py-5">
 				<div class="row">
 				  <div class="col-12">
@@ -190,17 +200,29 @@
 		</div>
 	  </div>
 	  
-	  <!-- FAQ Modal -->
+	  <!--
+		FAQ Modal Structure:
+		- Full-screen on small devices, large centered dialog on larger screens
+		- Contains an accordion for expandable Q&A sections
+		- Each question is styled with icons and semantic HTML
+		- Includes detailed formatting for answers with cards and visual hierarchy
+	  -->
 	  <div class="modal fade" id="faqModal" tabindex="-1" aria-labelledby="faqModalLabel" aria-hidden="true">
+		<!-- Modal dialog with responsive sizing and scrollable content -->
 		<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
 		  <div class="modal-content">
+			<!-- Modal Header - Clean design without bottom border -->
 			<div class="modal-header border-bottom-0">
 			  <h5 class="modal-title fw-bold" id="faqModalLabel">שאלות נפוצות</h5>
+			  <!-- Right-aligned close button for RTL layout -->
 			  <button type="button" class="btn-close ms-0 me-auto" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
+			
+			<!-- Modal Body - Contains the FAQ accordion -->
 			<div class="modal-body p-4">
-			  <!-- FAQ Accordion -->
+			  <!-- FAQ Accordion - Contains all Q&A sections -->
 			  <div class="accordion" id="faqAccordion">
+				<!-- Individual FAQ items follow... -->
 				<!-- Question 1 -->
 				<div class="accordion-item border rounded mb-3 shadow-sm">
 				  <h2 class="accordion-header">
@@ -458,6 +480,7 @@
 				</div>
 			  </div>
 			</div>
+			<!-- Modal Footer - Simple close button -->
 			<div class="modal-footer border-top-0">
 			  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">סגור</button>
 			</div>
@@ -466,14 +489,28 @@
 	  </div>
 	  
 	  <!-- Terms of Service Modal -->
+	  <!--
+		Terms of Service Modal Structure:
+		- Fullscreen on small devices (modal-fullscreen-sm-down)
+		- RTL text direction for Hebrew content
+		- Organized sections with hierarchical headings
+		- Contains detailed legal content with consistent styling
+	  -->
 	  <div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true" dir="rtl">
+		<!-- Modal dialog with responsive sizing and scrollable content -->
 		<div class="modal-dialog modal-fullscreen-sm-down modal-lg modal-dialog-scrollable">
 		  <div class="modal-content">
+			<!-- Sticky header that remains visible while scrolling -->
 			<div class="modal-header border-bottom-0 sticky-top bg-white">
 			  <h5 class="modal-title fw-bold fs-6" id="termsModalLabel">תנאי שימוש - WhatsApp Organizer</h5>
 			  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 			</div>
+			
+			<!-- Modal Body - Contains all terms sections -->
 			<div class="modal-body p-3">
+			  <!-- Terms sections with consistent formatting -->
+			  <!-- Each section uses semantic structure with h5 headings and lists -->
+			  <!-- Sections are separated with consistent mb-4 spacing -->
 			  <div class="mb-3">
 				<h5 class="fw-bold mb-2 fs-6">1. כללי</h5>
 				<p>ברוכים הבאים ל-WhatsApp Organizer ("השירות"). בשימוש בשירות זה, אתם מסכימים לתנאי השימוש המפורטים
@@ -608,6 +645,7 @@
 				</p>
 			  </div>
 			</div>
+			<!-- Modal Footer with close button -->
 			<div class="modal-footer border-top-0">
 			  <button type="button" class="btn btn-secondary px-4 py-2" data-bs-dismiss="modal">סגור</button>
 			</div>
@@ -615,7 +653,16 @@
 		</div>
 	  </div>
 	  
-	  <!-- Privacy Policy Modal -->
+	  <!-- Privacy Policy Modal
+		   A comprehensive modal dialog that details the app's privacy policy.
+		   Features:
+		   - Responsive design (modal-lg for desktop, fullscreen-sm-down for mobile)
+		   - RTL support for Hebrew text
+		   - Organized sections covering data collection, usage, storage, and user rights
+		   - Contact information for privacy-related inquiries
+		   - Last updated timestamp
+		   - Dismissible with a close button
+	  -->
 	  <div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true" dir="rtl">
 		<div class="modal-dialog modal-lg modal-dialog-centered modal-fullscreen-sm-down">
 		  <div class="modal-content">
@@ -719,7 +766,16 @@
 		</div>
 	  </div>
 	  
-	  <!-- Contact Info -->
+	  <!-- Contact Info Section
+		   Contains contact details and professional links in the footer.
+		   Features:
+		   - CV/Resume download link
+		   - Email contact information
+		   - Phone number with clickable tel: link
+		   - Consistent icon usage with Bootstrap Icons
+		   - Hover transition effects on all links
+		   - Right-to-left (RTL) text alignment for Hebrew
+	  -->
 	  <div class="col-lg-4">
 		<h5 class="text-white mb-3">צור קשר</h5>
 		<ul class="list-unstyled">
@@ -745,7 +801,16 @@
 	  </div>
 	</div>
 	
-	<!-- Copyright Bar -->
+	<!-- Copyright Bar
+		 Footer's bottom section with copyright notice and legal links.
+		 Features:
+		 - Responsive layout (stacks on mobile, side-by-side on desktop)
+		 - Dynamic year display
+		 - Links to Terms of Service and Privacy Policy modals
+		 - Border separator from main footer content
+		 - Right-to-left (RTL) support
+		 - Hover transition effects on legal links
+	-->
 	<div class="row mt-4 pt-3 border-top border-secondary">
 	  <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
 		<span class="text-white-50">© 2024 WhatsApp Organizer. כל הזכויות שמורות.</span>

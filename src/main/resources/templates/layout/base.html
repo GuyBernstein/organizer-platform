@@ -1,53 +1,68 @@
+<!-- Base template that serves as the foundation for all pages -->
+<!-- Note: This template uses Thymeleaf templating engine with RTL (Right-to-Left) support for Hebrew -->
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" dir="rtl" lang="he">
 <head>
+  <!-- Basic meta tags for proper character encoding and responsive design -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- Theme color for browser UI elements -->
   <meta name="theme-color" content="#ffc107">
+  <!-- Dynamic title using Thymeleaf -->
   <title th:text="${title}">Default Title</title>
-
-  <!-- Bootstrap RTL -->
+  
+  <!-- External CSS Dependencies -->
+  <!-- Bootstrap RTL version for right-to-left language support -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css">
+  <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-
-  <!-- Fonts -->
+  
+  <!-- Google Fonts - Rubik (commonly used for Hebrew text) -->
   <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-  <!-- Font Awesome -->
+  
+  <!-- Font Awesome for additional icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-  <!-- WhatsApp Specific Styles -->
+  
+  <!-- Application-specific stylesheets -->
   <link th:href="@{/css/home.css}" rel="stylesheet">
   <link th:href="@{/css/navbar.css}" rel="stylesheet">
 </head>
+
+<!-- Body with flex column layout to ensure footer stays at bottom -->
 <body class="d-flex flex-column min-vh-100">
+  <!-- Navigation bar fragment -->
   <nav th:replace="~{fragments/navbar :: navbar}"></nav>
-
+  
+  <!-- Main content area -->
   <main class="flex-shrink-0" role="main">
-    <div class="container-fluid px-0">
-      <div th:replace="~{${content} :: content}">
-        <!-- Content will be inserted here, each page would be something different -->
-      </div>
-    </div>
+	<div class="container-fluid px-0">
+	  <!-- Dynamic content insertion point -->
+	  <!-- Uses Thymeleaf fragment replacement to insert page-specific content -->
+	  <div th:replace="~{${content} :: content}">
+		<!-- Content will be inserted here, each page would be something different -->
+	  </div>
+	</div>
   </main>
-
+  
+  <!-- Footer fragment -->
   <footer class="footer mt-auto py-3" th:replace="~{fragments/footer :: footer}"></footer>
   
-  <!-- Scripts -->
+  <!-- JavaScript Section -->
   <script th:inline="javascript">
-	// Create a global variables to hold the data for the admin page
-	// users activity chart
-	window.userCountsByDate = [[${userCountsByDate}]];
-	window.cumulativeCountsByDate = [[${cumulativeCountsByDate}]];
-	// authorized chart
-	window.authorizedUsers = [[${authorizedUsers}]];
-	window.adminUsers = [[${adminUsers}]];
-	window.unauthorizedUsers = [[${unauthorizedUsers}]];
+	// Global variables for admin dashboard charts
+	// User activity data
+	window.userCountsByDate = [[${ userCountsByDate }]]
+	window.cumulativeCountsByDate = [[${ cumulativeCountsByDate }]]
 	
-	// Create a global variable to hold the data for the index page
-	window.categoriesHierarchyData = [[${categoriesHierarchy}]];
- 
-	// Create a global variable for the treemap data with Hebrew categories for the home page example
+	// User authorization status data
+	window.authorizedUsers = [[${ authorizedUsers }]]
+	window.adminUsers = [[${ adminUsers }]]
+	window.unauthorizedUsers = [[${ unauthorizedUsers }]]
+	
+	// Category hierarchy data for index page
+	window.categoriesHierarchyData = [[${ categoriesHierarchy }]]
+	
+	// Sample treemap data with Hebrew categories for homepage visualization
 	window.miniCategoriesData = [
 	  {
 		name: 'אומנות גוף',
@@ -102,13 +117,13 @@
 		  }
 		]
 	  }
-	];
+	]
 	
 	
-	
-	// Configuration options for RTL support and Hebrew text
+	// Configuration for TreeMap chart
 	window.treeMapOptions = {
 	  plugins: {
+		// Title configuration
 		title: {
 		  display: true,
 		  text: 'התפלגות הודעות לפי קטגוריה(דוגמא)',
@@ -120,9 +135,11 @@
 			top: 10
 		  }
 		},
+		// Hide legend
 		legend: {
 		  display: false
 		},
+		// Tooltip configuration with RTL support
 		tooltip: {
 		  titleFont: {
 			size: 16
@@ -146,24 +163,24 @@
 		  textDirection: 'rtl'
 		}
 	  },
+	  // Animation settings
 	  animation: {
 		duration: 500
 	  },
 	  maintainAspectRatio: false
-	};
+	}
   </script>
-  <!-- Bootstrap -->
+  <!-- External JavaScript Dependencies -->
+  <!-- Bootstrap Bundle (includes Popper) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  
-  <!-- Chart.js (base) -->
+
+  <!-- Chart.js and its plugins -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  
-  <!-- Other Chart.js plugins -->
   <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-treemap"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0"></script>
   
-  <!-- Your application code -->
+  <!-- Application's main JavaScript file -->
   <script th:src="@{/js/main.js}"></script>
 </body>
 </html>
