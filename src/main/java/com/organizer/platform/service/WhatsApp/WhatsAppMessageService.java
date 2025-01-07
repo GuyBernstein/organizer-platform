@@ -190,7 +190,7 @@ public class WhatsAppMessageService {
 
     /**
      * Searches for messages containing specific content within an organized message structure.
-     *
+     * Handling null messages
      * @param content The text content to search for (case-insensitive)
      * @param organizedMessages The original nested map structure of messages to search within
      * @return A filtered nested Map containing only messages that match the search content
@@ -203,16 +203,28 @@ public class WhatsAppMessageService {
             String content,
             Map<String, Map<String, List<MessageDTO>>> organizedMessages) {
 
-        return messageRepository
-                .findWhatsAppMessageByMessageContentContainingIgnoreCase(content)
-                .stream()
+        if (content == null || organizedMessages == null) {
+            return Collections.emptyMap();
+        }
+
+        List<WhatsAppMessage> searchResults = messageRepository
+                .findWhatsAppMessageByMessageContentContainingIgnoreCase(content);
+
+        if (searchResults == null || searchResults.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        // checking if there are nulls in the result
+        List<MessageDTO> messageDTOs = searchResults.stream()
+                .filter(Objects::nonNull)
                 .map(this::convertToMessageDTO)
-                .collect(Collectors.collectingAndThen(
-                        Collectors.toList(),
-                        messages -> messages.isEmpty()
-                                ? Collections.emptyMap()
-                                : filterOrganizedMessages(organizedMessages, messages)
-                ));
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        if (messageDTOs.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        return filterOrganizedMessages(organizedMessages, messageDTOs);
     }
 
     /**
@@ -658,6 +670,42 @@ public class WhatsAppMessageService {
                         MessageTypeCount.getIconForType((String) result[0]),
                         (Long) result[1]
                 ))
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * Retrieves all unique categories from messages associated with a specific WhatsApp number.
+     * This method is separated from the main message retrieval to:
+     * 1. Reduce memory usage by only fetching necessary fields
+     * 2. Support the dropdown/filter UI independent of the current filtered state
+     * 3. Maintain consistent category options even when messages are filtered
+     *
+     * @param whatsappNumber The WhatsApp number to fetch categories for
+     * @return List of categories associated with the WhatsApp number
+     */
+    public List<String> getAllCategories(String whatsappNumber) {
+        List<WhatsAppMessage> messages = messageRepository.findByFromNumber(whatsappNumber);
+
+        return messages.stream()
+                .map(WhatsAppMessage::getCategory)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Retrieves all unique subcategories from messages associated with a specific WhatsApp number.
+     * This method is separated from the main message retrieval to:
+     * 1. Reduce memory usage by only fetching necessary fields
+     * 2. Support the dropdown/filter UI independent of the current filtered state
+     * 3. Maintain consistent subcategory options even when messages are filtered
+     *
+     * @param whatsappNumber The WhatsApp number to fetch subcategories for
+     * @return List of subcategories associated with the WhatsApp number
+     */
+    public List<String> getAllSubcategories(String whatsappNumber) {
+        List<WhatsAppMessage> messages = messageRepository.findByFromNumber(whatsappNumber);
+
+        return messages.stream()
+                .map(WhatsAppMessage::getSubCategory)
                 .collect(Collectors.toList());
     }
 }
