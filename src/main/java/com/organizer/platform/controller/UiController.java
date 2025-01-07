@@ -1156,21 +1156,15 @@ public class UiController {
      *                   to prevent overwriting filtered content with unfiltered data
      */
     private void setupMessagesPage(Model model, AppUser appUser, boolean isFiltered) {
-        Map<String, Map<String, List<MessageDTO>>> organizedMessages = null;
+        // Get the categories list for dropdowns without storing the full messages
+        List<String> categories = messageService.getAllCategories(appUser.getWhatsappNumber());
+        List<String> subcategories = messageService.getAllSubcategories(appUser.getWhatsappNumber());
+
         if(!isFiltered) {
-            organizedMessages = messageService.findMessageContentsByFromNumberGroupedByCategoryAndGroupedBySubCategory(appUser.getWhatsappNumber());
+            Map<String, Map<String, List<MessageDTO>>> organizedMessages =
+                    messageService.findMessageContentsByFromNumberGroupedByCategoryAndGroupedBySubCategory(appUser.getWhatsappNumber());
             model.addAttribute("categories", organizedMessages); // resets the filter option
         }
-
-        // Extract and set category and subcategory lists
-        assert organizedMessages != null;
-        List<String> categories = new ArrayList<>(organizedMessages.keySet());
-
-        Set<String> subcategoriesSet = new HashSet<>();
-        for (Map<String, List<MessageDTO>> innerMap : organizedMessages.values()) {
-            subcategoriesSet.addAll(innerMap.keySet());
-        }
-        List<String> subcategories = new ArrayList<>(subcategoriesSet);
 
         model.addAttribute("categoryList", categories);
         model.addAttribute("subcategoryList", subcategories);
