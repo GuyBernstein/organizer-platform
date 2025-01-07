@@ -165,7 +165,7 @@ public class UserService {
                         .name(principal.getAttribute("name"))
                         .pictureUrl(principal.getAttribute("picture"))
                         .email(email)
-                        .role(UserRole.USER)
+                        .role(UserRole.UNAUTHORIZED)
                         .authorized(false)
                         .build();
 
