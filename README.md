@@ -37,7 +37,21 @@ gcp.project-id=your-project-id
 # AI Configuration
 anthropic.api.key=your-anthropic-key
 ```
-### 2. Google Cloud Service Account
+### 2. Meta App Configuration
+
+1. Go to the Meta Developer Portal (https://developers.facebook.com/)
+2. Navigate to your WhatsApp Business App
+3. In the App Dashboard, find the "Webhooks" section
+4. Configure your Webhook:
+   - Callback URL: Your application's webhook URL with a "/webhook" suffix
+   - Verify Token: Set this to match the token in your application (`putYourToken` or your custom token)
+
+⚠️ **Important Notes:**
+- Your webhook endpoint MUST be accessible via HTTPS
+- You can use a secure reverse proxy (like Nginx) or a service like ngrok for local development
+- Keep your verify token secure and don't share it publicly
+
+### 3. Google Cloud Service Account
 
 Create gcp/service-account-key.json with your GCP service account credentials:
 ```json
