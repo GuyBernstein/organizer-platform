@@ -10,13 +10,11 @@ import com.organizer.platform.service.WhatsApp.WhatsAppAudioService;
 import com.organizer.platform.service.WhatsApp.WhatsAppDocumentService;
 import com.organizer.platform.service.WhatsApp.WhatsAppImageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import static com.organizer.platform.model.organizedDTO.WhatsAppMessage.WhatsAppMessageBuilder.aWhatsAppMessage;
 
@@ -72,6 +70,35 @@ public class WhatsAppWebhookController {
         this.whatsAppAudioService = whatsAppAudioService;
         this.userService = userService;
     }
+
+     /**
+     * Handles the webhook verification request from WhatsApp Business API.
+     * This endpoint is called when setting up the webhook integration to verify ownership.
+     *
+     * @param mode         The verification mode from WhatsApp (should be "subscribe")
+     * @param verifyToken  Token sent by WhatsApp to verify against our configuration
+     * @param challenge    Random string that needs to be sent back to complete verification
+     * @return ResponseEntity<?> Returns challenge string if verification successful, 403 if not
+     */
+    @GetMapping
+    public ResponseEntity<?> verifyWebhook(
+            @RequestParam("hub.mode") String mode,
+            @RequestParam("hub.verify_token") String verifyToken,
+            @RequestParam("hub.challenge") String challenge) {
+
+        // The verify token from the WhatsApp Business API configuration
+        final String VERIFY_TOKEN = "putYourToken";  // Use the token configured
+
+        // Check mode and token
+        if (mode.equals("subscribe") && verifyToken.equals(VERIFY_TOKEN)) {
+            // Respond with the challenge token from the request
+            return ResponseEntity.ok(challenge);
+        } else {
+            // Respond with '403 Forbidden' if verify tokens do not match
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+    }
+
 
     /**
      * Main webhook endpoint that receives incoming WhatsApp messages.
