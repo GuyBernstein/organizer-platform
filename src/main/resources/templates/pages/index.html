@@ -105,7 +105,7 @@
 		</div>
 	  </div>
 	  
-	  <!-- Right Column: Message Types and Next Steps -->
+	  <!-- Right Column: Message Types, Next Steps and WhatsApp QR -->
 	  <div class="col-lg-4">
 		<!-- Message Types Summary Card -->
 		<div class="card shadow-whatsapp mb-4">
@@ -141,33 +141,31 @@
 			</div>
 		  </div>
 		</div>
-	  </div>
-	</div>
-  </div>
-  
-  <!--
-	  WhatsApp Connection Section
-	  Provides QR code and direct link for WhatsApp connection
-	-->
-  <div class="container-fluid mt-4">
-	<div class="card shadow-whatsapp">
-	  <div class="card-body text-center py-4">
-		<i class="bi bi-whatsapp text-success mb-3" style="font-size: 2.5rem;"></i>
-		<h5 class="card-title">התחבר לוואטסאפ</h5>
-		<p class="card-text">סרוק את הקוד QR או לחץ על הכפתור למטה כדי להתחיל</p>
-		<div class="mb-4">
-		  <!-- QR Code for WhatsApp connection -->
-		  <img th:src="@{'https://api.qrserver.com/v1/create-qr-code/?size=200x200&amp;data=https://wa.me/your-number-here'}"
-			   alt="WhatsApp QR Code"
-			   class="img-fluid"
-			   style="max-width: 200px;">
+		
+		<!--
+		  WhatsApp Connection Section
+		  Provides QR code and direct link for WhatsApp connection
+		-->
+		<div class="card shadow-whatsapp">
+		  <div class="card-body text-center py-4">
+			<i class="bi bi-whatsapp text-success mb-3" style="font-size: 2.5rem;"></i>
+			<h5 class="card-title">התחבר לוואטסאפ</h5>
+			<p class="card-text">סרוק את הקוד QR או לחץ על הכפתור למטה כדי להתחיל</p>
+			<div class="mb-4">
+			  <!-- QR Code for WhatsApp connection -->
+			  <img th:src="@{'https://api.qrserver.com/v1/create-qr-code/?size=200x200&amp;data=https://wa.me/your-number-here'}"
+				   alt="WhatsApp QR Code"
+				   class="img-fluid"
+				   style="max-width: 200px;">
+			</div>
+			<!-- Direct WhatsApp link button -->
+			<a th:href="@{'https://wa.me/your-number-here'}"
+			   target="_blank"
+			   class="btn btn-success btn-lg">
+			  <i class="bi bi-whatsapp me-2"></i>פתח בוואטסאפ
+			</a>
+		  </div>
 		</div>
-		<!-- Direct WhatsApp link button -->
-		<a th:href="@{'https://wa.me/your-number-here'}"
-		   target="_blank"
-		   class="btn btn-success btn-lg">
-		  <i class="bi bi-whatsapp me-2"></i>פתח בוואטסאפ
-		</a>
 	  </div>
 	</div>
   </div>
