@@ -43,13 +43,26 @@ anthropic.api.key=your-anthropic-key
 2. Navigate to your WhatsApp Business App
 3. In the App Dashboard, find the "Webhooks" section
 4. Configure your Webhook:
-   - Callback URL: Your application's webhook URL with a "/webhook" suffix
+   - Callback URL: Your application's webhook URL (must be HTTPS)
    - Verify Token: Set this to match the token in your application (`putYourToken` or your custom token)
+5. Update Your WhatsApp Business Number:
+   - Locate your WhatsApp Business phone number in the Meta Developer Portal
+   - Open `src/main/resources/templates/index.html`
+   - Replace `your-number-here` with your WhatsApp Business number in international format:
+     ```html
+     <!-- QR Code URL -->
+     th:src="@{'https://api.qrserver.com/v1/create-qr-code/?size=200x200&amp;data=https://wa.me/1234567890'}"
+     
+     <!-- Direct link -->
+     th:href="@{'https://wa.me/1234567890'}"
+     ```
+   - Make sure to include the country code without any symbols (e.g., 972501234567)
 
 ⚠️ **Important Notes:**
 - Your webhook endpoint MUST be accessible via HTTPS
-- You can use a secure reverse proxy (like Nginx) or a service like ngrok for local development
+- Use a secure reverse proxy (like Nginx) or a service like ngrok for local development
 - Keep your verify token secure and don't share it publicly
+- The WhatsApp Business number must be verified and active in your Meta Business Account
 
 ### 3. Google Cloud Service Account
 
