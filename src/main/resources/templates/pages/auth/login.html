@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <!-- Thymeleaf template with Hebrew (RTL) language settings -->
-<html xmlns:th="http://www.thymeleaf.org" lang="he" dir="rtl">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml" lang="he" dir="rtl">
 <body>
 <!-- Main content fragment that can be included in the other template (base.html) -->
 <div th:fragment="content">
@@ -9,67 +9,261 @@
 	<!-- Main card container with WhatsApp-themed styling -->
 	<div class="card shadow-whatsapp hover-grow w-100 bg-warning" style="max-width: 800px;">
 	  <div class="card-body p-4">
-		<!-- Header section with lock icon and title -->
-		<div class="text-center mb-4">
-		  <!-- Lock icon -->
-		  <div class="text-dark mb-4">
-			<i class="fas fa-lock" style="font-size: 4rem;"></i>
-		  </div>
+		<!-- Conditional rendering based on authorization status.
+				Only possible if the user was just created, and his status is unauthorized. -->
+		<div th:if="${isAuthorized == false}">
 		  
-		  <!-- Access denied message -->
-		  <h1 class="display-6 text-whatsapp mb-4">אין לך גישה לתוכן זה</h1>
-		  
-		  <!-- User information card -->
-		  <div class="bg-whatsapp-light p-4 rounded-3 mb-4">
-			<!-- Conditional profile picture display -->
-			<div class="mb-4" th:if="${picture}">
-			  <img th:src="${picture}" alt="Profile Picture"
-				   class="rounded-circle img-fluid"
-				   width="96" height="96"
-				   loading="lazy">
+		  <!-- Header section with phone icon and title -->
+		  <div class="text-center mb-4">
+			<!-- Phone icon -->
+			<div class="text-dark mb-4">
+			  <i class="fas fa-phone" style="font-size: 4rem;"></i>
 			</div>
 			
-			<!-- Dynamic user information from Thymeleaf context -->
-			<p class="h3 mb-3" th:text="${name}">שם המשתמש</p>
-			<p class="h5 text-muted" th:text="${email}">אימייל</p>
+			<!-- Completing message to sign up -->
+			<h1 class="display-6 text-whatsapp mb-4">הזן את מספר הWhatsApp שלך</h1>
 			
-			<!-- Access request instructions -->
-			<div class="text-whatsapp-dark">
-			  <p class="lead mb-4">התוכן המבוקש מוגבל למשתמשים מורשים בלבד.</p>
-			  
-			  <hr class="my-4">
-			  
-			  <!-- Instructions for requesting access -->
-			  <div class="text-start mb-4">
-				<p class="h4 mb-3 fw-bold">על מנת לקבל גישה:</p>
-				<ul class="list-unstyled fs-5">
-				  <!-- Email contact information -->
-				  <li class="mb-3">
-					<i class="fas fa-envelope me-2"></i>
-					שלח בקשת גישה למנהל המערכת:
-					<a href="mailto:guyu669@gmail.com" class="text-whatsapp d-block mt-2 text-break fs-4">
-					  guyu669@gmail.com
-					</a>
-				  </li>
-				  <!-- Required information for access request -->
-				  <li class="mb-3">
-					<i class="fab fa-whatsapp me-2"></i>
-					ציין בפנייתך:
-					<ul class="list-unstyled ms-4 mt-2 fs-5">
-					  <li class="mb-2">• שם מלא</li>
-					  <li class="mb-2">• סיבת הבקשה</li>
-					  <li class="mb-2">• מספר טלפון לקבלת הודעות WhatsApp</li>
-					</ul>
-				  </li>
-				</ul>
+			<!-- User information card -->
+			<div class="bg-whatsapp-light p-4 rounded-3 mb-4">
+			  <!-- Conditional profile picture display -->
+			  <div class="mb-4" th:if="${picture}">
+				<img th:src="${picture}" alt="Profile Picture"
+					 class="rounded-circle img-fluid"
+					 width="96" height="96"
+					 loading="lazy">
 			  </div>
 			  
-			  <!-- Important notice about manual approval process -->
-			  <div class="bg-warning-subtle p-4 rounded-3">
-				<p class="fs-5 mb-0">
-				  <i class="fas fa-info-circle me-2"></i>
-				  שים לב: זהו אינו תהליך אוטומטי. בקשתך תיבחן על ידי מנהל המערכת, ותקבל תשובה לאחר אישור.
-				</p>
+			  <!-- Dynamic user information from Thymeleaf context -->
+			  <p class="h3 mb-3" th:text="${name}">שם המשתמש</p>
+			  <p class="h5 text-muted" th:text="${email}">אימייל</p>
+			  
+			  <!-- Access request instructions -->
+			  <div class="text-whatsapp-dark">
+				<p class="lead mb-4">לאחר הזנת מספר הטלפון, תוכל לגשת לתוכן ההודעות שלך.</p>
+				
+				<hr class="my-4">
+				
+				<!-- Instructions for requesting access -->
+				<div class="text-start mb-4">
+				  <p class="h4 mb-3 fw-bold">על מנת לקבל גישה:</p>
+				  <ul class="list-unstyled fs-5">
+					<!-- Email contact information -->
+					<li class="mb-3">
+					  <i class="fas fa-envelope me-2"></i>
+					  מלא את מספר הטלפון ושלח
+					</li>
+					<!-- Required information for access request -->
+					<li class="mb-3">
+					  <i class="fab fa-whatsapp me-2"></i>
+					  ציין בפנייתך:
+					  <ul class="list-unstyled ms-4 mt-2 fs-5">
+						<li class="mb-2">• מספר טלפון לקבלת הודעות WhatsApp</li>
+					  </ul>
+					</li>
+				  </ul>
+				</div>
+				
+				<!-- Important notice about manual approval process -->
+				<div class="bg-warning-subtle p-4 rounded-3">
+				  <p class="fs-5 mb-0">
+					<i class="fas fa-info-circle me-2"></i>
+					שים לב: זהו תהליך חד-פעמי. בקשתך תתקבל, ולא תצטרך למלא פרטים שוב.
+				  </p>
+				</div>
+			  </div>
+			</div>
+		  </div>
+		  
+		  <!-- Form section with input for the phone -->
+		  <form th:action="@{/submit-whatsapp}" method="post">
+			<!-- Error message alert -->
+			<div th:if="${phoneError}" class="alert alert-danger mb-3" role="alert">
+			  <span th:text="${phoneError}"></span>
+			</div>
+			
+			<div class="mb-3">
+			  <label for="whatsappNumber" class="form-label">מספר WhatsApp</label>
+			  <input type="tel"
+					 class="form-control text-center"
+					 id="whatsappNumber"
+					 name="whatsappNumber"
+					 placeholder="05XXXXXXXX">
+			</div>
+			
+			<button type="submit" class="btn btn-whatsapp btn-lg w-100">
+			  <i class="fab fa-whatsapp me-2"></i>
+			  שלח מספר
+			</button>
+		  </form>
+		</div>
+		
+		<!-- This could be possible only if the admin revoked the user's permissions to use this app's features -->
+		<div th:if="${isAuthorized == true && isRoleUnauthorized == true}">
+		  
+		  <!-- Header section with lock icon and title -->
+		  <div class="text-center mb-4">
+			<!-- Lock icon instead of phone -->
+			<div class="text-dark mb-4">
+			  <i class="fas fa-lock" style="font-size: 4rem;"></i>
+			</div>
+			
+			<!-- Role access message -->
+			<h1 class="display-6 text-whatsapp mb-4">נדרשת הרשאת גישה לתוכן</h1>
+			
+			<!-- User information card -->
+			<div class="bg-whatsapp-light p-4 rounded-3 mb-4">
+			  <!-- Conditional profile picture display -->
+			  <div class="mb-4" th:if="${picture}">
+				<img th:src="${picture}" alt="Profile Picture"
+					 class="rounded-circle img-fluid"
+					 width="96" height="96"
+					 loading="lazy">
+			  </div>
+			  
+			  <!-- Dynamic user information from Thymeleaf context -->
+			  <p class="h3 mb-3" th:text="${name}">שם המשתמש</p>
+			  <p class="h5 text-muted" th:text="${email}">אימייל</p>
+			  
+			  <!-- Role access instructions -->
+			  <div class="text-whatsapp-dark">
+				<p class="lead mb-4">החשבון שלך מחובר, אך נדרשת הרשאה מתאימה לצפייה בתוכן זה.</p>
+				
+				<hr class="my-4">
+				
+				<!-- Instructions for requesting role access -->
+				<div class="text-start mb-4">
+				  <p class="h4 mb-3 fw-bold">לקבלת הרשאת גישה:</p>
+				  <ul class="list-unstyled fs-5">
+					<!-- Contact information -->
+					<li class="mb-3">
+					  <i class="fas fa-envelope me-2"></i>
+					  פנה למנהל המערכת לקבלת הרשאה מתאימה
+					</li>
+					<!-- Required information -->
+					<li class="mb-3">
+					  <i class="fas fa-info-circle me-2"></i>
+					  ציין בפנייתך:
+					  <ul class="list-unstyled ms-4 mt-2 fs-5">
+						<li class="mb-2">• מספר וואצאפ</li>
+						<li class="mb-2">• אימייל</li>
+						<li class="mb-2">• התוכן אליו ברצונך לגשת</li>
+					  </ul>
+					</li>
+				  </ul>
+				</div>
+				
+				<!-- Important notice about approval process -->
+				<div class="bg-warning-subtle p-4 rounded-3">
+				  <p class="fs-5 mb-0">
+					<i class="fas fa-info-circle me-2"></i>
+					שים לב: לאחר קבלת ההרשאה המתאימה, תוכל לגשת לתוכן באופן מיידי.
+				  </p>
+				</div>
+			  </div>
+			</div>
+		  </div>
+		</div>
+		
+		<!-- Anonymous User Section -->
+		<div sec:authorize="isAnonymous()" class="container-fluid p-4">
+		  <!-- Login Requirement Card -->
+		  <div class="card border-0 shadow-sm mb-4">
+			<div class="card-body text-center p-4">
+			  <i class="fab fa-whatsapp fa-4x text-success mb-4"></i>
+			  <h2 class="display-6 mb-3">ניהול הודעות WhatsApp</h2>
+			  <p class="fs-4 mb-0">נדרשת התחברות באמצעות חשבון Google כדי להתחיל</p>
+			</div>
+		  </div>
+		  
+		  <!-- System Benefits -->
+		  <div class="card border-0 shadow-sm mb-4">
+			<div class="card-body p-4">
+			  <h3 class="display-6 text-center mb-4">למה להשתמש במערכת?</h3>
+			  
+			  <div class="row g-4">
+				<!-- Message Organization -->
+				<div class="col-12 col-md-6">
+				  <div class="d-flex align-items-start">
+					<div class="text-primary me-3">
+					  <i class="fas fa-folder fa-3x"></i>
+					</div>
+					<div>
+					  <h4 class="fs-4 mb-2">ארגון הודעות חכם</h4>
+					  <p class="fs-5 mb-0">סידור אוטומטי של ההודעות לפי קטגוריות ותתי-קטגוריות לגישה מהירה</p>
+					</div>
+				  </div>
+				</div>
+				
+				<!-- Statistics -->
+				<div class="col-12 col-md-6">
+				  <div class="d-flex align-items-start">
+					<div class="text-primary me-3">
+					  <i class="fas fa-chart-bar fa-3x"></i>
+					</div>
+					<div>
+					  <h4 class="fs-4 mb-2">ניתוח וסטטיסטיקות</h4>
+					  <p class="fs-5 mb-0">צפייה בהתפלגות ההודעות ותובנות על תעבורת ההודעות שלך</p>
+					</div>
+				  </div>
+				</div>
+				
+				<!-- Filtering -->
+				<div class="col-12 col-md-6">
+				  <div class="d-flex align-items-start">
+					<div class="text-primary me-3">
+					  <i class="fas fa-filter fa-3x"></i>
+					</div>
+					<div>
+					  <h4 class="fs-4 mb-2">סינון מתקדם</h4>
+					  <p class="fs-5 mb-0">סינון הודעות לפי תיוג חכם, ותוכן ההודעה</p>
+					</div>
+				  </div>
+				</div>
+				
+				<!-- Export -->
+				<div class="col-12 col-md-6">
+				  <div class="d-flex align-items-start">
+					<div class="text-primary me-3">
+					  <i class="fas fa-file-excel fa-3x"></i>
+					</div>
+					<div>
+					  <h4 class="fs-4 mb-2">ייצוא לאקסל</h4>
+					  <p class="fs-5 mb-0">ייצוא נתונים מהיר לקובץ אקסל לניתוח וארגון מתקדם</p>
+					</div>
+				  </div>
+				</div>
+			  </div>
+			</div>
+		  </div>
+		  
+		  <!-- Login Section -->
+		  <div class="card border-0 shadow-lg bg-primary text-white">
+			<div class="card-body p-5">
+			  <div class="text-center mb-4">
+				<h3 class="display-6 mb-3 text-white">התחברות למערכת</h3>
+				<p class="fs-4">התחברות באמצעות Google נדרשת לצפייה וניהול ההודעות</p>
+			  </div>
+			  
+			  <!-- Google Login Button -->
+			  <div class="d-grid">
+				<a href="/oauth2/authorization/google"
+				   class="btn btn-lg btn-light shadow-sm d-flex align-items-center justify-content-center py-4 px-5 border-0">
+				  <svg class="me-3" style="width: 32px; height: 32px;" viewBox="0 0 24 24">
+					<path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+					<path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+					<path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+					<path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+				  </svg>
+				  <span class="fs-4">התחברות באמצעות Google</span>
+				</a>
+			  </div>
+			  
+			  <!-- Security Notice -->
+			  <div class="text-center mt-4">
+				<small class="text-muted">
+				  <i class="fas fa-shield-alt me-1"></i>
+				  ההתחברות מאובטחת באמצעות Google
+				</small>
 			  </div>
 			</div>
 		  </div>
