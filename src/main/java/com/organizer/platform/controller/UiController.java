@@ -85,7 +85,7 @@ public class UiController {
      * maintaining security boundaries while still providing public access to basic site info.
      *
      * @param principal The authenticated user info, null for anonymous users
-     * @param model The Spring MVC model for view rendering
+     * @param model     The Spring MVC model for view rendering
      * @return The appropriate view name based on authentication status
      */
     @GetMapping
@@ -107,18 +107,21 @@ public class UiController {
      * This is particularly important for maintaining a good user experience even
      * when things go wrong.
      *
-     * @param model For passing error details to the view
+     * @param model     For passing error details to the view
      * @param principal Current user's authentication info
-     * @param ex The caught exception
+     * @param ex        The caught exception
      * @return The error view name
      */
     @ExceptionHandler(Exception.class)
     public String handleAllExceptions(Model model,
                                       @AuthenticationPrincipal OAuth2User principal,
                                       Exception ex) {
+        // Create a detailed error message
+        String errorMessage = "\nאופס! משהו השתבש\n" + ex.getMessage();
 
-        // Add error information to the model
-        model.addAttribute("errorMessage", "\nאופס! משהו השתבש" + ex.getMessage());
+        // Add the error information to the model
+        model.addAttribute("errorMessage", errorMessage);
+
         if (principal == null) {
             model.addAttribute("content", "pages/auth/login");
         }
@@ -135,7 +138,7 @@ public class UiController {
      * the primary interface for users to manage their platform experience.
      *
      * @param principal The authenticated user's information
-     * @param model The Spring MVC model for view rendering
+     * @param model     The Spring MVC model for view rendering
      * @return The appropriate view based on authentication status
      */
     @GetMapping("/dashboard")
@@ -154,7 +157,7 @@ public class UiController {
      * ensures that users can only access their own messages.
      *
      * @param principal The authenticated user's information
-     * @param model The Spring MVC model for view rendering
+     * @param model     The Spring MVC model for view rendering
      * @return The messages view or login redirect as appropriate
      */
     @GetMapping("/messages")
@@ -173,7 +176,7 @@ public class UiController {
      * to manage user accounts, monitor system usage, and maintain platform health.
      *
      * @param principal The authenticated user's information
-     * @param model The Spring MVC model for view rendering
+     * @param model     The Spring MVC model for view rendering
      * @return The admin panel view or appropriate redirect
      */
     @GetMapping("/admin")
@@ -197,8 +200,8 @@ public class UiController {
      * while ensuring existing users are properly recognized.
      *
      * @param principal The authenticated user's information
-     * @param logout Optional logout parameter
-     * @param model The Spring MVC model for view rendering
+     * @param logout    Optional logout parameter
+     * @param model     The Spring MVC model for view rendering
      * @return Appropriate view based on authentication state and user status
      */
     @GetMapping("/login")
@@ -212,8 +215,7 @@ public class UiController {
             }
             return setupAnonymousPage(model, "התחברות", "pages/auth/login");
         }
-        // Find or create user
-        userService.ensureUserExists(principal);
+
         // show dashboard
         return handleAuthorizedAccess(principal, model, "לוח בקרה", "pages/index", false);
     }
@@ -295,7 +297,7 @@ public class UiController {
 
         try {
             var message = messageService.findMessageById(messageId);
-            if(message.isEmpty()) {
+            if (message.isEmpty()) {
                 redirectAttributes.addFlashAttribute("errorMessage", "אירעה שגיאה בעדכון ההודעה");
                 return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", false);
             }
@@ -364,7 +366,7 @@ public class UiController {
 
         try {
             var message = messageService.findMessageById(messageId);
-            if(message.isEmpty()) {
+            if (message.isEmpty()) {
                 redirectAttributes.addFlashAttribute("errorMessage", "אירעה שגיאה בעדכון ההודעה");
                 return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", false);
             }
@@ -569,10 +571,11 @@ public class UiController {
      * results maintain their hierarchical context, making it easier for users to understand
      * where found messages fit within their overall organizational system.
      * <p>
-     * @param content Search text to find in messages
+     *
+     * @param content     Search text to find in messages
      * @param phoneNumber User's phone number to scope the search
-     * @param principal OAuth user information for authentication
-     * @param model Spring MVC model for view rendering
+     * @param principal   OAuth user information for authentication
+     * @param model       Spring MVC model for view rendering
      * @return View name for rendering search results
      */
     @GetMapping("/messages/search")
@@ -594,7 +597,6 @@ public class UiController {
 
         // reset the model attributes for filtration
         model.addAttribute("categories", messageService.getSearchedMessages(content, organizedMessages));
-
         return handleAuthorizedAccess(principal, model, "הודעות", "pages/messages", true);
     }
 
@@ -611,28 +613,29 @@ public class UiController {
      * - Enable CDN caching and optimization
      * - Allow for future changes in storage backend without affecting clients
      * <p>
-     * @param type Media type (document/image/audio) to determine storage bucket
-     * @param content Metadata containing file reference
-     * @param phone User phone number for scoping access
+     *
+     * @param type      Media type (document/image/audio) to determine storage bucket
+     * @param content   Metadata containing file reference
+     * @param phone     User phone number for scoping access
      * @param principal OAuth user information for authentication
      * @return Redirect to signed cloud storage URL
      */
     @GetMapping("/messages/getMedia")
     public RedirectView getMediaMessages(@RequestParam String type,
-                                 @RequestParam String content,
-                                 @RequestParam String phone,
-                                 @AuthenticationPrincipal OAuth2User principal) {
+                                         @RequestParam String content,
+                                         @RequestParam String phone,
+                                         @AuthenticationPrincipal OAuth2User principal) {
         if (principal == null) {
             return new RedirectView("/login");
         }
         String mediaName = extractNameFromMetadata(content, phone + "/");
-        switch (type){
+        switch (type) {
             case "document":
-                return new RedirectView (cloudStorageService.generateDocumentSignedUrl(phone, mediaName));
+                return new RedirectView(cloudStorageService.generateDocumentSignedUrl(phone, mediaName));
             case "image":
-                return new RedirectView (cloudStorageService.generateImageSignedUrl(phone,mediaName));
+                return new RedirectView(cloudStorageService.generateImageSignedUrl(phone, mediaName));
             case "audio":
-                return new RedirectView (cloudStorageService.generateAudioSignedUrl(phone,mediaName));
+                return new RedirectView(cloudStorageService.generateAudioSignedUrl(phone, mediaName));
             default:
                 return new RedirectView("/login");
 
@@ -653,6 +656,7 @@ public class UiController {
      * - Ensure users always get fresh data
      * - Handle concurrent exports efficiently
      * <p>
+     *
      * @param phoneNumber User's phone number to scope the export
      * @return ResponseEntity containing Excel file as byte array
      */
@@ -695,7 +699,7 @@ public class UiController {
             return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
         }
         userService.deauthorize(userId);
-        return handleAuthorizedAccess(principal, model, "ניהול", "pages/admin", true);
+        return handleAuthorizedAccess(principal, model, "ניהול", "pages/admin", false);
     }
 
     /**
@@ -714,7 +718,7 @@ public class UiController {
             return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
         }
         userService.authorize(userId);
-        return handleAuthorizedAccess(principal, model, "ניהול", "pages/admin", true);
+        return handleAuthorizedAccess(principal, model, "ניהול", "pages/admin", false);
     }
 
     /**
@@ -728,13 +732,13 @@ public class UiController {
      */
     @PostMapping("/admin/delete-user")
     public String deleteUser(@RequestParam Long userId,
-                            @AuthenticationPrincipal OAuth2User principal,
-                            Model model) {
+                             @AuthenticationPrincipal OAuth2User principal,
+                             Model model) {
         if (principal == null) {
-            return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
+            return setupAnonymousPage(model, "התחברות", "pages/auth/login");
         }
         userService.deleteById(userId);
-        return handleAuthorizedAccess(principal, model, "ניהול", "pages/admin", true);
+        return handleAuthorizedAccess(principal, model, "ניהול", "pages/admin", false);
     }
 
     /**
@@ -743,19 +747,19 @@ public class UiController {
      * - Promoting users to admin roles
      * - Adjusting access levels based on user responsibility
      * - Managing dynamic permission changes
-     * - Implementing principle of least privilege
+     * - Implementing principle of the least privilege
      * Security Note: This operation should be logged for audit purposes
      */
     @PostMapping("/admin/change-role")
     public String changeRole(@RequestParam Long userId,
                              @RequestParam UserRole newRole,
-                            @AuthenticationPrincipal OAuth2User principal,
-                            Model model) {
+                             @AuthenticationPrincipal OAuth2User principal,
+                             Model model) {
         if (principal == null) {
-            return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
+            return setupAnonymousPage(model, "התחברות", "pages/auth/login");
         }
         userService.changeRole(userId, newRole);
-        return handleAuthorizedAccess(principal, model, "ניהול", "pages/admin", true);
+        return handleAuthorizedAccess(principal, model, "ניהול", "pages/admin", false);
     }
 
     /**
@@ -774,10 +778,66 @@ public class UiController {
                              @AuthenticationPrincipal OAuth2User principal,
                              Model model) {
         if (principal == null) {
-            return setupAnonymousPage(model, "דף הבית", "pages/auth/login");
+            return setupAnonymousPage(model, "התחברות", "pages/auth/login");
         }
         userService.createUserFromEmail(email, role, phone);
-        return handleAuthorizedAccess(principal, model, "ניהול", "pages/admin", true);
+        return handleAuthorizedAccess(principal, model, "ניהול", "pages/admin", false);
+    }
+
+    /**
+     * Handles WhatsApp number submission and validation for user authorization.
+     * Supports both Israeli and international phone number formats.
+     *
+     * @param whatsappNumber The phone number submitted by the user
+     * @param principal OAuth2User containing user authentication details
+     * @param redirectAttributes For passing error messages between redirects
+     * @param model Spring MVC Model for view attributes
+     * @return The appropriate view name based on validation results
+     */
+    @PostMapping("/submit-whatsapp")
+    public String submitWhatsApp(@RequestParam String whatsappNumber,
+                                 @AuthenticationPrincipal OAuth2User principal,
+                                 RedirectAttributes redirectAttributes,
+                                 Model model) {
+        // Check if user is authenticated, redirect to login if not
+        if (principal == null) {
+            return setupAnonymousPage(model, "התחברות", "pages/auth/login");
+        }
+
+        // Validate for empty or null phone number input
+        // Returns to login page with error message if validation fails
+        if (whatsappNumber == null || whatsappNumber.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("phoneError", "אנא הזן מספר טלפון");
+            return "redirect:/login";
+        }
+
+        // Define regex patterns for phone number validation
+        // Israeli format: 10 digits starting with '05' (e.g., 0501234567)
+        // International format: 12 digits starting with '972' (e.g., 972501234567)
+        String israeliPattern = "^05\\d{8}$";  // 05XXXXXXXX
+        String internationalPattern = "^972\\d{9}$";  // 972XXXXXXXXX
+
+        // Check if the number matches either Israeli or international format
+        boolean isValidNumber = whatsappNumber.matches(israeliPattern) || whatsappNumber.matches(internationalPattern);
+
+        // If number doesn't match either format, return to login page with error message
+        if (!isValidNumber) {
+            redirectAttributes.addFlashAttribute("phoneError", "מספר הטלפון אינו תקין. אנא הזן מספר בפורמט 05XXXXXXXX או 972XXXXXXXXX");
+            return "redirect:/login";
+        }
+
+        // Convert Israeli format to international format if necessary
+        // Removes the leading '0' and adds '972' prefix
+        if (whatsappNumber.matches("^05\\d{8}$")) {
+            whatsappNumber = "972" + whatsappNumber.substring(1); // Remove '0' and add '972'
+        }
+
+        // Get user's email from OAuth2 principal and authorize the user
+        String email = principal.getAttribute("email");
+        userService.authorizeUserFromPhone(email, whatsappNumber);
+
+        // Redirect to dashboard after successful authorization
+        return handleAuthorizedAccess(principal, model, "לוח הבקרה", "pages/index", false);
     }
 
     /**
@@ -791,8 +851,9 @@ public class UiController {
      * For security and organization, files are stored in user-specific prefixes (phone numbers)
      * to maintain data isolation between users.
      * <p>
+     *
      * @param metadata The full metadata string containing file information
-     * @param prefix The user-specific prefix (typically phone number) used for file organization
+     * @param prefix   The user-specific prefix (typically phone number) used for file organization
      * @return The extracted filename, or null if the pattern isn't found
      */
     private String extractNameFromMetadata(String metadata, String prefix) {
@@ -824,22 +885,23 @@ public class UiController {
      * the same security and authorization checks, ensuring consistent user experience
      * regardless of how the page is accessed.
      * <p>
-     * @param principal The OAuth2 user principal from the current session
-     * @param model The Spring MVC model for view rendering
-     * @param title The page title to display
+     *
+     * @param principal   The OAuth2 user principal from the current session
+     * @param model       The Spring MVC model for view rendering
+     * @param title       The page title to display
      * @param contentPage The target content page to render
-     * @param isFiltered Whether this is a filtered view (affects data loading)
+     * @param isFiltered  Whether this is a filtered view (affects data loading)
      * @return The name of the template to render
      */
     private String handleAuthorizedAccess(OAuth2User principal, Model model, String title, String contentPage, boolean isFiltered) {
-        String email = principal.getAttribute("email");
-        Optional<AppUser> appUser = userService.findByEmail(email);
+        // Find or create user
+        AppUser appUser = userService.ensureUserExists(principal);
 
-        if (appUser.isPresent() && appUser.get().isAuthorized()) {
-            setupAuthorizedModel(model, appUser.get(), title, contentPage, isFiltered);
-        } else {
-            setupUnauthorizedModel(model, principal,
-                    appUser.orElse(anUser().authorized(false).build()));
+        if (appUser.isAuthorized() && appUser.getRole() != UserRole.UNAUTHORIZED) {
+            setupAuthorizedModel(model, appUser, title, contentPage, isFiltered);
+        }
+        else {
+            setupUnauthorizedModel(model, principal, appUser);
         }
         return "layout/base";
     }
@@ -852,15 +914,15 @@ public class UiController {
      * authenticated. It's designed to:
      * 1. Provide a clean, unburdened interface for first-time visitors
      * 2. Act as a security boundary, ensuring unauthenticated users only see
-     *    appropriate content
+     * appropriate content
      * 3. Maintain a consistent look and feel across all public pages while
-     *    stripping out any personalized or protected elements
+     * stripping out any personalized or protected elements
      * <p>
      * The method deliberately avoids loading user-specific data or sensitive
      * information, making it both secure and performant for public access.
      *
-     * @param model The Spring MVC model
-     * @param title The page title to display
+     * @param model       The Spring MVC model
+     * @param title       The page title to display
      * @param contentPage The public page content to render
      * @return The name of the template to render
      */
@@ -883,9 +945,9 @@ public class UiController {
      * The method sets up a limited view with just enough information to let users know
      * their status without exposing any protected functionality.
      *
-     * @param model The Spring MVC model
+     * @param model     The Spring MVC model
      * @param principal The OAuth2 user information
-     * @param appUser The application user entity (may be unauthorized)
+     * @param appUser   The application user entity (may be unauthorized)
      */
     private void setupUnauthorizedModel(Model model, OAuth2User principal, AppUser appUser) {
         String name = principal.getAttribute("name");
@@ -898,7 +960,8 @@ public class UiController {
         model.addAttribute("picture", picture);
         model.addAttribute("content", "pages/auth/login");
         model.addAttribute("unauthorized", true);
-        model.addAttribute("isAuthorized", appUser != null && appUser.isAuthorized());
+        model.addAttribute("isAuthorized", appUser.isAuthorized());
+        model.addAttribute("isRoleUnauthorized", appUser.getRole() == UserRole.UNAUTHORIZED);
     }
 
     /**
@@ -914,11 +977,11 @@ public class UiController {
      * page-specific setup to specialized methods, keeping the code organized and
      * maintainable as new pages are added.
      *
-     * @param model The Spring MVC model
-     * @param appUser The authorized application user
-     * @param title The page title
+     * @param model       The Spring MVC model
+     * @param appUser     The authorized application user
+     * @param title       The page title
      * @param contentPage The specific page being requested
-     * @param isFiltered Whether this is a filtered view
+     * @param isFiltered  Whether this is a filtered view
      */
     private void setupAuthorizedModel(Model model, AppUser appUser,
                                       String title, String contentPage, boolean isFiltered) {
@@ -934,6 +997,8 @@ public class UiController {
             case "pages/admin":
                 setupAdminPage(model);
                 break;
+            default:
+                break;
         }
     }
 
@@ -948,6 +1013,7 @@ public class UiController {
      * The data is organized chronologically to show growth patterns and identify
      * usage trends over time.
      * <p>
+     *
      * @param model Spring MVC Model to populate admin-dashboard data
      */
     private void setupAdminPage(Model model) {
@@ -1118,9 +1184,9 @@ public class UiController {
      * This centralized approach helps maintain UI consistency and simplifies
      * permission-based feature toggling in the views.
      *
-     * @param model Spring MVC Model to populate with common attributes
-     * @param appUser Current authenticated user
-     * @param title Page-specific title
+     * @param model       Spring MVC Model to populate with common attributes
+     * @param appUser     Current authenticated user
+     * @param title       Page-specific title
      * @param contentPage Template path for the main content
      */
     private void setupCommonAttributes(Model model, AppUser appUser,
@@ -1132,6 +1198,7 @@ public class UiController {
         model.addAttribute("content", contentPage);
         model.addAttribute("phone", appUser.getWhatsappNumber());
         model.addAttribute("isAuthorized", appUser.isAuthorized());
+        model.addAttribute("isRoleUnauthorized", appUser.getRole() == UserRole.UNAUTHORIZED);
         model.addAttribute("isAdmin", appUser.isAdmin());
     }
 
@@ -1139,19 +1206,20 @@ public class UiController {
      * Prepares the message management view with organized content and filtering capabilities.
      * This method serves two key purposes:
      * 1. For regular views (isFiltered=false):
-     *    - Organizes messages hierarchically by category and subcategory to maintain
-     *      a clean, structured view of all content
-     *    - Extracts available categories and subcategories to power the UI's
-     *      filtering and organization features
+     * - Organizes messages hierarchically by category and subcategory to maintain
+     * a clean, structured view of all content
+     * - Extracts available categories and subcategories to power the UI's
+     * filtering and organization features
      * <p>
      * 2. For filtered views (isFiltered=true):
-     *    - Preserves the filtered results while still providing access to the full
-     *      set of categories and tags for further filtering
+     * - Preserves the filtered results while still providing access to the full
+     * set of categories and tags for further filtering
      * <p>
      * The method ensures users can both browse their complete message hierarchy
      * and apply complex filters while maintaining context of their full content
      * organization structure.
      * <p>
+     *
      * @param isFiltered Indicates whether the current view is showing filtered results
      *                   to prevent overwriting filtered content with unfiltered data
      */
@@ -1160,7 +1228,7 @@ public class UiController {
         List<String> categories = messageService.getAllCategories(appUser.getWhatsappNumber());
         List<String> subcategories = messageService.getAllSubcategories(appUser.getWhatsappNumber());
 
-        if(!isFiltered) {
+        if (!isFiltered) {
             Map<String, Map<String, List<MessageDTO>>> organizedMessages =
                     messageService.findMessageContentsByFromNumberGroupedByCategoryAndGroupedBySubCategory(appUser.getWhatsappNumber());
             model.addAttribute("categories", organizedMessages); // resets the filter option
