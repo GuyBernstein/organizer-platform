@@ -1,6 +1,8 @@
 # WhatsApp Content Manager
 An AI-powered application that helps you organize and manage content you've sent to yourself on WhatsApp. Never lose track of important links, images, or ideas again!
 
+## Watch my Video: https://www.youtube.com/watch?v=4JXdIhcAUog
+
 ## Features
 
 - 🤖 Advanced AI categorization
